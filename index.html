@@ -447,6 +447,9 @@ class LuaParser {
     this.s = src;
     this.p = 0;
     this.n = src.length;
+    // Pre-compiled sticky regexes — avoids O(n) substring copy on every call.
+    this._reNum  = /-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?/y;
+    this._reWord = /[a-zA-Z_]\w*/y;
   }
 
   skipWS() {
@@ -466,28 +469,35 @@ class LuaParser {
   parseString() {
     this.p++; // skip opening "
     let out = '';
+    let start = this.p;
     while (this.p < this.n && this.s[this.p] !== '"') {
       if (this.s[this.p] === '\\') {
+        out += this.s.slice(start, this.p); // flush non-escape chars in bulk
         this.p++;
         const e = this.s[this.p++];
         out += e === 'n' ? '\n' : e === 't' ? '\t' : e === 'r' ? '\r' : e;
+        start = this.p;
       } else {
-        out += this.s[this.p++];
+        this.p++;
       }
     }
+    out += this.s.slice(start, this.p); // flush remaining chars
     this.p++; // skip closing "
     return out;
   }
 
+  // Sticky-regex versions avoid the O(n) substring copy on every call.
   parseNumber() {
-    const m = /^-?\d+(?:\.\d+)?(?:[eE][+\-]?\d+)?/.exec(this.s.slice(this.p));
-    if (m) { this.p += m[0].length; return parseFloat(m[0]); }
+    this._reNum.lastIndex = this.p;
+    const m = this._reNum.exec(this.s);
+    if (m) { this.p = this._reNum.lastIndex; return parseFloat(m[0]); }
     return 0;
   }
 
   parseWord() {
-    const m = /^[a-zA-Z_]\w*/.exec(this.s.slice(this.p));
-    if (m) { this.p += m[0].length; return m[0]; }
+    this._reWord.lastIndex = this.p;
+    const m = this._reWord.exec(this.s);
+    if (m) { this.p = this._reWord.lastIndex; return m[0]; }
     return null;
   }
 
@@ -575,7 +585,7 @@ class LuaParser {
 const THEATER_ORIGINS = {
   Caucasus:       { lat: 44.714, lon: 33.732 },
   Nevada:         { lat: 36.000, lon: -116.467 },
-  PersianGulf:    { lat: 22.000, lon:  58.000 },
+  PersianGulf:    { lat: 26.150, lon:  56.260 },  // calibrated vs Al Minhad & Al Dhafra
   Syria:          { lat: 36.000, lon:  33.000 },
   MarianaIslands: { lat: 21.500, lon: 145.000 },
   Sinai:          { lat: 29.000, lon:  32.000 },
@@ -716,17 +726,6 @@ function extractF16Flights(mission, theater) {
     }
   }
   return flights;
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-//  Channel helper: flatten radio object {1:freq, 2:freq, ...} into array[20]
-// ═══════════════════════════════════════════════════════════════════════════
-function flattenChannels(radio) {
-  const arr = [];
-  for (let i = 1; i <= 20; i++) {
-    arr.push(radio[i] !== undefined ? parseFloat(Number(radio[i]).toFixed(3)) : 0);
-  }
-  return arr;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -887,24 +886,13 @@ function switchTab(groupId, panel, tabEl) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-//  DTC Builder — v1.1 native ED JSON format
-//
-//  Top-level: { Aircraft, Version:"1.1", Navigation, Radio, Countermeasures, Datalink }
-//  Navigation.Steerpoints: keyed object "1"…"N", coords as "DD.MM.SSN"/"DDD.MM.SSE"
-//    TGT → adds TargetData: {VRP_Bearing, VRP_Range, PUP_Distance}
-//  Navigation.Routes: keyed object, each route has Name + Legs:[{STPT,Speed,Alt}]
-//  Countermeasures: { Settings:{Mode,BypassEnabled,Feedback,ChaffBingo,FlareBingo,AutoDelay},
-//    Programs:{Program1…6:{Chaff,Flare,Interval,Cycles}},
-//    ThreatTable:{"SA10":"Program4",…} }
-//  Datalink: { Settings:{OwnshipSTN,FighterChannel,MissionChannel,TDOA_Active},
-//    Network:{Members:{…},Donors:{…}} }
-//  ThreatTable keys have NO spaces (SA10 not "SA 10"); unmapped threats → PGM1.
+//  DTC Preview Builder — internal format used only for the preview panel.
+//  Steerpoints rendered directly from flight.waypoints (interactive dropdowns).
+//  Radio channels rendered from flight.radio1/radio2.
+//  CMDS/RWR rendered from state.personalDtc (native format).
 // ═══════════════════════════════════════════════════════════════════════════
-
 function buildDtc(flight) {
-  // ── Radio ──────────────────────────────────────────────────────────────
-  // Build UHF (COM1) and VHF (COM2) channel objects.
-  // Names come from a personal .dtc upload if available; otherwise blank.
+  // ── Radio — mission presets (used for preview COM tabs) ────────────────
   const personalUhf = state.personalDtc?.Radio?.UHF?.Channels || {};
   const personalVhf = state.personalDtc?.Radio?.VHF?.Channels || {};
 
@@ -931,13 +919,6 @@ function buildDtc(flight) {
 
   // ── EWS — only populated when a personal .dtc is loaded ────────────────
   const ews = state.personalDtc?.EWS || null;
-
-  // ── Datalink ────────────────────────────────────────────────────────────
-  const DEFAULT_DATALINK = {
-    Settings: { OwnshipSTN: '00000', FighterChannel: 1, MissionChannel: 1, TDOA_Active: false },
-    Network: { Members: {}, Donors: {} },
-  };
-  const datalink = state.personalDtc?.Datalink || DEFAULT_DATALINK;
 
   // ── Navigation steerpoints ─────────────────────────────────────────────
   // Exclude TakeOff and Landing. Keyed object "1"/{…}, "2"/{…}, …
@@ -976,6 +957,63 @@ function buildDtc(flight) {
     Navigation: {
       Steerpoints: steerpointObj,
     },
+  };
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  DTC Native Builder — outputs real DCS format for export
+//  { data: { COMM, ELINT, MPD, NAV }, name, type }
+//  COMM  = mission radio presets
+//  ELINT = passthrough from personal .dtc (RWR priorities)
+//  MPD   = passthrough from personal .dtc (CMDS programs)
+//  NAV   = steerpoints from mission waypoints
+// ═══════════════════════════════════════════════════════════════════════════
+function buildDtcNative(flight) {
+  // ── COMM — mission radio → Channel_N keys with integer MHz freq ───────────
+  const comm1 = {}, comm2 = {};
+  for (let i = 1; i <= 20; i++) {
+    const f1 = flight.radio1[i];
+    const f2 = flight.radio2[i];
+    if (f1 !== undefined) comm1[`Channel_${i}`] = { freq: parseFloat(Number(f1).toFixed(3)), modulation: 1 };
+    if (f2 !== undefined) comm2[`Channel_${i}`] = { freq: parseFloat(Number(f2).toFixed(3)), modulation: 1 };
+  }
+
+  // ── NAV — steerpoints from mission (exclude takeoff/landing) ─────────────
+  const steerpoints = {};
+  let stNum = 0;
+  for (const wp of flight.waypoints.filter(w => !w.isTakeoff && !w.isLand)) {
+    stNum++;
+    const entry = {
+      Name: wp.name || `STPT${stNum}`,
+      Type: wp.pointType || 'STPT',
+      Lat:  toDtcLat(wp.lat),
+      Long: toDtcLon(wp.lon),
+      Alt:  wp.alt_ft,
+    };
+    if (wp.pointType === 'TGT' && wp.targetData) {
+      entry.TargetData = {
+        VRP_Bearing:  wp.targetData.vrpBearing,
+        VRP_Range:    parseFloat(wp.targetData.vrpRange.toFixed(2)),
+        PUP_Distance: parseFloat(wp.targetData.pupDistance.toFixed(2)),
+      };
+    }
+    steerpoints[String(stNum)] = entry;
+  }
+
+  // ── Passthrough ELINT and MPD from personal .dtc ─────────────────────────
+  const pd = state.personalDtc;
+  const elint = pd?._rawElint || {};
+  const mpd   = pd?._rawMpd   || {};
+
+  return {
+    data: {
+      COMM:  { COMM1: comm1, COMM2: comm2 },
+      ELINT: elint,
+      MPD:   mpd,
+      ...(stNum > 0 ? { NAV: { Steerpoints: steerpoints } } : {}),
+    },
+    name: flight.name,
+    type: 'F-16C_50',
   };
 }
 
@@ -1056,52 +1094,133 @@ function previewDtc() {
     </tr>`).join('');
 
   // ── CMDS programs ──────────────────────────────────────────────────────
-  const cmdsPrograms = dtc.Countermeasures
-    ? (dtc.Countermeasures.Programs || dtc.Countermeasures)
-    : {};
-  const cmdsRows = Object.entries(cmdsPrograms).map(([prog, p]) => `
-    <tr>
-      <td style="color:var(--muted)">${prog.replace('Program', 'PGM ')}</td>
-      <td style="color:var(--text);text-align:center">${p.Chaff ?? p.BurstChaff}</td>
-      <td style="color:var(--text);text-align:center">${p.Flare ?? p.BurstFlare}</td>
-      <td style="color:var(--text);text-align:center">${p.Interval}s</td>
-      <td style="color:var(--text);text-align:center">${p.Cycles}</td>
-    </tr>`).join('');
+  // Supports two layouts:
+  //   Native: _nativePrograms → MAN1-6, AUTO1-3, BYP each with Chaff/Flare {BurstQty, SalvoQty, BurstInterval, SalvoInterval}
+  //   Old:    Programs         → Program1-6 each with flat Chaff, Flare, Interval, Cycles
+  let cmdsRows = '', cmdsIsNative = false;
+  if (dtc.Countermeasures?._nativePrograms) {
+    cmdsIsNative = true;
+    cmdsRows = Object.entries(dtc.Countermeasures._nativePrograms).map(([prog, p]) => {
+      const c = p.Chaff || {}, f = p.Flare || {};
+      return `
+      <tr>
+        <td style="color:var(--muted)">${prog}</td>
+        <td style="color:var(--text);text-align:center">${c.BurstQuantity ?? 0} × ${c.SalvoQuantity ?? 0}</td>
+        <td style="color:var(--text);text-align:center">${f.BurstQuantity ?? 0} × ${f.SalvoQuantity ?? 0}</td>
+        <td style="color:var(--text);text-align:center">${c.BurstInterval ?? 0}s</td>
+        <td style="color:var(--text);text-align:center">${c.SalvoInterval ?? 0}s</td>
+      </tr>`;
+    }).join('');
+  } else if (dtc.Countermeasures) {
+    const progs = dtc.Countermeasures.Programs || dtc.Countermeasures;
+    cmdsRows = Object.entries(progs).filter(([k]) => !k.startsWith('_') && typeof progs[k] === 'object').map(([prog, p]) => `
+      <tr>
+        <td style="color:var(--muted)">${prog.replace('Program', 'PGM ')}</td>
+        <td style="color:var(--text);text-align:center">${p.Chaff ?? p.BurstChaff}</td>
+        <td style="color:var(--text);text-align:center">${p.Flare ?? p.BurstFlare}</td>
+        <td style="color:var(--text);text-align:center">${p.Interval}s</td>
+        <td style="color:var(--text);text-align:center">${p.Cycles}</td>
+      </tr>`).join('');
+  }
 
-  // ── EWS — flatten nested object into key-value pills ──────────────────
+  // ── EWS bingo / settings (native format) ──────────────────────────────
   const ewsItems = [];
-  if (dtc.EWS) (function flatEws(obj, prefix) {
-    for (const [k, v] of Object.entries(obj)) {
-      if (v !== null && typeof v === 'object' && !Array.isArray(v)) {
-        flatEws(v, prefix ? `${prefix}.${k}` : k);
-      } else if (!Array.isArray(v)) {
-        const label = prefix ? `${prefix}.${k}` : k;
-        const valHtml = v === true  ? `<span class="ews-val-on">ON</span>`
-                      : v === false ? `<span class="ews-val-off">OFF</span>`
-                      : `<span style="color:var(--text)">${v}</span>`;
-        ewsItems.push(`<div class="ews-item"><span class="ek">${label}</span>${valHtml}</div>`);
-      }
+  const nativeBingo = dtc.Countermeasures?._nativeBingo;
+  if (nativeBingo) {
+    for (const [k, v] of Object.entries(nativeBingo)) {
+      const valHtml = v === true  ? `<span class="ews-val-on">ON</span>`
+                    : v === false ? `<span class="ews-val-off">OFF</span>`
+                    : `<span style="color:var(--text)">${v}</span>`;
+      ewsItems.push(`<div class="ews-item"><span class="ek">${k}</span>${valHtml}</div>`);
     }
-  })(dtc.EWS, '');
-
-  // ── Threat table rows ──────────────────────────────────────────────────
-  const threatTable = dtc.Countermeasures?.ThreatTable || {};
-  const threatRows = Object.entries(threatTable).map(([threat, pgm]) => `
-    <tr>
-      <td style="color:var(--text)">${threat}</td>
-      <td style="color:var(--muted)">${pgm.replace('Program', 'PGM ')}</td>
-    </tr>`).join('');
+  } else if (dtc.EWS) {
+    (function flatEws(obj, prefix) {
+      for (const [k, v] of Object.entries(obj)) {
+        if (v !== null && typeof v === 'object' && !Array.isArray(v)) {
+          flatEws(v, prefix ? `${prefix}.${k}` : k);
+        } else if (!Array.isArray(v)) {
+          const label = prefix ? `${prefix}.${k}` : k;
+          const valHtml = v === true  ? `<span class="ews-val-on">ON</span>`
+                        : v === false ? `<span class="ews-val-off">OFF</span>`
+                        : `<span style="color:var(--text)">${v}</span>`;
+          ewsItems.push(`<div class="ews-item"><span class="ek">${label}</span>${valHtml}</div>`);
+        }
+      }
+    })(dtc.EWS, '');
+  }
 
   // ── RWR priority table ────────────────────────────────────────────────
-  const rwrThreats = dtc.EWS?.RWR?.ThreatTable || [];
-  const rwrRows = rwrThreats
-    .slice().sort((a, b) => (a.priority ?? 99) - (b.priority ?? 99))
-    .map(t => `
-    <tr>
-      <td style="color:var(--muted);text-align:center">${t.priority ?? '—'}</td>
-      <td style="color:var(--text)">${t.id}</td>
-      <td style="color:var(--muted)">${t.symbol || '—'}</td>
-    </tr>`).join('');
+  // Native format: RWR.HIGH and RWR.LOW are objects keyed by threat name
+  //   e.g. { "A-50": { PRI: 66, display: true, search: false, unknown: false } }
+  // Fallback:      EWS.RWR.ThreatTable is a flat array of {priority, id, symbol}
+  let rwrRows = '';
+  const rwr = dtc.EWS?.RWR;
+  if (rwr) {
+    // Native object format: keyed by threat name
+    const buildObjRwrRows = (obj, label) => {
+      if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return '';
+      return Object.entries(obj)
+        .sort(([, a], [, b]) => (a.PRI ?? 99) - (b.PRI ?? 99))
+        .map(([name, t]) => `
+        <tr>
+          <td style="color:var(--muted);text-align:center">${t.PRI ?? '—'}</td>
+          <td style="color:var(--text)">${name}</td>
+          <td style="color:var(--muted);font-size:10px">${label}${t.display ? ' ●disp' : ''}${t.search ? ' ●srch' : ''}</td>
+        </tr>`).join('');
+    };
+    // Legacy array format: [{PRI/priority, group_name/id, hint/symbol}]
+    const buildArrRwrRows = (arr) => {
+      if (!Array.isArray(arr)) return '';
+      return arr
+        .slice().sort((a, b) => (a.PRI ?? a.priority ?? 99) - (b.PRI ?? b.priority ?? 99))
+        .map(t => `
+        <tr>
+          <td style="color:var(--muted);text-align:center">${t.PRI ?? t.priority ?? '—'}</td>
+          <td style="color:var(--text)">${t.group_name ?? t.id ?? '—'}</td>
+          <td style="color:var(--muted);font-size:10px">${t.hint ?? t.symbol ?? '—'}</td>
+        </tr>`).join('');
+    };
+    if (rwr.HIGH && !Array.isArray(rwr.HIGH)) {
+      // Real DCS native format — plain objects keyed by threat name
+      const highRows = buildObjRwrRows(rwr.HIGH, 'H');
+      const lowRows  = buildObjRwrRows(rwr.LOW,  'L');
+      if (highRows || lowRows) rwrRows = highRows + lowRows;
+    } else if (Array.isArray(rwr.HIGH)) {
+      const highRows = buildArrRwrRows(rwr.HIGH);
+      const lowRows  = buildArrRwrRows(rwr.LOW);
+      if (highRows || lowRows) rwrRows = highRows + lowRows;
+    } else if (Array.isArray(rwr.ThreatTable)) {
+      rwrRows = buildArrRwrRows(rwr.ThreatTable);
+    }
+  }
+
+  // ── CMDS Threat → Program map (native format) ──────────────────────────
+  let threatRows = '';
+  const nativeThreatMap = dtc.Countermeasures?._nativeThreatMap;
+  if (nativeThreatMap) {
+    // CMDSPrograms: { Air: {threatName: {program, ...}}, Ground: {...}, Naval: {...} }
+    for (const [category, threats] of Object.entries(nativeThreatMap)) {
+      if (!threats || typeof threats !== 'object') continue;
+      for (const [threat, cfg] of Object.entries(threats)) {
+        if (cfg?.program) {
+          threatRows += `
+          <tr>
+            <td style="color:var(--muted);font-size:10px">${category}</td>
+            <td style="color:var(--text)">${threat}</td>
+            <td style="color:var(--muted)">MAN${cfg.program}</td>
+          </tr>`;
+        }
+      }
+    }
+  } else {
+    const flatThreatTable = dtc.Countermeasures?.ThreatTable || {};
+    threatRows = Object.entries(flatThreatTable).map(([threat, pgm]) => `
+      <tr>
+        <td style="color:var(--muted);font-size:10px">—</td>
+        <td style="color:var(--text)">${threat}</td>
+        <td style="color:var(--muted)">${pgm.replace('Program', 'PGM ')}</td>
+      </tr>`).join('');
+  }
 
   const hasCmds    = !!dtc.Countermeasures;
   const hasThreats = !!(threatRows || rwrRows);
@@ -1135,25 +1254,29 @@ function previewDtc() {
       </div>
       <div class="tab-panel" id="dtp-cmds">
         <table>
-          <thead><tr><th>Program</th><th style="text-align:center">Chaff</th><th style="text-align:center">Flare</th><th style="text-align:center">Interval</th><th style="text-align:center">Cycles</th></tr></thead>
+          ${cmdsIsNative
+            ? `<thead><tr><th>Program</th><th style="text-align:center">Chaff BQ×SQ</th><th style="text-align:center">Flare BQ×SQ</th><th style="text-align:center">Burst Intv</th><th style="text-align:center">Salvo Intv</th></tr></thead>`
+            : `<thead><tr><th>Program</th><th style="text-align:center">Chaff</th><th style="text-align:center">Flare</th><th style="text-align:center">Interval</th><th style="text-align:center">Cycles</th></tr></thead>`
+          }
           <tbody>${cmdsRows}</tbody>
         </table>
+        ${ewsItems.length ? `
         <div style="margin-top:16px">
-          <div class="dtc-section-title" style="margin-bottom:8px">EWS Settings</div>
+          <div class="dtc-section-title" style="margin-bottom:8px">${cmdsIsNative ? 'Bingo Settings' : 'EWS Settings'}</div>
           <div class="ews-grid">${ewsItems.join('')}</div>
-        </div>
+        </div>` : ''}
       </div>
       <div class="tab-panel" id="dtp-threats">
         ${rwrRows ? `
           <div class="dtc-section-title" style="margin-bottom:8px">RWR Threat Priorities</div>
           <table style="margin-bottom:20px">
-            <thead><tr><th style="text-align:center">Priority</th><th>Threat ID</th><th>Symbol</th></tr></thead>
+            <thead><tr><th style="text-align:center">PRI</th><th>Threat</th><th>Hint</th></tr></thead>
             <tbody>${rwrRows}</tbody>
           </table>` : ''}
         ${threatRows
           ? `<div class="dtc-section-title" style="margin-bottom:8px">CMDS Threat → Program</div>
              <table>
-              <thead><tr><th>Threat</th><th>Assigned Program</th></tr></thead>
+              <thead><tr><th>Category</th><th>Threat</th><th>Program</th></tr></thead>
               <tbody>${threatRows}</tbody>
             </table>`
           : (!rwrRows ? '<p style="color:var(--muted)">No threat table entries.</p>' : '')
@@ -1178,7 +1301,7 @@ function closeDtcPreview() {
 function downloadDtc() {
   const flight = state.previewFlight;
   if (!flight) return;
-  const dtc  = buildDtc(flight);   // always rebuild — captures role/TargetData edits from preview
+  const dtc = buildDtcNative(flight); // real DCS format — captures role/TargetData edits from preview
 
   const inputName = document.getElementById('dtc-export-name').value.trim();
   const name = (inputName || flight.name).replace(/[^a-zA-Z0-9_\-]/g, '_');
@@ -1255,82 +1378,46 @@ document.getElementById('miz-input').addEventListener('change', async (e) => {
 });
 
 // ── .dtc format normalizer ────────────────────────────────────────────────
-// Converts the user's lowercase schema into the PascalCase schema used internally.
-// If the file is already in PascalCase (native ED format) it is returned as-is.
+// Parses real DCS native format: { data: { COMM, ELINT, MPD }, name, type }
+// Written by DCS itself; stored in Saved Games\DCS\dtc\
+// Stores raw ELINT/MPD blocks for lossless re-export via buildDtcNative().
 function normalizeDtc(raw) {
-  // Already in expected PascalCase format — pass through
-  if (raw.Countermeasures || raw.Radio || raw.EWS || raw.Navigation) return raw;
+  if (!raw.data?.COMM) return null; // unrecognized format
 
   const out = {
-    Aircraft: raw.aircraft || 'F-16C_50',
-    Version:  raw.version  || '1.0',
+    Aircraft:  raw.type || 'F-16C_50',
+    _native:   true,
+    _rawElint: raw.data.ELINT || null,   // passthrough for export
+    _rawMpd:   raw.data.MPD   || null,   // passthrough for export
   };
 
-  // cmds → Countermeasures.Programs
-  if (raw.cmds) {
-    const Programs = {};
-    const manKeys = Object.keys(raw.cmds)
-      .filter(k => /^MAN_\d+$/.test(k))
-      .sort((a, b) => parseInt(a.split('_')[1]) - parseInt(b.split('_')[1]));
+  // Radio — Channel_N keys → internal Channels dict (freq is already MHz)
+  const uhfCh = {}, vhfCh = {};
+  const comm1 = raw.data.COMM.COMM1 || {};
+  const comm2 = raw.data.COMM.COMM2 || {};
+  for (let i = 1; i <= 20; i++) {
+    const u = comm1[`Channel_${i}`];
+    const v = comm2[`Channel_${i}`];
+    if (u) uhfCh[String(i)] = { Frequency: u.freq, Name: '' };
+    if (v) vhfCh[String(i)] = { Frequency: v.freq, Name: '' };
+  }
+  out.Radio = { UHF: { Channels: uhfCh }, VHF: { Channels: vhfCh } };
 
-    manKeys.forEach((key) => {
-      const num = parseInt(key.split('_')[1]);
-      const p = raw.cmds[key];
-      Programs[`Program${num}`] = {
-        Chaff:    p.chaff?.burst_qty  ?? 0,
-        Flare:    p.flare?.burst_qty  ?? 0,
-        Interval: p.chaff?.burst_intv ?? 0.5,
-        Cycles:   p.chaff?.salvo_qty  ?? 1,
-      };
-    });
-    // Pad missing programs (1–6) with zeros
-    for (let i = 1; i <= 6; i++) {
-      if (!Programs[`Program${i}`])
-        Programs[`Program${i}`] = { Chaff: 0, Flare: 0, Interval: 0.0, Cycles: 0 };
-    }
-
-    const bypass = raw.cmds.BYPASS;
+  // CMDS — store native programs for display; raw block passes through to export
+  const cmdsRaw = raw.data.MPD?.CMDS;
+  if (cmdsRaw) {
     out.Countermeasures = {
-      Settings: {
-        Mode: 'MAN',
-        BypassEnabled: !!(bypass?.chaff_qty || bypass?.flare_qty),
-        Feedback: 'BOTH',
-        ChaffBingo: 10, FlareBingo: 10, AutoDelay: 2.0,
-      },
-      Programs,
-      ThreatTable: {},
+      _nativePrograms:  cmdsRaw.CMDSProgramSettings || {},
+      _nativeBingo:     cmdsRaw.CMDSBingoSettings   || {},
+      _nativeThreatMap: cmdsRaw.CMDSPrograms         || {},
     };
   }
 
-  // rwr → EWS
-  if (raw.rwr) {
-    out.EWS = {
-      RWR: {
-        Search:      raw.rwr.search_tone  ?? true,
-        TargetSep:   false,
-        Altitude:    true,
-        AudioLevel:  raw.rwr.audio_level  ?? 5,
-        ThreatTable: raw.rwr.threat_table ?? [],
-      },
-    };
+  // RWR — keep raw structure for display
+  const rwrRaw = raw.data.ELINT?.RWR;
+  if (rwrRaw) {
+    out.EWS = { RWR: rwrRaw };
   }
-
-  // datalink → Datalink
-  if (raw.datalink?.link16) {
-    const l16 = raw.datalink.link16;
-    out.Datalink = {
-      Settings: {
-        OwnshipSTN:     l16.own_ship_id          || '00000',
-        FighterChannel: parseInt(l16.group_id)   || 1,
-        MissionChannel: parseInt(l16.network_id) || 1,
-        TDOA_Active: false,
-      },
-      Network: { Members: {}, Donors: {} },
-    };
-  }
-
-  // laser codes — preserve for reference
-  if (raw.laser_codes) out.LaserCodes = raw.laser_codes;
 
   return out;
 }
@@ -1345,33 +1432,40 @@ document.getElementById('dtc-input').addEventListener('change', async (e) => {
   const text = await file.text();
   let parsed = null;
 
-  // Native ED .dtc is JSON. Try JSON first, then Lua as fallback.
   try {
     parsed = JSON.parse(text);
   } catch {
-    try {
-      // Fallback: attempt Lua parse (older format or manually created)
-      const luaParsed = new LuaParser(text).parse();
-      parsed = luaParsed.DTC || luaParsed.dtc || luaParsed;
-      if (!parsed || typeof parsed !== 'object' || !Object.keys(parsed).length) throw new Error('empty');
-    } catch {
-      alert('Could not parse .dtc file — expected JSON (native ED format).');
-      document.getElementById('dtc-fname').textContent = '';
-      document.getElementById('dtc-card').classList.remove('active');
-      return;
-    }
+    alert('Could not parse .dtc file — expected JSON format (from Saved Games\\DCS\\dtc\\).');
+    document.getElementById('dtc-fname').textContent = '';
+    document.getElementById('dtc-card').classList.remove('active');
+    return;
   }
 
   const normalized = normalizeDtc(parsed);
+  if (!normalized) {
+    alert('Unrecognized .dtc format.\nExpected real DCS native format with { "data": { "COMM", "ELINT", "MPD" }, "name", "type" }.\nLoad a .dtc from your Saved Games\\DCS\\dtc\\ folder.');
+    document.getElementById('dtc-fname').textContent = '';
+    document.getElementById('dtc-card').classList.remove('active');
+    return;
+  }
   state.personalDtc = normalized;
+
+  // Re-render the preview if one is already showing so CMDS/Threats tabs appear immediately
+  if (state.previewFlight) previewDtc();
 
   // Build a summary of what will be merged
   const parts = [];
-  if (normalized.Countermeasures) parts.push('CMDS');
-  if (normalized.EWS)             parts.push('EWS');
-  if (normalized.Radio)           parts.push('channel names');
-  if (normalized.Datalink)        parts.push('datalink');
-  if (normalized.LaserCodes)      parts.push('laser codes');
+  if (normalized._native) {
+    // Real DCS native format — describe what sections are present
+    if (normalized._rawMpd?.CMDS)   parts.push('CMDS (MAN1-6/AUTO1-3/BYP)');
+    if (normalized._rawElint?.RWR)  parts.push('RWR priorities');
+    if (normalized.Radio)           parts.push('radio presets');
+  } else {
+    if (normalized.Countermeasures) parts.push('CMDS');
+    if (normalized.EWS)             parts.push('EWS');
+    if (normalized.Radio)           parts.push('channel names');
+    if (normalized.LaserCodes)      parts.push('laser codes');
+  }
   const mergeDesc = parts.length ? parts.join(' + ') : 'data';
 
   document.getElementById('merge-pill').style.display = 'inline-flex';
