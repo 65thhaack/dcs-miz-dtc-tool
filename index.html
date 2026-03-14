@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DCS F-16 DTC Tool</title>
+  <title>DCS F-16 and F-18 DTC Tool</title>
   <style>
     :root {
       --bg: #0d1117;
@@ -91,7 +91,23 @@
       justify-content: space-between;
       margin-bottom: 16px;
     }
+    .section-left {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .section-chevron {
+      color: var(--muted);
+      font-size: 10px;
+      transition: transform 0.15s;
+    }
+    .section-body.collapsed { display: none; }
+    .section-body.collapsed + .section-header .section-chevron,
+    .section-header.collapsed .section-chevron { transform: rotate(-90deg); }
     .section-title { font-size: 15px; font-weight: 600; }
+    .section-count { color: var(--muted); font-size: 12px; }
 
     /* ── Buttons ──────────────────────────────────────────────────────── */
     .btn {
@@ -142,7 +158,7 @@
       border: 1px solid var(--border);
       border-radius: 8px;
       margin-bottom: 20px;
-      overflow: hidden;
+      overflow: visible;
     }
     .flight-head {
       background: var(--surface2);
@@ -178,6 +194,34 @@
       white-space: nowrap;
     }
     .chip .skill { color: var(--muted); }
+    .inline-preview-panel {
+      display: none;
+      margin: 0 16px 16px;
+      border: 1px solid var(--accent);
+      border-radius: 8px;
+      background: var(--surface2);
+      overflow: hidden;
+    }
+    .inline-preview-panel.open { display: block; }
+    .inline-preview-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(88,166,255,0.08);
+    }
+    .inline-preview-title { color: var(--accent); font-weight: 700; font-size: 12px; }
+    .inline-preview-body { padding: 12px; }
+    .inline-preview-section { margin-bottom: 14px; }
+    .inline-preview-section:last-child { margin-bottom: 0; }
+    .inline-preview-section h4 {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
 
     /* ── Tabs ─────────────────────────────────────────────────────────── */
     .tabs {
@@ -282,40 +326,6 @@
     .empty { text-align: center; padding: 48px 20px; color: var(--muted); }
     .empty .ico { font-size: 40px; margin-bottom: 12px; }
 
-    /* ── DTC Preview Panel ────────────────────────────────────────────── */
-    .dtc-preview-panel {
-      display: none;
-      background: var(--surface);
-      border: 1px solid var(--accent);
-      border-radius: 8px;
-      margin-top: 24px;
-      overflow: hidden;
-    }
-    .dtc-preview-panel.open { display: block; }
-    .dtc-preview-head {
-      background: var(--surface2);
-      border-bottom: 1px solid var(--border);
-      padding: 12px 16px;
-      display: flex; align-items: center; justify-content: space-between; gap: 12px;
-    }
-    .dtc-preview-title {
-      font-size: 14px; font-weight: 700; color: var(--accent);
-      display: flex; align-items: center; gap: 8px;
-    }
-    .dtc-preview-title .psub { color: var(--muted); font-size: 12px; font-weight: 400; }
-    .dtc-preview-actions { display: flex; gap: 8px; align-items: center; }
-    .dtc-preview-body { padding: 0; }
-    /* Preview sections */
-    .dtc-section { margin-bottom: 22px; }
-    .dtc-section:last-child { margin-bottom: 0; }
-    .dtc-section-title {
-      font-size: 10px; font-weight: 700; text-transform: uppercase;
-      letter-spacing: 0.1em; color: var(--muted);
-      margin-bottom: 8px; padding-bottom: 5px;
-      border-bottom: 1px solid var(--border);
-    }
-    .dtc-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 22px; }
-    @media (max-width: 800px) { .dtc-grid-2 { grid-template-columns: 1fr; } }
     /* Type badges */
     .pt-badge {
       display: inline-block; padding: 1px 6px; border-radius: 3px;
@@ -354,10 +364,10 @@
 
 <header>
   <div>
-    <h1>⚡ DCS F-16 DTC TOOL</h1>
+    <h1>⚡ DCS F-16 and F-18 DTC TOOL</h1>
     <div class="sub">Mission file parser &amp; Data Transfer Cartridge generator</div>
   </div>
-  <span class="badge">F-16C VIPER</span>
+  <span class="badge">F-16C VIPER + F/A-18C LOT 20</span>
 </header>
 
 <main>
@@ -375,8 +385,8 @@
     <label class="upload-card" id="dtc-card" for="dtc-input">
       <input type="file" id="dtc-input" accept=".dtc">
       <div class="icon">💾</div>
-      <h3>Personal CMDS Profile <span style="color:var(--muted);font-weight:400">(optional)</span></h3>
-      <p>Upload your personal .dtc (from DCS Mission Editor) to merge CMDS programs into the export</p>
+      <h3>Personal DTC Profile <span style="color:var(--muted);font-weight:400">(optional)</span></h3>
+      <p>Upload your personal .dtc (from DCS Mission Editor) to merge radio / EW / TACAN data into exports</p>
       <div class="fname" id="dtc-fname"></div>
       <button class="btn btn-outline" id="dtc-clear-btn" style="display:none;margin-top:8px;position:relative;z-index:2" onclick="clearPersonalDtc(event)">✕ Clear</button>
     </label>
@@ -388,42 +398,44 @@
   <!-- Results -->
   <div id="results">
     <div class="section-header">
-      <span class="section-title">F-16C Flights</span>
+      <div class="section-left" onclick="toggleSection('f16')">
+        <span class="section-chevron" id="section-chevron-f16">▼</span>
+        <span class="section-title">F-16C Flights</span>
+        <span class="section-count" id="section-count-f16"></span>
+      </div>
       <div class="controls">
         <span class="merge-pill" id="merge-pill" style="display:none">✓ CMDS merged</span>
-        <select id="flight-select"></select>
-        <button class="btn btn-primary" id="preview-btn" onclick="previewDtc()">👁 Preview DTC</button>
       </div>
     </div>
 
-    <div id="flights-container"></div>
+    <div class="section-body" id="section-body-f16">
+      <div id="flights-container-f16"></div>
 
-    <div class="empty" id="no-f16s" style="display:none">
-      <div class="ico">🔍</div>
-      <p>No F-16C player flights found in this mission.</p>
-    </div>
-
-    <!-- DTC Preview Panel — shown after clicking "Preview DTC" -->
-    <div class="dtc-preview-panel" id="dtc-preview">
-      <div class="dtc-preview-head">
-        <div class="dtc-preview-title">
-          📋 DTC Preview
-          <span class="psub" id="dtc-preview-subtitle"></span>
-        </div>
-        <div class="dtc-preview-actions">
-          <div style="display:flex;align-items:center;gap:6px">
-            <input type="text" id="dtc-export-name" placeholder="filename" style="
-              background:var(--surface2);border:1px solid var(--border);border-radius:6px;
-              color:var(--text);padding:6px 10px;font-size:13px;width:200px;
-            ">
-            <span style="color:var(--muted);font-size:13px">.dtc</span>
-          </div>
-          <button class="btn btn-outline" onclick="closeDtcPreview()">✕ Close</button>
-          <button class="btn btn-success" onclick="downloadDtc()">⬇ Export DTC</button>
-        </div>
+      <div class="empty" id="no-f16s" style="display:none">
+        <div class="ico">🔍</div>
+        <p>No F-16C player flights found in this mission.</p>
       </div>
-      <div class="dtc-preview-body" id="dtc-preview-body"></div>
     </div>
+
+    <div class="section-header" style="margin-top:28px">
+      <div class="section-left" onclick="toggleSection('f18')">
+        <span class="section-chevron" id="section-chevron-f18">▼</span>
+        <span class="section-title">F/A-18C Flights</span>
+        <span class="section-count" id="section-count-f18"></span>
+      </div>
+      <div class="controls">
+      </div>
+    </div>
+
+    <div class="section-body" id="section-body-f18">
+      <div id="flights-container-f18"></div>
+
+      <div class="empty" id="no-f18s" style="display:none">
+        <div class="ico">🔍</div>
+        <p>No F/A-18C player flights found in this mission.</p>
+      </div>
+    </div>
+
   </div>
 
   <!-- Initial empty state -->
@@ -634,7 +646,7 @@ function toDtcLon(lon) {
 // ═══════════════════════════════════════════════════════════════════════════
 //  Mission Extractor
 // ═══════════════════════════════════════════════════════════════════════════
-function extractF16Flights(mission, theater) {
+function extractFlightsByType(mission, theater, unitMatcher, aircraftType) {
   const flights = [];
   const coal = mission.coalition || {};
 
@@ -651,15 +663,13 @@ function extractF16Flights(mission, theater) {
         const group = planeGroups[gk];
         if (!group?.units) continue;
 
-        // Gather F-16C units
-        const f16units = [];
+        // Gather matching units for the requested aircraft family
+        const matchedUnits = [];
         for (const uk of Object.keys(group.units)) {
           const u = group.units[uk];
-          if (u?.type === 'F-16C_50' || (typeof u?.type === 'string' && u.type.startsWith('F-16'))) {
-            f16units.push(u);
-          }
+          if (unitMatcher(u?.type)) matchedUnits.push(u);
         }
-        if (!f16units.length) continue;
+        if (!matchedUnits.length) continue;
 
         // Waypoints from route.points
         const waypoints = [];
@@ -696,7 +706,7 @@ function extractF16Flights(mission, theater) {
 
         // Radio from first unit (all units share the same preset channels)
         const radio1 = {}, radio2 = {};
-        const ref = f16units[0];
+        const ref = matchedUnits[0];
         if (ref?.Radio) {
           const r1 = ref.Radio[1];
           const r2 = ref.Radio[2];
@@ -711,9 +721,10 @@ function extractF16Flights(mission, theater) {
         flights.push({
           groupId: group.groupId || gk,
           name:    group.name    || `Group ${gk}`,
+          aircraftType,
           side,
           country: country.name || '',
-          units: f16units.map(u => ({
+          units: matchedUnits.map(u => ({
             name:     u.name     || '',
             callsign: u.callsign?.name || '',
             skill:    u.skill    || '',
@@ -728,16 +739,107 @@ function extractF16Flights(mission, theater) {
   return flights;
 }
 
+const isF16Type = (type) => typeof type === 'string' && (type === 'F-16C_50' || type.startsWith('F-16'));
+const isF18Type = (type) => typeof type === 'string' && (type === 'FA-18C_hornet' || type.startsWith('FA-18') || type.startsWith('F/A-18') || type.startsWith('F-18'));
+
+function extractF16Flights(mission, theater) {
+  return extractFlightsByType(mission, theater, isF16Type, 'F-16C_50');
+}
+
+function extractF18Flights(mission, theater) {
+  return extractFlightsByType(mission, theater, isF18Type, 'FA-18C_hornet');
+}
+
+function tcnCandidateKey(tcn) {
+  return [
+    tcn.channel ?? '',
+    tcn.modeChannel ?? '',
+    tcn.unitId ?? '',
+    tcn.display_name ?? '',
+    Number(tcn.x || 0).toFixed(1),
+    Number(tcn.y || 0).toFixed(1),
+  ].join('|');
+}
+
+function extractTacanCandidates(mission) {
+  const out = [];
+  const seen = new Set();
+  const visited = new Set();
+  const stack = [{ value: mission, path: 'mission' }];
+
+  const asNum = (v) => {
+    const n = Number(v);
+    return Number.isFinite(n) ? n : null;
+  };
+
+  while (stack.length) {
+    const { value, path } = stack.pop();
+    if (!value || typeof value !== 'object') continue;
+    if (visited.has(value)) continue;
+    visited.add(value);
+
+    if (!Array.isArray(value)) {
+      const channel = asNum(value.channel ?? value.Channel);
+      const channelMode = asNum(value.channelMode ?? value.ChannelMode);
+      const mode = typeof value.modeChannel === 'string'
+        ? value.modeChannel.toUpperCase()
+        : channelMode === 1 ? 'Y' : 'X';
+
+      const x = asNum(value.x ?? value.X ?? value?.point?.x ?? value?.position?.x);
+      const y = asNum(value.y ?? value.Y ?? value?.point?.y ?? value?.position?.y);
+      const unitId = asNum(value.unitId ?? value.UnitId ?? value.id);
+      const callsign = typeof value.callsign === 'string'
+        ? value.callsign
+        : (typeof value?.callsign?.name === 'string' ? value.callsign.name : '');
+      const displayName = value.display_name || value.displayName || value.name || '';
+
+      const pathLower = path.toLowerCase();
+      const keyHint = Object.keys(value).join(' ').toLowerCase();
+      const hasHint = /tacan|beacon|tcn/.test(pathLower) || /tacan|beacon/.test(keyHint);
+      const hasLocOrIdentity = (x !== null && y !== null) || unitId !== null || !!callsign || !!displayName;
+      const looksLikeComm = pathLower.includes('comm1') || pathLower.includes('comm2') || pathLower.includes('comm.');
+
+      if (!looksLikeComm && channel !== null && channel >= 1 && channel <= 126 && hasLocOrIdentity && (hasHint || value.modeChannel !== undefined || value.channelMode !== undefined || value.ChannelMode !== undefined)) {
+        const tcn = {
+          callsign: callsign || '',
+          channel: Math.round(channel),
+          display_name: displayName || `${callsign || 'TACAN'}_${Math.round(channel)}${mode}`,
+          elevation: asNum(value.elevation ?? value.alt ?? 0) ?? 0,
+          modeChannel: mode,
+          unitId: unitId ?? 0,
+          unitPointNum: asNum(value.unitPointNum ?? 1) ?? 1,
+          x: x ?? 0,
+          y: y ?? 0,
+        };
+        const key = tcnCandidateKey(tcn);
+        if (!seen.has(key)) {
+          seen.add(key);
+          out.push(tcn);
+        }
+      }
+    }
+
+    for (const [k, v] of Object.entries(value)) {
+      if (v && typeof v === 'object') {
+        stack.push({ value: v, path: `${path}.${k}` });
+      }
+    }
+  }
+
+  return out.sort((a, b) => a.channel - b.channel || a.display_name.localeCompare(b.display_name));
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 //  App state
 // ═══════════════════════════════════════════════════════════════════════════
 const state = {
   theater: 'Caucasus',
   missionName: '',
-  flights: [],
+  f16Flights: [],
+  f18Flights: [],
+  tacanCandidates: [],
   personalDtc:   null,
-  previewDtc:    null,   // cached DTC object shown in the preview panel
-  previewFlight: null,   // flight the preview was built from
+  previewDtc:    null,
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -749,21 +851,22 @@ function wpTag(wp) {
   return `<span class="wptag wptag-tp">TP</span>`;
 }
 
-function renderFlights(flights) {
-  const container = document.getElementById('flights-container');
-  const sel       = document.getElementById('flight-select');
-  container.innerHTML = '';
-  sel.innerHTML       = '';
+function allFlights() {
+  return [...state.f16Flights, ...state.f18Flights];
+}
 
-  document.getElementById('no-f16s').style.display  = flights.length ? 'none' : 'block';
+function findFlightById(groupId) {
+  return allFlights().find(f => String(f.groupId) === String(groupId));
+}
+
+function renderFlights(flights, cfg) {
+  const container = document.getElementById(cfg.containerId);
+  container.innerHTML = '';
+
+  document.getElementById(cfg.emptyId).style.display = flights.length ? 'none' : 'block';
+  setSectionCount(cfg.sectionKey, flights.length);
   
   for (const fl of flights) {
-    // Populate dropdown
-    const opt = document.createElement('option');
-    opt.value = fl.groupId;
-    opt.textContent = fl.name;
-    sel.appendChild(opt);
-
     // Build unit chips
     const chips = fl.units.map(u =>
       `<span class="chip">${u.name}${u.callsign ? ` (${u.callsign})` : ''} <span class="skill">${u.skill}</span></span>`
@@ -799,44 +902,51 @@ function renderFlights(flights) {
     };
 
     const card = document.createElement('div');
-    card.className = 'flight-card';
-    card.id = `fc-${fl.groupId}`;
+    card.className = 'flight-card collapsed';
+    card.id = `fc-${cfg.cardPrefix}-${fl.groupId}`;
     card.innerHTML = `
       <div class="flight-head">
-        <div class="flight-head-left" onclick="toggleFlight(${JSON.stringify(fl.groupId)})">
+        <div class="flight-head-left" onclick="toggleFlightFromHead(this)">
           <span class="chevron">▼</span>
           <div>
             <div class="flight-name">${fl.name}</div>
             <div class="flight-meta">${fl.side.toUpperCase()} · ${fl.country} · ${fl.units.length} aircraft · ${fl.waypoints.length} route points</div>
           </div>
         </div>
-        <div class="unit-chips">${chips}</div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
+          <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">
+            <button class="btn btn-primary" type="button" data-family="${cfg.family}" data-gid="${String(fl.groupId).replace(/"/g, '&quot;')}" onclick="previewFlightButton(this)">👁 Preview</button>
+            <button class="btn btn-success" type="button" data-family="${cfg.family}" data-gid="${String(fl.groupId).replace(/"/g, '&quot;')}" onclick="exportFlightButton(this)">⬇ Export</button>
+          </div>
+          <div class="unit-chips">${chips}</div>
+        </div>
       </div>
-      <div class="tabs" id="tabs-${fl.groupId}">
-        <div class="tab active" onclick="switchTab(${JSON.stringify(fl.groupId)}, 'wpt', this)">Waypoints</div>
-        <div class="tab" onclick="switchTab(${JSON.stringify(fl.groupId)}, 'c1',  this)">COM1 — UHF</div>
-        <div class="tab" onclick="switchTab(${JSON.stringify(fl.groupId)}, 'c2',  this)">COM2 — VHF</div>
+      <div class="tabs" id="tabs-${cfg.cardPrefix}-${fl.groupId}">
+        <div class="tab active" onclick="switchTab(${JSON.stringify(cfg.cardPrefix)}, ${JSON.stringify(fl.groupId)}, 'wpt', this)">Waypoints</div>
+        <div class="tab" onclick="switchTab(${JSON.stringify(cfg.cardPrefix)}, ${JSON.stringify(fl.groupId)}, 'c1',  this)">COM1 — UHF</div>
+        <div class="tab" onclick="switchTab(${JSON.stringify(cfg.cardPrefix)}, ${JSON.stringify(fl.groupId)}, 'c2',  this)">COM2 — VHF</div>
       </div>
       <div class="tab-content">
-        <div class="tab-panel active" id="tp-${fl.groupId}-wpt">
+        <div class="tab-panel active" id="tp-${cfg.cardPrefix}-${fl.groupId}-wpt">
           <table>
             <thead><tr><th>#</th><th>Type</th><th>Role</th><th>Name</th><th>Latitude</th><th>Longitude</th><th>Altitude (ft)</th><th>Speed</th></tr></thead>
             <tbody>${wpRows || '<tr><td colspan="8" style="color:var(--muted);text-align:center">No waypoints</td></tr>'}</tbody>
           </table>
         </div>
-        <div class="tab-panel" id="tp-${fl.groupId}-c1">
+        <div class="tab-panel" id="tp-${cfg.cardPrefix}-${fl.groupId}-c1">
           <table>
-            <thead><tr><th>Channel</th><th>Frequency (MHz) — AN/ARC-164 UHF</th></tr></thead>
+            <thead><tr><th>Channel</th><th>Frequency (MHz)</th></tr></thead>
             <tbody>${comRows(fl.radio1, 'uhf') || '<tr><td colspan="2" style="color:var(--muted)">No COM1 data</td></tr>'}</tbody>
           </table>
         </div>
-        <div class="tab-panel" id="tp-${fl.groupId}-c2">
+        <div class="tab-panel" id="tp-${cfg.cardPrefix}-${fl.groupId}-c2">
           <table>
-            <thead><tr><th>Channel</th><th>Frequency (MHz) — AN/ARC-222 VHF/UHF</th></tr></thead>
+            <thead><tr><th>Channel</th><th>Frequency (MHz)</th></tr></thead>
             <tbody>${comRows(fl.radio2, 'vhf') || '<tr><td colspan="2" style="color:var(--muted)">No COM2 data</td></tr>'}</tbody>
           </table>
         </div>
       </div>`;
+    card.innerHTML += `<div class="inline-preview-panel" id="inline-preview-${cfg.cardPrefix}-${fl.groupId}" data-family="${cfg.family}" data-gid="${String(fl.groupId).replace(/"/g, '&quot;')}"></div>`;
     container.appendChild(card);
   }
 }
@@ -848,7 +958,7 @@ function setWpType(sel) {
   const val = sel.value;
 
   // Update state
-  const flight = state.flights.find(f => String(f.groupId) === String(gid));
+  const flight = findFlightById(gid);
   if (flight) flight.waypoints[idx].pointType = val;
 
   // Recolor the select to match the role (pt- prefix)
@@ -864,25 +974,159 @@ function setTargetData(inp) {
   const gid   = inp.dataset.gid;
   const idx   = parseInt(inp.dataset.idx, 10);
   const field = inp.dataset.field;
-  const flight = state.flights.find(f => String(f.groupId) === String(gid));
+  const flight = findFlightById(gid);
   if (flight?.waypoints[idx]?.targetData) {
     flight.waypoints[idx].targetData[field] = parseFloat(inp.value) || 0;
   }
 }
 
-function switchDtcTab(panel, tabEl) {
-  document.querySelectorAll('#dtc-preview .tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('#dtc-preview .tab-panel').forEach(p => p.classList.remove('active'));
-  tabEl.classList.add('active');
-  document.getElementById(`dtp-${panel}`).classList.add('active');
+function deepClone(obj) {
+  if (obj === null || obj === undefined) return obj;
+  return JSON.parse(JSON.stringify(obj));
 }
 
-function switchTab(groupId, panel, tabEl) {
-  const card = document.getElementById(`fc-${groupId}`);
+function defaultF18NavSettings() {
+  return {
+    AA_Waypoint: { AA_WP_Enabled: false, AA_WP_Number: 59 },
+    ACLS: { Frequency: 225, OnOff: false },
+    Altitude_Warning: { Warn_Alt_Baro: 2000, Warn_Alt_Rdr: 500 },
+    Home_Waypoint: { FPAS_HOME_WP: 1 },
+    ICLS: { Channel: 1, OnOff: false },
+    TACAN: { Channel: 1, ChannelMode: 1, Mode: 2, OnOff: false },
+  };
+}
+
+const F18_NAV_RULES = {
+  'AA_Waypoint.AA_WP_Number':      { kind: 'int', min: 1, max: 59, step: 1 },
+  'ACLS.Frequency':                { kind: 'int', min: 200, max: 400, step: 1 },
+  'Altitude_Warning.Warn_Alt_Baro':{ kind: 'int', min: 0, max: 50000, step: 100 },
+  'Altitude_Warning.Warn_Alt_Rdr': { kind: 'int', min: 0, max: 5000, step: 10 },
+  'Home_Waypoint.FPAS_HOME_WP':    { kind: 'int', min: 1, max: 59, step: 1 },
+  'ICLS.Channel':                  { kind: 'int', min: 1, max: 20, step: 1 },
+  'TACAN.Channel':                 { kind: 'int', min: 1, max: 126, step: 1 },
+  'TACAN.ChannelMode':             { kind: 'enum', options: [
+    { value: 0, label: '0 (X)' },
+    { value: 1, label: '1 (Y)' },
+  ] },
+  'TACAN.Mode':                    { kind: 'enum', options: [
+    { value: 0, label: '0 (REC)' },
+    { value: 1, label: '1 (TR)' },
+    { value: 2, label: '2 (A/A TR)' },
+  ] },
+};
+
+function getByPath(obj, path) {
+  const parts = path.split('.');
+  let cur = obj;
+  for (const part of parts) {
+    if (!cur || typeof cur !== 'object') return undefined;
+    cur = cur[part];
+  }
+  return cur;
+}
+
+function setByPath(obj, path, value) {
+  const parts = path.split('.');
+  let cur = obj;
+  for (let i = 0; i < parts.length - 1; i++) {
+    const k = parts[i];
+    if (!cur[k] || typeof cur[k] !== 'object') cur[k] = {};
+    cur = cur[k];
+  }
+  cur[parts[parts.length - 1]] = value;
+}
+
+function setF18NavSetting(inp) {
+  const gid = inp.dataset.gid;
+  const path = inp.dataset.path;
+  const kind = inp.dataset.kind;
+  const flight = findFlightById(gid);
+  if (!flight) return;
+
+  if (!flight.navSettingsF18) {
+    const base = state.personalDtc?._rawWypt?.NAV_SETTINGS || defaultF18NavSettings();
+    flight.navSettingsF18 = deepClone(base);
+  }
+
+  let value = inp.value;
+  if (kind === 'boolean') value = !!inp.checked;
+  if (kind === 'number' || kind === 'int' || kind === 'enum') {
+    const n = Number(inp.value);
+    value = Number.isFinite(n) ? n : 0;
+  }
+
+  const rule = F18_NAV_RULES[path];
+  if (rule && (kind === 'number' || kind === 'int')) {
+    if (typeof rule.min === 'number') value = Math.max(rule.min, value);
+    if (typeof rule.max === 'number') value = Math.min(rule.max, value);
+    if (kind === 'int') value = Math.round(value);
+    inp.value = String(value);
+  }
+
+  setByPath(flight.navSettingsF18, path, value);
+}
+
+function ensureF18TacanSelection(flight) {
+  const keys = state.tacanCandidates.map(tcnCandidateKey);
+  if (!keys.length) {
+    flight.selectedTacanKeys = [];
+    return;
+  }
+  if (!Array.isArray(flight.selectedTacanKeys)) {
+    flight.selectedTacanKeys = [...keys];
+    return;
+  }
+  const available = new Set(keys);
+  flight.selectedTacanKeys = flight.selectedTacanKeys.filter(k => available.has(k));
+  if (!flight.selectedTacanKeys.length) flight.selectedTacanKeys = [...keys];
+}
+
+function setF18TacanSelected(inp) {
+  const gid = inp.dataset.gid;
+  const key = inp.dataset.key;
+  const flight = findFlightById(gid);
+  if (!flight) return;
+  ensureF18TacanSelection(flight);
+
+  const set = new Set(flight.selectedTacanKeys || []);
+  if (inp.checked) set.add(key);
+  else set.delete(key);
+  flight.selectedTacanKeys = [...set];
+}
+
+function switchInlinePreviewTabBtn(tabEl) {
+  const panel = tabEl.dataset.panel;
+  const wrap = tabEl.closest('.inline-preview-panel');
+  if (!wrap) return;
+  wrap.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  wrap.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  tabEl.classList.add('active');
+  const target = wrap.querySelector(`.tab-panel[data-ipanel="${panel}"]`);
+  if (target) target.classList.add('active');
+
+  const flight = findFlightById(wrap.dataset.gid);
+  if (flight) flight.inlinePreviewTab = panel;
+}
+
+function switchTab(cardPrefix, groupId, panel, tabEl) {
+  const card = document.getElementById(`fc-${cardPrefix}-${groupId}`);
   card.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   card.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
   tabEl.classList.add('active');
-  document.getElementById(`tp-${groupId}-${panel}`).classList.add('active');
+  document.getElementById(`tp-${cardPrefix}-${groupId}-${panel}`).classList.add('active');
+}
+
+function setSectionCount(section, count) {
+  const el = document.getElementById(`section-count-${section}`);
+  if (el) el.textContent = `(${count})`;
+}
+
+function toggleSection(section) {
+  const body = document.getElementById(`section-body-${section}`);
+  const chev = document.getElementById(`section-chevron-${section}`);
+  if (!body || !chev) return;
+  body.classList.toggle('collapsed');
+  chev.style.transform = body.classList.contains('collapsed') ? 'rotate(-90deg)' : 'rotate(0deg)';
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1074,20 +1318,281 @@ function buildDtcNative(flight) {
   };
 }
 
-// ── Step 1: build + render the preview panel ───────────────────────────────
-function previewDtc() {
-  const sel    = document.getElementById('flight-select');
-  const flight = state.flights.find(f => String(f.groupId) === String(sel.value));
-  if (!flight) return alert('Select a flight first.');
+function buildF18Dtc(flight) {
+  const personalComm1 = state.personalDtc?._f18Comm?.COMM1 || {};
+  const personalComm2 = state.personalDtc?._f18Comm?.COMM2 || {};
+  const comm1 = {}, comm2 = {};
 
+  for (let i = 1; i <= 20; i++) {
+    const f1 = flight.radio1[i];
+    const f2 = flight.radio2[i];
+    if (f1 !== undefined) {
+      comm1[`Channel_${i}`] = {
+        frequency: parseFloat(Number(f1).toFixed(3)),
+        modulation: 0,
+        name: personalComm1[`Channel_${i}`]?.name || `CH ${i}`,
+      };
+    }
+    if (f2 !== undefined) {
+      comm2[`Channel_${i}`] = {
+        frequency: parseFloat(Number(f2).toFixed(3)),
+        modulation: 0,
+        name: personalComm2[`Channel_${i}`]?.name || `CH ${i}`,
+      };
+    }
+  }
+
+  let tcn = [];
+  if (state.tacanCandidates.length) {
+    ensureF18TacanSelection(flight);
+    const selected = new Set(flight.selectedTacanKeys || []);
+    tcn = state.tacanCandidates
+      .filter(t => selected.has(tcnCandidateKey(t)))
+      .map(t => deepClone(t));
+  } else {
+    tcn = Array.isArray(state.personalDtc?._rawTcn) ? state.personalDtc._rawTcn : [];
+  }
+  const navSettingsBase = flight.navSettingsF18 || state.personalDtc?._rawWypt?.NAV_SETTINGS || defaultF18NavSettings();
+  const navSettings = deepClone(navSettingsBase);
+  const alr67 = state.personalDtc?._rawAlr67 || {
+    CMDS: { CMDSProgramSettings: {}, CMDS_Threat_table: {} },
+    RWR: { AAA: true, AI: true, FRND: false, NORM: true, UNK: true, RWR_Avionics_Threat_Table: {} },
+  };
+
+  return { COMM1: comm1, COMM2: comm2, TCN: tcn, NAV_SETTINGS: navSettings, ALR67: alr67 };
+}
+
+function buildF18DtcNative(flight) {
+  const f18 = buildF18Dtc(flight);
+  const orderChannels = (channels) => Object.keys(channels)
+    .sort((a, b) => a.localeCompare(b))
+    .reduce((out, key) => {
+      out[key] = channels[key];
+      return out;
+    }, {});
+
+  const navPts = flight.waypoints
+    .filter(wp => !wp.isTakeoff && !wp.isLand)
+    .map((wp, idx) => ({
+      number: idx + 1,
+      note: wp.name || '',
+      x: wp.x || 0,
+      y: wp.y || 0,
+      alt: Math.max(0, Math.round(wp.alt_m || 0)),
+      speed: Math.round((wp.speed_ms || 0) * 3.6),
+      lat: toDtcLat(wp.lat),
+      long: toDtcLon(wp.lon),
+    }));
+
+  const wyptRaw = state.personalDtc?._rawWypt || {};
+  return {
+    data: {
+      ALR67: f18.ALR67,
+      COMM: {
+        COMM1: orderChannels(f18.COMM1),
+        COMM2: orderChannels(f18.COMM2),
+        mirror_COMM1: true,
+        mirror_COMM2: true,
+      },
+      WYPT: {
+        mirror_NAV_PTS: wyptRaw.mirror_NAV_PTS ?? false,
+        NAV_PTS: navPts,
+        NAV_ROUTE: wyptRaw.NAV_ROUTE || [],
+        NAV_SETTINGS: f18.NAV_SETTINGS,
+        terrain: state.theater,
+      },
+      TCN: f18.TCN,
+      terrain: state.theater,
+      name: flight.name,
+      type: 'FA-18C_hornet',
+    },
+    name: flight.name,
+    type: 'FA-18C_hornet',
+  };
+}
+
+function buildF18PreviewHtml(flight, family) {
+  const f18 = buildF18Dtc(flight);
+  state.previewDtc = f18;
+  ensureF18TacanSelection(flight);
+  const allowedTabs = ['wpt', 'navset', 'c1', 'c2', 'tcn', 'cmds', 'rwr'];
+  const activeTab = allowedTabs.includes(flight.inlinePreviewTab) ? flight.inlinePreviewTab : 'wpt';
+
+  const navRows = flight.waypoints
+    .filter(wp => !wp.isTakeoff && !wp.isLand)
+    .map((wp, i) => `
+      <tr>
+        <td style="color:var(--muted)">${i + 1}</td>
+        <td>${wp.name || ''}</td>
+        <td>${toDtcLat(wp.lat)}</td>
+        <td>${toDtcLon(wp.lon)}</td>
+        <td>${wp.alt_ft.toLocaleString()} <span style="color:var(--muted);font-size:10px">ft</span></td>
+      </tr>`).join('');
+
+  const comRows = (comm, cls) => Object.entries(comm).map(([ch, d]) => `
+    <tr>
+      <td style="color:var(--muted)">${ch.replace('Channel_', 'CH ')}</td>
+      <td class="${cls}">${Number(d.frequency).toFixed(3)}</td>
+      <td style="color:var(--muted)">${d.name || ''}</td>
+    </tr>`).join('');
+
+  const selectedTcnKeys = new Set(flight.selectedTacanKeys || []);
+  const tcnRows = state.tacanCandidates.length
+    ? state.tacanCandidates.map(t => {
+      const key = tcnCandidateKey(t);
+      return `
+    <tr>
+      <td style="text-align:center"><input type="checkbox" data-gid="${flight.groupId}" data-key="${key}" ${selectedTcnKeys.has(key) ? 'checked' : ''} onchange="setF18TacanSelected(this)"></td>
+      <td style="color:var(--muted)">${t.callsign || '—'}</td>
+      <td>${t.channel || '—'}${t.modeChannel ? t.modeChannel : ''}</td>
+      <td>${t.display_name || '—'}</td>
+      <td>${Math.round(t.x || 0)} / ${Math.round(t.y || 0)}</td>
+    </tr>`;
+    }).join('')
+    : (Array.isArray(f18.TCN) ? f18.TCN : []).map(t => `
+    <tr>
+      <td style="text-align:center;color:var(--muted)">—</td>
+      <td style="color:var(--muted)">${t.callsign || '—'}</td>
+      <td>${t.channel || '—'}${t.modeChannel ? t.modeChannel : ''}</td>
+      <td>${t.display_name || '—'}</td>
+      <td>${Math.round(t.x || 0)} / ${Math.round(t.y || 0)}</td>
+    </tr>`).join('');
+
+  const flattenObj = (obj, prefix = '') => {
+    const rows = [];
+    if (!obj || typeof obj !== 'object') return rows;
+    for (const [k, v] of Object.entries(obj)) {
+      const key = prefix ? `${prefix}.${k}` : k;
+      if (v !== null && typeof v === 'object' && !Array.isArray(v)) {
+        rows.push(...flattenObj(v, key));
+      } else {
+        rows.push({ key, value: v, kind: typeof v });
+      }
+    }
+    return rows;
+  };
+
+  const navSettingRows = flattenObj(f18.NAV_SETTINGS).map(({ key, value, kind }) => {
+    const rule = F18_NAV_RULES[key];
+    let input = '';
+    if (kind === 'boolean') {
+      input = `<input type="checkbox" data-gid="${flight.groupId}" data-path="${key}" data-kind="boolean" ${value ? 'checked' : ''} onchange="setF18NavSetting(this)">`;
+    } else if (rule?.kind === 'enum') {
+      const opts = rule.options.map(opt => `<option value="${opt.value}"${Number(value) === Number(opt.value) ? ' selected' : ''}>${opt.label}</option>`).join('');
+      input = `<select class="tgt-inp" data-gid="${flight.groupId}" data-path="${key}" data-kind="enum" onchange="setF18NavSetting(this)">${opts}</select>`;
+    } else if (kind === 'number' || rule?.kind === 'int' || rule?.kind === 'number') {
+      const step = rule?.step ?? 1;
+      const min = typeof rule?.min === 'number' ? ` min="${rule.min}"` : '';
+      const max = typeof rule?.max === 'number' ? ` max="${rule.max}"` : '';
+      const kindAttr = rule?.kind === 'int' ? 'int' : 'number';
+      input = `<input class="tgt-inp" type="number" value="${value}"${min}${max} step="${step}" data-gid="${flight.groupId}" data-path="${key}" data-kind="${kindAttr}" oninput="setF18NavSetting(this)">`;
+    } else {
+      input = `<input class="tgt-inp" type="text" value="${value ?? ''}" data-gid="${flight.groupId}" data-path="${key}" data-kind="string" oninput="setF18NavSetting(this)">`;
+    }
+    return `
+    <tr>
+      <td style="color:var(--muted)">${key}</td>
+      <td>${input}</td>
+    </tr>`;
+  }).join('');
+
+  const cmdsRows = Object.entries(f18.ALR67?.CMDS?.CMDSProgramSettings || {}).map(([name, p]) => `
+    <tr>
+      <td style="color:var(--muted)">${name}</td>
+      <td style="text-align:center">${p?.Chaff?.Quantity ?? 0}</td>
+      <td style="text-align:center">${p?.Chaff?.Repeat ?? 0}</td>
+      <td style="text-align:center">${p?.Chaff?.Interval ?? 0}</td>
+      <td style="text-align:center">${p?.Flare?.Quantity ?? 0}</td>
+    </tr>`).join('');
+
+  const rwrTable = f18.ALR67?.RWR?.RWR_Avionics_Threat_Table || {};
+  const rwrRows = Object.entries(rwrTable)
+    .sort(([, a], [, b]) => (a?.PRI ?? 999) - (b?.PRI ?? 999))
+    .slice(0, 80)
+    .map(([threat, cfg]) => `
+      <tr>
+        <td style="color:var(--muted);text-align:center">${cfg?.PRI ?? '—'}</td>
+        <td>${threat}</td>
+        <td style="color:var(--muted)">${cfg?.display ? 'display' : ''}${cfg?.aspj_xmit ? ' · aspj' : ''}</td>
+      </tr>`).join('');
+
+  const rwrFlags = f18.ALR67?.RWR || {};
+  const rwrFlagHtml = ['AAA', 'AI', 'FRND', 'NORM', 'UNK']
+    .filter(k => Object.prototype.hasOwnProperty.call(rwrFlags, k))
+    .map(k => `<div class="ews-item"><span class="ek">${k}</span>${rwrFlags[k] ? '<span class="ews-val-on">ON</span>' : '<span class="ews-val-off">OFF</span>'}</div>`)
+    .join('');
+
+  return `
+    <div class="inline-preview-head">
+      <div class="inline-preview-title">Preview — ${flight.name} (F/A-18C)</div>
+      <button class="btn btn-outline" type="button" onclick="closeInlinePreview('${family}', '${flight.groupId}')">✕ Close</button>
+    </div>
+    <div class="inline-preview-body">
+      <div class="tabs" style="padding:0;border-bottom:1px solid var(--border)">
+        <div class="tab${activeTab==='wpt' ? ' active' : ''}" data-panel="wpt" onclick="switchInlinePreviewTabBtn(this)">Waypoints</div>
+        <div class="tab${activeTab==='navset' ? ' active' : ''}" data-panel="navset" onclick="switchInlinePreviewTabBtn(this)">NAV Settings</div>
+        <div class="tab${activeTab==='c1' ? ' active' : ''}" data-panel="c1" onclick="switchInlinePreviewTabBtn(this)">COMM1</div>
+        <div class="tab${activeTab==='c2' ? ' active' : ''}" data-panel="c2" onclick="switchInlinePreviewTabBtn(this)">COMM2</div>
+        <div class="tab${activeTab==='tcn' ? ' active' : ''}" data-panel="tcn" onclick="switchInlinePreviewTabBtn(this)">TACAN</div>
+        <div class="tab${activeTab==='cmds' ? ' active' : ''}" data-panel="cmds" onclick="switchInlinePreviewTabBtn(this)">ALR67 CMDS</div>
+        <div class="tab${activeTab==='rwr' ? ' active' : ''}" data-panel="rwr" onclick="switchInlinePreviewTabBtn(this)">ALR67 RWR</div>
+      </div>
+      <div class="tab-content" style="padding:10px 0 0">
+      <div class="tab-panel${activeTab==='wpt' ? ' active' : ''}" data-ipanel="wpt">
+        <table>
+          <thead><tr><th>#</th><th>Name</th><th>Latitude</th><th>Longitude</th><th>Altitude</th></tr></thead>
+          <tbody>${navRows || '<tr><td colspan="5" style="color:var(--muted);text-align:center">No waypoints</td></tr>'}</tbody>
+        </table>
+      </div>
+      <div class="tab-panel${activeTab==='navset' ? ' active' : ''}" data-ipanel="navset">
+        <table>
+          <thead><tr><th>Setting</th><th>Value</th></tr></thead>
+          <tbody>${navSettingRows || '<tr><td colspan="2" style="color:var(--muted)">No NAV settings</td></tr>'}</tbody>
+        </table>
+      </div>
+      <div class="tab-panel${activeTab==='c1' ? ' active' : ''}" data-ipanel="c1">
+        <table>
+          <thead><tr><th>CH</th><th>Frequency</th><th>Name</th></tr></thead>
+          <tbody>${comRows(f18.COMM1, 'uhf') || '<tr><td colspan="3" style="color:var(--muted)">No COMM1 data</td></tr>'}</tbody>
+        </table>
+      </div>
+      <div class="tab-panel${activeTab==='c2' ? ' active' : ''}" data-ipanel="c2">
+        <table>
+          <thead><tr><th>CH</th><th>Frequency</th><th>Name</th></tr></thead>
+          <tbody>${comRows(f18.COMM2, 'vhf') || '<tr><td colspan="3" style="color:var(--muted)">No COMM2 data</td></tr>'}</tbody>
+        </table>
+      </div>
+      <div class="tab-panel${activeTab==='tcn' ? ' active' : ''}" data-ipanel="tcn">
+        <table>
+          <thead><tr><th>Add</th><th>Callsign</th><th>Channel</th><th>Display Name</th><th>X/Y</th></tr></thead>
+          <tbody>${tcnRows || '<tr><td colspan="5" style="color:var(--muted)">No TACAN data</td></tr>'}</tbody>
+        </table>
+        ${state.tacanCandidates.length ? '<p style="margin-top:8px;color:var(--muted);font-size:11px">Uncheck stations you do not want included in the exported F/A-18C DTC.</p>' : ''}
+      </div>
+      <div class="tab-panel${activeTab==='cmds' ? ' active' : ''}" data-ipanel="cmds">
+        <table>
+          <thead><tr><th>Program</th><th style="text-align:center">Chaff Qty</th><th style="text-align:center">Repeat</th><th style="text-align:center">Interval</th><th style="text-align:center">Flare Qty</th></tr></thead>
+          <tbody>${cmdsRows || '<tr><td colspan="5" style="color:var(--muted)">No ALR67 CMDS data</td></tr>'}</tbody>
+        </table>
+      </div>
+      <div class="tab-panel${activeTab==='rwr' ? ' active' : ''}" data-ipanel="rwr">
+        ${rwrFlagHtml ? `<div class="ews-grid" style="margin-bottom:12px">${rwrFlagHtml}</div>` : ''}
+        <table>
+          <thead><tr><th style="text-align:center">PRI</th><th>Threat</th><th>Flags</th></tr></thead>
+          <tbody>${rwrRows || '<tr><td colspan="3" style="color:var(--muted)">No ALR67 RWR threats</td></tr>'}</tbody>
+        </table>
+      </div>
+      </div>
+    </div>
+  `;
+}
+
+function buildF16PreviewHtml(flight, family) {
   const dtc = buildDtc(flight);
-  state.previewDtc    = dtc;
-  state.previewFlight = flight;
+  state.previewDtc = dtc;
+  const allowedTabs = ['wpt', 'c1', 'c2', 'cmds'];
+  const activeTab = allowedTabs.includes(flight.inlinePreviewTab) ? flight.inlinePreviewTab : 'wpt';
 
-  document.getElementById('dtc-preview-subtitle').textContent = `— ${flight.name}`;
-  document.getElementById('dtc-export-name').value = flight.name.replace(/[^a-zA-Z0-9_\-]/g, '_');
-
-  // ── Steerpoints — live from flight.waypoints so role dropdowns + TGT inputs are interactive
   const navWps = flight.waypoints
     .map((wp, originalIdx) => ({ wp, originalIdx }))
     .filter(({ wp }) => !wp.isTakeoff && !wp.isLand);
@@ -1142,7 +1647,6 @@ function previewDtc() {
       </tr>`;
   }).join('');
 
-  // ── COM channels ───────────────────────────────────────────────────────
   const comRows = (channels, cls) => Object.entries(channels).map(([ch, d]) => `
     <tr>
       <td style="color:var(--muted);width:52px">CH ${String(ch).padStart(2,'0')}</td>
@@ -1150,10 +1654,6 @@ function previewDtc() {
       <td style="color:var(--muted);font-size:11px">${d.Name || ''}</td>
     </tr>`).join('');
 
-  // ── CMDS programs ──────────────────────────────────────────────────────
-  // Supports two layouts:
-  //   Native: _nativePrograms → MAN1-6, AUTO1-3, BYP each with Chaff/Flare {BurstQty, SalvoQty, BurstInterval, SalvoInterval}
-  //   Old:    Programs         → Program1-6 each with flat Chaff, Flare, Interval, Cycles
   let cmdsRows = '', cmdsIsNative = false;
   if (dtc.Countermeasures?._nativePrograms) {
     cmdsIsNative = true;
@@ -1168,148 +1668,43 @@ function previewDtc() {
         <td style="color:var(--text);text-align:center">${c.SalvoInterval ?? 0}s</td>
       </tr>`;
     }).join('');
-  } else if (dtc.Countermeasures) {
-    const progs = dtc.Countermeasures.Programs || dtc.Countermeasures;
-    cmdsRows = Object.entries(progs).filter(([k]) => !k.startsWith('_') && typeof progs[k] === 'object').map(([prog, p]) => `
-      <tr>
-        <td style="color:var(--muted)">${prog.replace('Program', 'PGM ')}</td>
-        <td style="color:var(--text);text-align:center">${p.Chaff ?? p.BurstChaff}</td>
-        <td style="color:var(--text);text-align:center">${p.Flare ?? p.BurstFlare}</td>
-        <td style="color:var(--text);text-align:center">${p.Interval}s</td>
-        <td style="color:var(--text);text-align:center">${p.Cycles}</td>
-      </tr>`).join('');
   }
 
-  // ── EWS bingo / settings (native format) ──────────────────────────────
-  const ewsItems = [];
-  const nativeBingo = dtc.Countermeasures?._nativeBingo;
-  if (nativeBingo) {
-    for (const [k, v] of Object.entries(nativeBingo)) {
-      const valHtml = v === true  ? `<span class="ews-val-on">ON</span>`
-                    : v === false ? `<span class="ews-val-off">OFF</span>`
-                    : `<span style="color:var(--text)">${v}</span>`;
-      ewsItems.push(`<div class="ews-item"><span class="ek">${k}</span>${valHtml}</div>`);
-    }
-  } else if (dtc.EWS) {
-    (function flatEws(obj, prefix) {
-      for (const [k, v] of Object.entries(obj)) {
-        if (v !== null && typeof v === 'object' && !Array.isArray(v)) {
-          flatEws(v, prefix ? `${prefix}.${k}` : k);
-        } else if (!Array.isArray(v)) {
-          const label = prefix ? `${prefix}.${k}` : k;
-          const valHtml = v === true  ? `<span class="ews-val-on">ON</span>`
-                        : v === false ? `<span class="ews-val-off">OFF</span>`
-                        : `<span style="color:var(--text)">${v}</span>`;
-          ewsItems.push(`<div class="ews-item"><span class="ek">${label}</span>${valHtml}</div>`);
-        }
-      }
-    })(dtc.EWS, '');
-  }
+  const hasCmds = !!dtc.Countermeasures;
 
-  // ── RWR priority table ────────────────────────────────────────────────
-  // Native format: RWR.HIGH and RWR.LOW are objects keyed by threat name
-  //   e.g. { "A-50": { PRI: 66, display: true, search: false, unknown: false } }
-  // Fallback:      EWS.RWR.ThreatTable is a flat array of {priority, id, symbol}
-  let rwrRows = '';
-  const rwr = dtc.EWS?.RWR;
-  if (rwr) {
-    // Native object format: keyed by threat name
-    const buildObjRwrRows = (obj, label) => {
-      if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return '';
-      return Object.entries(obj)
-        .sort(([, a], [, b]) => (a.PRI ?? 99) - (b.PRI ?? 99))
-        .map(([name, t]) => `
-        <tr>
-          <td style="color:var(--muted);text-align:center">${t.PRI ?? '—'}</td>
-          <td style="color:var(--text)">${name}</td>
-          <td style="color:var(--muted);font-size:10px">${label}${t.display ? ' ●disp' : ''}${t.search ? ' ●srch' : ''}</td>
-        </tr>`).join('');
-    };
-    // Legacy array format: [{PRI/priority, group_name/id, hint/symbol}]
-    const buildArrRwrRows = (arr) => {
-      if (!Array.isArray(arr)) return '';
-      return arr
-        .slice().sort((a, b) => (a.PRI ?? a.priority ?? 99) - (b.PRI ?? b.priority ?? 99))
-        .map(t => `
-        <tr>
-          <td style="color:var(--muted);text-align:center">${t.PRI ?? t.priority ?? '—'}</td>
-          <td style="color:var(--text)">${t.group_name ?? t.id ?? '—'}</td>
-          <td style="color:var(--muted);font-size:10px">${t.hint ?? t.symbol ?? '—'}</td>
-        </tr>`).join('');
-    };
-    if (rwr.HIGH && !Array.isArray(rwr.HIGH)) {
-      // Real DCS native format — plain objects keyed by threat name
-      const highRows = buildObjRwrRows(rwr.HIGH, 'H');
-      const lowRows  = buildObjRwrRows(rwr.LOW,  'L');
-      if (highRows || lowRows) rwrRows = highRows + lowRows;
-    } else if (Array.isArray(rwr.HIGH)) {
-      const highRows = buildArrRwrRows(rwr.HIGH);
-      const lowRows  = buildArrRwrRows(rwr.LOW);
-      if (highRows || lowRows) rwrRows = highRows + lowRows;
-    } else if (Array.isArray(rwr.ThreatTable)) {
-      rwrRows = buildArrRwrRows(rwr.ThreatTable);
-    }
-  }
-
-  // ── CMDS Threat → Program map (native format) ──────────────────────────
-  let threatRows = '';
-  const nativeThreatMap = dtc.Countermeasures?._nativeThreatMap;
-  if (nativeThreatMap) {
-    // CMDSPrograms: { Air: {threatName: {program, ...}}, Ground: {...}, Naval: {...} }
-    for (const [category, threats] of Object.entries(nativeThreatMap)) {
-      if (!threats || typeof threats !== 'object') continue;
-      for (const [threat, cfg] of Object.entries(threats)) {
-        if (cfg?.program) {
-          threatRows += `
-          <tr>
-            <td style="color:var(--muted);font-size:10px">${category}</td>
-            <td style="color:var(--text)">${threat}</td>
-            <td style="color:var(--muted)">MAN${cfg.program}</td>
-          </tr>`;
-        }
-      }
-    }
-  } else {
-    const flatThreatTable = dtc.Countermeasures?.ThreatTable || {};
-    threatRows = Object.entries(flatThreatTable).map(([threat, pgm]) => `
-      <tr>
-        <td style="color:var(--muted);font-size:10px">—</td>
-        <td style="color:var(--text)">${threat}</td>
-        <td style="color:var(--muted)">${pgm.replace('Program', 'PGM ')}</td>
-      </tr>`).join('');
-  }
-
-  const hasCmds    = !!dtc.Countermeasures;
-  const hasThreats = !!(threatRows || rwrRows);
-
-  document.getElementById('dtc-preview-body').innerHTML = `
-    <div class="tabs" style="padding:0 20px;border-bottom:1px solid var(--border)">
-      <div class="tab active" onclick="switchDtcTab('wpt',this)">Waypoints</div>
-      <div class="tab" onclick="switchDtcTab('c1',this)">COM1 — UHF</div>
-      <div class="tab" onclick="switchDtcTab('c2',this)">COM2 — VHF</div>
-      ${hasCmds    ? `<div class="tab" onclick="switchDtcTab('cmds',this)">CMDS</div>`    : ''}
-      ${hasThreats ? `<div class="tab" onclick="switchDtcTab('threats',this)">Threats</div>` : ''}
+  return `
+    <div class="inline-preview-head">
+      <div class="inline-preview-title">Preview — ${flight.name} (F-16C)</div>
+      <button class="btn btn-outline" type="button" onclick="closeInlinePreview('${family}', '${flight.groupId}')">✕ Close</button>
     </div>
-    <div class="tab-content">
-      <div class="tab-panel active" id="dtp-wpt">
+    <div class="inline-preview-body">
+      <div class="tabs" style="padding:0;border-bottom:1px solid var(--border)">
+        <div class="tab${activeTab==='wpt' ? ' active' : ''}" data-panel="wpt" onclick="switchInlinePreviewTabBtn(this)">Waypoints</div>
+        <div class="tab${activeTab==='c1' ? ' active' : ''}" data-panel="c1" onclick="switchInlinePreviewTabBtn(this)">COM1</div>
+        <div class="tab${activeTab==='c2' ? ' active' : ''}" data-panel="c2" onclick="switchInlinePreviewTabBtn(this)">COM2</div>
+        ${hasCmds ? `<div class="tab${activeTab==='cmds' ? ' active' : ''}" data-panel="cmds" onclick="switchInlinePreviewTabBtn(this)">CMDS</div>` : ''}
+      </div>
+      <div class="tab-content" style="padding:10px 0 0">
+      <div class="tab-panel${activeTab==='wpt' ? ' active' : ''}" data-ipanel="wpt">
         <table>
           <thead><tr><th>Waypoint</th><th>Name</th><th>Role</th><th>Latitude</th><th>Longitude</th><th>Altitude</th></tr></thead>
           <tbody>${steerRows || '<tr><td colspan="6" style="color:var(--muted);text-align:center">No steerpoints</td></tr>'}</tbody>
         </table>
       </div>
-      <div class="tab-panel" id="dtp-c1">
+      <div class="tab-panel${activeTab==='c1' ? ' active' : ''}" data-ipanel="c1">
         <table>
           <thead><tr><th>CH</th><th>Frequency</th><th>Name</th></tr></thead>
           <tbody>${comRows(dtc.Radio.UHF.Channels, 'uhf') || '<tr><td colspan="3" style="color:var(--muted)">No COM1 data</td></tr>'}</tbody>
         </table>
       </div>
-      <div class="tab-panel" id="dtp-c2">
+      <div class="tab-panel${activeTab==='c2' ? ' active' : ''}" data-ipanel="c2">
         <table>
           <thead><tr><th>CH</th><th>Frequency</th><th>Name</th></tr></thead>
           <tbody>${comRows(dtc.Radio.VHF.Channels, 'vhf') || '<tr><td colspan="3" style="color:var(--muted)">No COM2 data</td></tr>'}</tbody>
         </table>
       </div>
-      <div class="tab-panel" id="dtp-cmds">
+      ${hasCmds ? `
+      <div class="tab-panel${activeTab==='cmds' ? ' active' : ''}" data-ipanel="cmds">
         <table>
           ${cmdsIsNative
             ? `<thead><tr><th>Program</th><th style="text-align:center">Chaff BQ×SQ</th><th style="text-align:center">Flare BQ×SQ</th><th style="text-align:center">Burst Intv</th><th style="text-align:center">Salvo Intv</th></tr></thead>`
@@ -1317,51 +1712,60 @@ function previewDtc() {
           }
           <tbody>${cmdsRows}</tbody>
         </table>
-        ${ewsItems.length ? `
-        <div style="margin-top:16px">
-          <div class="dtc-section-title" style="margin-bottom:8px">${cmdsIsNative ? 'Bingo Settings' : 'EWS Settings'}</div>
-          <div class="ews-grid">${ewsItems.join('')}</div>
-        </div>` : ''}
-      </div>
-      <div class="tab-panel" id="dtp-threats">
-        ${rwrRows ? `
-          <div class="dtc-section-title" style="margin-bottom:8px">RWR Threat Priorities</div>
-          <table style="margin-bottom:20px">
-            <thead><tr><th style="text-align:center">PRI</th><th>Threat</th><th>Hint</th></tr></thead>
-            <tbody>${rwrRows}</tbody>
-          </table>` : ''}
-        ${threatRows
-          ? `<div class="dtc-section-title" style="margin-bottom:8px">CMDS Threat → Program</div>
-             <table>
-              <thead><tr><th>Category</th><th>Threat</th><th>Program</th></tr></thead>
-              <tbody>${threatRows}</tbody>
-            </table>`
-          : (!rwrRows ? '<p style="color:var(--muted)">No threat table entries.</p>' : '')
-        }
+      </div>` : ''}
       </div>
     </div>
   `;
-
-  const panel = document.getElementById('dtc-preview');
-  panel.classList.add('open');
-  panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
-// ── Step 1b: close the preview ─────────────────────────────────────────────
-function closeDtcPreview() {
-  document.getElementById('dtc-preview').classList.remove('open');
-  state.previewDtc    = null;
-  state.previewFlight = null;
+// ── Step 1: build + render the preview panel ───────────────────────────────
+function previewDtc(family = 'f16', groupId = null) {
+  const isF18 = family === 'f18';
+  const flights = isF18 ? state.f18Flights : state.f16Flights;
+  const flight = groupId !== null
+    ? flights.find(f => String(f.groupId) === String(groupId))
+    : flights[0];
+  if (!flight) return alert('Select a flight first.');
+
+  // Ensure the relevant aircraft section and flight card are expanded before showing preview.
+  const sectionBody = document.getElementById(`section-body-${family}`);
+  const sectionChevron = document.getElementById(`section-chevron-${family}`);
+  if (sectionBody?.classList.contains('collapsed')) {
+    sectionBody.classList.remove('collapsed');
+    if (sectionChevron) sectionChevron.style.transform = 'rotate(0deg)';
+  }
+
+  const card = document.getElementById(`fc-${family}-${flight.groupId}`);
+  if (card?.classList.contains('collapsed')) card.classList.remove('collapsed');
+
+  const previewId = `inline-preview-${family}-${flight.groupId}`;
+  const preview = document.getElementById(previewId);
+  if (!preview) return;
+
+  const html = isF18 ? buildF18PreviewHtml(flight, family) : buildF16PreviewHtml(flight, family);
+  preview.innerHTML = html;
+  preview.classList.add('open');
+  preview.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
-// ── Step 2: rebuild DTC with current roles and download ────────────────────
-function downloadDtc() {
-  const flight = state.previewFlight;
+function closeInlinePreview(family, groupId) {
+  const preview = document.getElementById(`inline-preview-${family}-${groupId}`);
+  if (!preview) return;
+  preview.classList.remove('open');
+  preview.innerHTML = '';
+}
+
+function previewFlightButton(btn) {
+  previewDtc(btn.dataset.family, btn.dataset.gid);
+}
+
+function exportFlightDtc(family, groupId) {
+  const flights = family === 'f18' ? state.f18Flights : state.f16Flights;
+  const flight = flights.find(f => String(f.groupId) === String(groupId));
   if (!flight) return;
-  const dtc = buildDtcNative(flight); // real DCS format — captures role/TargetData edits from preview
 
-  const inputName = document.getElementById('dtc-export-name').value.trim();
-  const name = (inputName || flight.name).replace(/[^a-zA-Z0-9_\-]/g, '_');
+  const dtc = family === 'f18' ? buildF18DtcNative(flight) : buildDtcNative(flight);
+  const name = (flight.name || 'flight').replace(/[^a-zA-Z0-9_\-]/g, '_');
 
   const json = JSON.stringify(dtc, null, 2);
   const blob = new Blob([json], { type: 'application/json' });
@@ -1373,9 +1777,20 @@ function downloadDtc() {
   URL.revokeObjectURL(url);
 }
 
+function exportFlightButton(btn) {
+  exportFlightDtc(btn.dataset.family, btn.dataset.gid);
+}
+
 // ── Collapse / expand a flight card ────────────────────────────────────────
-function toggleFlight(gid) {
-  document.getElementById(`fc-${gid}`).classList.toggle('collapsed');
+function toggleFlightFromHead(headEl) {
+  const card = headEl.closest('.flight-card');
+  if (card) card.classList.toggle('collapsed');
+}
+
+function toggleFlight(cardPrefix, gid) {
+  // Backward-compatible wrapper for any old inline handlers.
+  const card = document.getElementById(`fc-${cardPrefix}-${gid}`);
+  if (card) card.classList.toggle('collapsed');
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1415,8 +1830,23 @@ async function handleMizFile(file) {
     const mission = parsed.mission;
     if (!mission) throw new Error('Could not parse mission table from Lua file.');
 
-    state.flights = extractF16Flights(mission, state.theater);
-    renderFlights(state.flights);
+    state.f16Flights = extractF16Flights(mission, state.theater);
+    state.f18Flights = extractF18Flights(mission, state.theater);
+    state.tacanCandidates = extractTacanCandidates(mission);
+    renderFlights(state.f16Flights, {
+      containerId: 'flights-container-f16',
+      emptyId: 'no-f16s',
+      cardPrefix: 'f16',
+      family: 'f16',
+      sectionKey: 'f16',
+    });
+    renderFlights(state.f18Flights, {
+      containerId: 'flights-container-f18',
+      emptyId: 'no-f18s',
+      cardPrefix: 'f18',
+      family: 'f18',
+      sectionKey: 'f18',
+    });
 
     const dtcWarn = nativeDtcs.length
       ? ` <span class="warn">· Native .dtc found (${nativeDtcs.join(', ')}) — format not yet parsed</span>`
@@ -1424,7 +1854,9 @@ async function handleMizFile(file) {
 
     showStatus(
       `<span class="ok">✓</span> ${state.theater} · ${state.missionName} · ` +
-      `<span class="ok">${state.flights.length}</span> F-16C flight(s)${dtcWarn}`
+      `<span class="ok">${state.f16Flights.length}</span> F-16C flight(s) · ` +
+      `<span class="ok">${state.f18Flights.length}</span> F/A-18C flight(s) · ` +
+      `<span class="ok">${state.tacanCandidates.length}</span> TACAN station(s)${dtcWarn}`
     );
 
   } catch (err) {
@@ -1439,15 +1871,43 @@ document.getElementById('miz-input').addEventListener('change', async (e) => {
 });
 
 // ── .dtc format normalizer ────────────────────────────────────────────────
-// Parses real DCS native format: { data: { COMM, ELINT, MPD }, name, type }
+// Parses real DCS native format for both F-16 and F/A-18 families.
 // Written by DCS itself; stored in Saved Games\DCS\dtc\
-// Stores raw ELINT/MPD blocks for lossless re-export via buildDtcNative().
+// Stores raw blocks for lossless re-export.
 function normalizeDtc(raw) {
   if (!raw.data?.COMM) return null; // unrecognized format
+
+  const isF18 = isF18Type(raw.type || '');
+
+  if (isF18) {
+    const out = {
+      Aircraft: raw.type || 'FA-18C_hornet',
+      _native: true,
+      _aircraft: 'F18',
+      _rawAlr67: raw.data.ALR67 || null,
+      _rawTcn: Array.isArray(raw.data.TCN) ? raw.data.TCN : [],
+      _rawWypt: raw.data.WYPT || null,
+      _f18Comm: raw.data.COMM || null,
+    };
+
+    const uhfCh = {}, vhfCh = {};
+    const comm1 = raw.data.COMM.COMM1 || {};
+    const comm2 = raw.data.COMM.COMM2 || {};
+    for (let i = 1; i <= 20; i++) {
+      const u = comm1[`Channel_${i}`];
+      const v = comm2[`Channel_${i}`];
+      if (u) uhfCh[String(i)] = { Frequency: u.frequency, Name: u.name || '' };
+      if (v) vhfCh[String(i)] = { Frequency: v.frequency, Name: v.name || '' };
+    }
+    out.Radio = { UHF: { Channels: uhfCh }, VHF: { Channels: vhfCh } };
+
+    return out;
+  }
 
   const out = {
     Aircraft:  raw.type || 'F-16C_50',
     _native:   true,
+    _aircraft: 'F16',
     _rawElint: raw.data.ELINT || null,   // passthrough for export
     _rawMpd:   raw.data.MPD   || null,   // passthrough for export
   };
@@ -1503,7 +1963,7 @@ async function handleDtcFile(file) {
 
   const normalized = normalizeDtc(parsed);
   if (!normalized) {
-    alert('Unrecognized .dtc format.\nExpected real DCS native format with { "data": { "COMM", "ELINT", "MPD" }, "name", "type" }.\nLoad a .dtc from your Saved Games\\DCS\\dtc\\ folder.');
+    alert('Unrecognized .dtc format.\nExpected real DCS native format with at least { "data": { "COMM" }, "name", "type" }.\nLoad a .dtc from your Saved Games\\DCS\\dtc\\ folder.');
     document.getElementById('dtc-fname').textContent = '';
     document.getElementById('dtc-card').classList.remove('active');
     return;
@@ -1511,15 +1971,26 @@ async function handleDtcFile(file) {
   state.personalDtc = normalized;
 
   // Re-render the preview if one is already showing so CMDS/Threats tabs appear immediately
-  if (state.previewFlight) previewDtc();
+  // Re-render any open inline previews so merged tabs update immediately.
+  document.querySelectorAll('.inline-preview-panel.open').forEach(panel => {
+    previewDtc(panel.dataset.family, panel.dataset.gid);
+  });
 
   // Build a summary of what will be merged
   const parts = [];
   if (normalized._native) {
-    // Real DCS native format — describe what sections are present
-    if (normalized._rawMpd?.CMDS)   parts.push('CMDS (MAN1-6/AUTO1-3/BYP)');
-    if (normalized._rawElint?.RWR)  parts.push('RWR priorities');
-    if (normalized.Radio)           parts.push('radio presets');
+    if (normalized._aircraft === 'F18') {
+      if (normalized._rawAlr67?.CMDS) parts.push('ALR67 CMDS');
+      if (normalized._rawAlr67?.RWR)  parts.push('ALR67 RWR');
+      if (normalized._rawTcn?.length) parts.push('TACAN presets');
+      if (normalized._rawWypt?.NAV_SETTINGS) parts.push('NAV settings');
+      if (normalized.Radio)           parts.push('radio presets');
+    } else {
+      // Real DCS native format — describe what sections are present
+      if (normalized._rawMpd?.CMDS)   parts.push('CMDS (MAN1-6/AUTO1-3/BYP)');
+      if (normalized._rawElint?.RWR)  parts.push('RWR priorities');
+      if (normalized.Radio)           parts.push('radio presets');
+    }
   } else {
     if (normalized.Countermeasures) parts.push('CMDS');
     if (normalized.EWS)             parts.push('EWS');
