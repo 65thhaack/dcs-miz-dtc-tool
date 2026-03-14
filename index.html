@@ -966,7 +966,7 @@ function buildDtc(flight) {
 //  COMM  = mission radio presets
 //  ELINT = passthrough from personal .dtc (RWR priorities)
 //  MPD   = passthrough from personal .dtc (CMDS programs)
-//  NAV   = steerpoints from mission waypoints
+//  NAV   = native NAV_PTS list from mission waypoints
 // ═══════════════════════════════════════════════════════════════════════════
 function buildDtcNative(flight) {
   // ── COMM — mission radio → Channel_N keys with integer MHz freq ───────────
@@ -977,40 +977,97 @@ function buildDtcNative(flight) {
     if (f1 !== undefined) comm1[`Channel_${i}`] = { freq: parseFloat(Number(f1).toFixed(3)), modulation: 1 };
     if (f2 !== undefined) comm2[`Channel_${i}`] = { freq: parseFloat(Number(f2).toFixed(3)), modulation: 1 };
   }
+  const orderChannels = (channels) => Object.keys(channels)
+    .sort((a, b) => a.localeCompare(b))
+    .reduce((out, key) => {
+      out[key] = channels[key];
+      return out;
+    }, {});
 
-  // ── NAV — steerpoints from mission (exclude takeoff/landing) ─────────────
-  const steerpoints = {};
-  let stNum = 0;
-  for (const wp of flight.waypoints.filter(w => !w.isTakeoff && !w.isLand)) {
-    stNum++;
-    const entry = {
-      Name: wp.name || `STPT${stNum}`,
-      Type: wp.pointType || 'STPT',
-      Lat:  toDtcLat(wp.lat),
-      Long: toDtcLon(wp.lon),
-      Alt:  wp.alt_ft,
-    };
-    if (wp.pointType === 'TGT' && wp.targetData) {
-      entry.TargetData = {
-        VRP_Bearing:  wp.targetData.vrpBearing,
-        VRP_Range:    parseFloat(wp.targetData.vrpRange.toFixed(2)),
-        PUP_Distance: parseFloat(wp.targetData.pupDistance.toFixed(2)),
-      };
+  // ── NAV — native NAV_PTS from mission (exclude takeoff/landing) ──────────
+  const navWps = flight.waypoints.filter(w => !w.isTakeoff && !w.isLand);
+  const navPts = [];
+  let tos = 3600;
+  for (let i = 0; i < navWps.length; i++) {
+    const wp = navWps[i];
+    const n = i + 1;
+    const type = wp.pointType || 'STPT';
+    const navId = `STPT${n}`;
+
+    if (i > 0) {
+      const prev = navWps[i - 1];
+      const dx = (wp.x || 0) - (prev.x || 0);
+      const dy = (wp.y || 0) - (prev.y || 0);
+      const distM = Math.hypot(dx, dy);
+      const speedMs = (wp.speed_ms > 0 ? wp.speed_ms : (prev.speed_ms > 0 ? prev.speed_ms : 220));
+      tos += distM / speedMs;
     }
-    steerpoints[String(stNum)] = entry;
+
+    navPts.push({
+      alt: Math.max(0, Math.round(wp.alt_m || 0)),
+      altitudeType: 1,
+      FIX_Time: false,
+      id: navId,
+      idOA1: `OA1${n}`,
+      idOA1_Line: `OA1${n}Line`,
+      idOA2: `OA2${n}`,
+      idOA2_Line: `OA2${n}Line`,
+      isOAP_1: false,
+      isOAP_2: false,
+      isTOSEnabled: true,
+      note: wp.name || '',
+      number: n,
+      OAP_1_Alt: 0,
+      OAP_1_Bearing: 0,
+      OAP_1_DeltaX: 0,
+      OAP_1_DeltaY: 0,
+      OAP_1_Range: 0,
+      OAP_1_X: 0,
+      OAP_1_Y: 0,
+      OAP_2_Alt: 0,
+      OAP_2_Bearing: 0,
+      OAP_2_DeltaX: 0,
+      OAP_2_DeltaY: 0,
+      OAP_2_Range: 0,
+      OAP_2_X: 0,
+      OAP_2_Y: 0,
+      R1: true,
+      R2: false,
+      R3: false,
+      routeAltitude: Math.max(0, Math.round(wp.alt_ft || 0)),
+      speed: Math.round((wp.speed_ms || 0) * 3.6),
+      TOS: i === 0 ? 3600 : tos,
+      type,
+      velocityType: 3,
+      x: wp.x || 0,
+      y: wp.y || 0,
+    });
   }
 
   // ── Passthrough ELINT and MPD from personal .dtc ─────────────────────────
   const pd = state.personalDtc;
   const elint = pd?._rawElint || {};
   const mpd   = pd?._rawMpd   || {};
+  const mpdWithNav = {
+    ...mpd,
+    mirror_NAV_PTS: false,
+    NAV_PTS: navPts,
+    terrain: state.theater,
+  };
 
   return {
     data: {
-      COMM:  { COMM1: comm1, COMM2: comm2 },
+      COMM:  {
+        COMM1: orderChannels(comm1),
+        COMM2: orderChannels(comm2),
+        mirror_COMM1: true,
+        mirror_COMM2: true,
+      },
       ELINT: elint,
-      MPD:   mpd,
-      ...(stNum > 0 ? { NAV: { Steerpoints: steerpoints } } : {}),
+      MPD:   mpdWithNav,
+      terrain: state.theater,
+      name: flight.name,
+      type: 'F-16C_50',
     },
     name: flight.name,
     type: 'F-16C_50',
@@ -1040,7 +1097,7 @@ function previewDtc() {
     return `
       <tr>
         <td style="color:var(--muted);width:28px">${stNum}</td>
-        <td>${wp.name || `STPT${stNum}`}</td>
+        <td>${wp.name || ''}</td>
         <td>
           <select class="pttype pt-${type}"
             data-gid="${flight.groupId}" data-idx="${originalIdx}"
@@ -1236,7 +1293,7 @@ function previewDtc() {
     <div class="tab-content">
       <div class="tab-panel active" id="dtp-wpt">
         <table>
-          <thead><tr><th>#</th><th>Name</th><th>Role</th><th>Latitude</th><th>Longitude</th><th>Altitude</th></tr></thead>
+          <thead><tr><th>Waypoint</th><th>Name</th><th>Role</th><th>Latitude</th><th>Longitude</th><th>Altitude</th></tr></thead>
           <tbody>${steerRows || '<tr><td colspan="6" style="color:var(--muted);text-align:center">No steerpoints</td></tr>'}</tbody>
         </table>
       </div>
@@ -1330,8 +1387,7 @@ function showStatus(html) {
   sb.innerHTML = html;
 }
 
-document.getElementById('miz-input').addEventListener('change', async (e) => {
-  const file = e.target.files[0];
+async function handleMizFile(file) {
   if (!file) return;
 
   document.getElementById('miz-fname').textContent = file.name;
@@ -1375,6 +1431,11 @@ document.getElementById('miz-input').addEventListener('change', async (e) => {
     showStatus(`<span class="err">✗ ${err.message}</span>`);
     console.error(err);
   }
+}
+
+document.getElementById('miz-input').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  await handleMizFile(file);
 });
 
 // ── .dtc format normalizer ────────────────────────────────────────────────
@@ -1422,8 +1483,7 @@ function normalizeDtc(raw) {
   return out;
 }
 
-document.getElementById('dtc-input').addEventListener('change', async (e) => {
-  const file = e.target.files[0];
+async function handleDtcFile(file) {
   if (!file) return;
 
   document.getElementById('dtc-fname').textContent = file.name;
@@ -1471,6 +1531,11 @@ document.getElementById('dtc-input').addEventListener('change', async (e) => {
   document.getElementById('merge-pill').style.display = 'inline-flex';
   document.getElementById('merge-pill').textContent   = `✓ Merging ${mergeDesc} from ${file.name}`;
   document.getElementById('dtc-clear-btn').style.display = 'inline-flex';
+}
+
+document.getElementById('dtc-input').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  await handleDtcFile(file);
 });
 
 function clearPersonalDtc(e) {
@@ -1495,10 +1560,11 @@ for (const id of ['miz-card', 'dtc-card']) {
     card.style.borderColor = '';
     const f = e.dataTransfer.files[0];
     if (!f) return;
-    const dt = new DataTransfer();
-    dt.items.add(f);
-    input.files = dt.files;
-    input.dispatchEvent(new Event('change'));
+    if (id === 'miz-card') {
+      handleMizFile(f);
+    } else {
+      handleDtcFile(f);
+    }
   });
 }
 </script>
