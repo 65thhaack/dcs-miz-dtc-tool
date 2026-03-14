@@ -936,6 +936,12 @@ function buildDtc(flight) {
   };
   const countermeasures = state.personalDtc?.Countermeasures || DEFAULT_CMDS;
 
+  // ── EWS ────────────────────────────────────────────────────────────────
+  const DEFAULT_EWS = {
+    RWR: { Search: true, TargetSep: false, Altitude: true },
+  };
+  const ews = state.personalDtc?.EWS || DEFAULT_EWS;
+
   // ── Datalink ────────────────────────────────────────────────────────────
   const DEFAULT_DATALINK = {
     Settings: { OwnshipSTN: '00000', FighterChannel: 1, MissionChannel: 1, TDOA_Active: false },
