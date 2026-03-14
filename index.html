@@ -1,0 +1,1278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DCS F-16 DTC Tool</title>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --surface: #161b22;
+      --surface2: #1c2128;
+      --border: #30363d;
+      --accent: #58a6ff;
+      --green: #3fb950;
+      --amber: #d29922;
+      --red: #f85149;
+      --text: #e6edf3;
+      --muted: #8b949e;
+      --mono: 'Courier New', Courier, monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+      min-height: 100vh;
+    }
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    header h1 { font-size: 17px; font-weight: 700; color: var(--accent); letter-spacing: 0.06em; }
+    header .sub { color: var(--muted); font-size: 12px; margin-top: 1px; }
+    .badge {
+      background: rgba(63,185,80,0.1);
+      color: var(--green);
+      border: 1px solid var(--green);
+      padding: 2px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+    }
+    main { padding: 24px; max-width: 1440px; margin: 0 auto; }
+
+    /* ── Upload Cards ─────────────────────────────────────────────────── */
+    .upload-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+    .upload-card {
+      background: var(--surface);
+      border: 2px dashed var(--border);
+      border-radius: 8px;
+      padding: 22px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+      position: relative;
+    }
+    .upload-card:hover { border-color: var(--accent); background: #161f2e; }
+    .upload-card.active { border-color: var(--accent); border-style: solid; background: #161f2e; }
+    .upload-card .icon { font-size: 28px; margin-bottom: 8px; }
+    .upload-card h3 { font-size: 13px; font-weight: 600; margin-bottom: 3px; }
+    .upload-card p { color: var(--muted); font-size: 11px; }
+    .upload-card .fname { margin-top: 8px; color: var(--green); font-family: var(--mono); font-size: 11px; word-break: break-all; }
+    input[type=file] { display: none; }
+
+    /* ── Status Bar ───────────────────────────────────────────────────── */
+    .status-bar {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 9px 14px;
+      font-family: var(--mono);
+      font-size: 12px;
+      margin-bottom: 18px;
+      display: none;
+    }
+    .ok  { color: var(--green); }
+    .warn { color: var(--amber); }
+    .err { color: var(--red); }
+
+    /* ── Section header ───────────────────────────────────────────────── */
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .section-title { font-size: 15px; font-weight: 600; }
+
+    /* ── Buttons ──────────────────────────────────────────────────────── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 14px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: opacity 0.15s;
+      white-space: nowrap;
+    }
+    .btn:hover:not(:disabled) { opacity: 0.82; }
+    .btn:disabled { opacity: 0.35; cursor: not-allowed; }
+    .btn-primary { background: var(--accent); color: #0d1117; }
+    .btn-success { background: var(--green); color: #0d1117; }
+    .btn-outline { background: transparent; color: var(--text); border-color: var(--border); }
+
+    /* ── Controls row ─────────────────────────────────────────────────── */
+    .controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    select {
+      background: var(--surface2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 7px 10px;
+      font-size: 12px;
+    }
+    .merge-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: rgba(63,185,80,0.12);
+      border: 1px solid var(--green);
+      color: var(--green);
+      border-radius: 12px;
+      padding: 3px 10px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    /* ── Flight Card ──────────────────────────────────────────────────── */
+    .flight-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin-bottom: 20px;
+      overflow: hidden;
+    }
+    .flight-head {
+      background: var(--surface2);
+      padding: 12px 16px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      gap: 12px;
+    }
+    .flight-name { font-size: 15px; font-weight: 700; color: var(--accent); }
+    .flight-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+    .unit-chips { display: flex; gap: 6px; flex-wrap: wrap; align-items: flex-start; }
+    /* Collapsible flight cards */
+    .flight-head-left {
+      display: flex; align-items: flex-start; gap: 10px;
+      cursor: pointer; flex: 1; min-width: 0; user-select: none;
+    }
+    .chevron {
+      color: var(--muted); font-size: 10px; margin-top: 5px;
+      flex-shrink: 0; transition: transform 0.15s;
+    }
+    .flight-card.collapsed .chevron { transform: rotate(-90deg); }
+    .flight-card.collapsed .tabs,
+    .flight-card.collapsed .tab-content { display: none; }
+    .chip {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 2px 8px;
+      font-size: 11px;
+      font-family: var(--mono);
+      white-space: nowrap;
+    }
+    .chip .skill { color: var(--muted); }
+
+    /* ── Tabs ─────────────────────────────────────────────────────────── */
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      padding: 0 16px;
+      gap: 2px;
+    }
+    .tab {
+      padding: 9px 14px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--muted);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+    }
+    .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+    .tab-content { padding: 16px; }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ── Tables ───────────────────────────────────────────────────────── */
+    table { width: 100%; border-collapse: collapse; font-family: var(--mono); font-size: 12px; }
+    thead th {
+      text-align: left;
+      padding: 5px 10px;
+      color: var(--muted);
+      font-weight: 500;
+      font-family: -apple-system, sans-serif;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      border-bottom: 1px solid var(--border);
+    }
+    tbody td { padding: 6px 10px; border-bottom: 1px solid #1c2128; }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:hover td { background: var(--surface2); }
+
+    /* ── Waypoint tags ────────────────────────────────────────────────── */
+    .wptag {
+      display: inline-block;
+      padding: 1px 6px;
+      border-radius: 3px;
+      font-size: 10px;
+      font-weight: 700;
+      font-family: -apple-system, sans-serif;
+      letter-spacing: 0.04em;
+    }
+    .wptag-tp   { background: rgba(63,185,80,0.15);  color: var(--green); }
+    .wptag-tkof { background: rgba(88,166,255,0.15); color: var(--accent); }
+    .wptag-rtb  { background: rgba(248,81,73,0.15);  color: var(--red); }
+
+    /* ── Freq colors ──────────────────────────────────────────────────── */
+    .uhf { color: #fbbf24; }
+    .vhf { color: #86efac; }
+    /* Point-type selector inside waypoints table */
+    .pttype {
+      background: var(--bg);
+      color: var(--green);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 2px 4px;
+      font-size: 11px;
+      font-family: var(--mono);
+      font-weight: 700;
+      cursor: pointer;
+      width: 82px;
+    }
+    .pttype:focus { outline: none; border-color: var(--accent); }
+    /* HSD point-type colors */
+    .pttype.pt-stpt { color: var(--green);  border-color: var(--border); }
+    .pttype.pt-ip   { color: var(--accent); border-color: rgba(88,166,255,0.5); }
+    .pttype.pt-tgt  { color: var(--red);    border-color: rgba(248,81,73,0.5); }
+    .pttype.pt-vrp  { color: #c084fc;       border-color: rgba(192,132,252,0.5); }
+    .pttype.pt-pup  { color: var(--amber);  border-color: rgba(210,153,34,0.5); }
+    .pttype.pt-oa1,
+    .pttype.pt-oa2  { color: #67e8f9;       border-color: rgba(103,232,249,0.5); }
+    /* TargetData sub-row */
+    .tgt-data-row td { padding: 0 10px 8px; border-bottom: 1px solid #1c2128; }
+    .tgt-data-row { display: none; }
+    .tgt-data-wrap {
+      display: flex; gap: 14px; flex-wrap: wrap;
+      background: rgba(248,81,73,0.05);
+      border: 1px solid rgba(248,81,73,0.2);
+      border-radius: 5px; padding: 8px 12px;
+    }
+    .tgt-data-wrap label {
+      font-size: 10px; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.06em;
+      display: flex; flex-direction: column; gap: 3px;
+    }
+    .tgt-inp {
+      background: var(--bg); color: var(--text);
+      border: 1px solid var(--border); border-radius: 4px;
+      padding: 3px 6px; font-size: 12px;
+      font-family: var(--mono); width: 80px;
+    }
+    .tgt-inp:focus { outline: none; border-color: var(--red); }
+
+    /* ── Empty state ──────────────────────────────────────────────────── */
+    .empty { text-align: center; padding: 48px 20px; color: var(--muted); }
+    .empty .ico { font-size: 40px; margin-bottom: 12px; }
+
+    /* ── DTC Preview Panel ────────────────────────────────────────────── */
+    .dtc-preview-panel {
+      display: none;
+      background: var(--surface);
+      border: 1px solid var(--accent);
+      border-radius: 8px;
+      margin-top: 24px;
+      overflow: hidden;
+    }
+    .dtc-preview-panel.open { display: block; }
+    .dtc-preview-head {
+      background: var(--surface2);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 16px;
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    }
+    .dtc-preview-title {
+      font-size: 14px; font-weight: 700; color: var(--accent);
+      display: flex; align-items: center; gap: 8px;
+    }
+    .dtc-preview-title .psub { color: var(--muted); font-size: 12px; font-weight: 400; }
+    .dtc-preview-actions { display: flex; gap: 8px; align-items: center; }
+    .dtc-preview-body { padding: 20px; }
+    /* Preview sections */
+    .dtc-section { margin-bottom: 22px; }
+    .dtc-section:last-child { margin-bottom: 0; }
+    .dtc-section-title {
+      font-size: 10px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.1em; color: var(--muted);
+      margin-bottom: 8px; padding-bottom: 5px;
+      border-bottom: 1px solid var(--border);
+    }
+    .dtc-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 22px; }
+    @media (max-width: 800px) { .dtc-grid-2 { grid-template-columns: 1fr; } }
+    /* Type badges */
+    .pt-badge {
+      display: inline-block; padding: 1px 6px; border-radius: 3px;
+      font-size: 10px; font-weight: 700; font-family: var(--mono);
+    }
+    .pt-badge.pt-stpt { background: rgba(63,185,80,0.15);   color: var(--green); }
+    .pt-badge.pt-ip   { background: rgba(88,166,255,0.15);  color: var(--accent); }
+    .pt-badge.pt-tgt  { background: rgba(248,81,73,0.15);   color: var(--red); }
+    .pt-badge.pt-vrp  { background: rgba(192,132,252,0.15); color: #c084fc; }
+    .pt-badge.pt-pup  { background: rgba(210,153,34,0.15);  color: var(--amber); }
+    .pt-badge.pt-oa1,
+    .pt-badge.pt-oa2  { background: rgba(103,232,249,0.12); color: #67e8f9; }
+    /* EWS pills */
+    .ews-grid { display: flex; gap: 8px; flex-wrap: wrap; }
+    .ews-item {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 5px; padding: 5px 12px;
+      font-size: 11px; font-family: var(--mono);
+      display: flex; gap: 6px; align-items: center;
+    }
+    .ews-item .ek { color: var(--muted); }
+    .ews-val-on  { color: var(--green); font-weight: 700; }
+    .ews-val-off { color: var(--red); font-weight: 700; }
+    /* TGT TargetData sub-row in preview */
+    .tgt-detail-row td {
+      font-size: 11px; color: var(--muted);
+      padding: 2px 10px 7px;
+      background: rgba(248,81,73,0.04);
+      border-bottom: 1px solid #1c2128;
+    }
+
+    #results { display: none; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>⚡ DCS F-16 DTC TOOL</h1>
+    <div class="sub">Mission file parser &amp; Data Transfer Cartridge generator</div>
+  </div>
+  <span class="badge">F-16C VIPER</span>
+</header>
+
+<main>
+
+  <!-- Upload row -->
+  <div class="upload-row">
+    <label class="upload-card" id="miz-card" for="miz-input">
+      <input type="file" id="miz-input" accept=".miz">
+      <div class="icon">📦</div>
+      <h3>Mission File (.miz)</h3>
+      <p>Click to open or drag &amp; drop your DCS mission</p>
+      <div class="fname" id="miz-fname"></div>
+    </label>
+
+    <label class="upload-card" id="dtc-card" for="dtc-input">
+      <input type="file" id="dtc-input" accept=".dtc">
+      <div class="icon">💾</div>
+      <h3>Personal CMDS Profile <span style="color:var(--muted);font-weight:400">(optional)</span></h3>
+      <p>Upload your personal .dtc (from DCS Mission Editor) to merge CMDS programs into the export</p>
+      <div class="fname" id="dtc-fname"></div>
+    </label>
+  </div>
+
+  <!-- Status bar -->
+  <div class="status-bar" id="status-bar"></div>
+
+  <!-- Results -->
+  <div id="results">
+    <div class="section-header">
+      <span class="section-title">F-16C Flights</span>
+      <div class="controls">
+        <span class="merge-pill" id="merge-pill" style="display:none">✓ CMDS merged</span>
+        <select id="flight-select"></select>
+        <button class="btn btn-primary" id="preview-btn" onclick="previewDtc()">👁 Preview DTC</button>
+      </div>
+    </div>
+
+    <div id="flights-container"></div>
+
+    <div class="empty" id="no-f16s" style="display:none">
+      <div class="ico">🔍</div>
+      <p>No F-16C player flights found in this mission.</p>
+    </div>
+
+    <!-- DTC Preview Panel — shown after clicking "Preview DTC" -->
+    <div class="dtc-preview-panel" id="dtc-preview">
+      <div class="dtc-preview-head">
+        <div class="dtc-preview-title">
+          📋 DTC Preview
+          <span class="psub" id="dtc-preview-subtitle"></span>
+        </div>
+        <div class="dtc-preview-actions">
+          <button class="btn btn-outline" onclick="closeDtcPreview()">✕ Close</button>
+          <button class="btn btn-success" onclick="downloadDtc()">⬇ Export DTC</button>
+        </div>
+      </div>
+      <div class="dtc-preview-body" id="dtc-preview-body"></div>
+    </div>
+  </div>
+
+  <!-- Initial empty state -->
+  <div class="empty" id="empty-state">
+    <div class="ico">🗂</div>
+    <p>Open a .miz file to begin.</p>
+  </div>
+
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script>
+'use strict';
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  Lua Table Parser
+//  Handles the DCS mission Lua format: mission = { ["key"] = value, ... }
+// ═══════════════════════════════════════════════════════════════════════════
+class LuaParser {
+  constructor(src) {
+    this.s = src;
+    this.p = 0;
+    this.n = src.length;
+  }
+
+  skipWS() {
+    while (this.p < this.n) {
+      const c = this.s[this.p];
+      if (c === '-' && this.s[this.p + 1] === '-') {
+        this.p += 2;
+        while (this.p < this.n && this.s[this.p] !== '\n') this.p++;
+      } else if (c === ' ' || c === '\t' || c === '\r' || c === '\n') {
+        this.p++;
+      } else {
+        break;
+      }
+    }
+  }
+
+  parseString() {
+    this.p++; // skip opening "
+    let out = '';
+    while (this.p < this.n && this.s[this.p] !== '"') {
+      if (this.s[this.p] === '\\') {
+        this.p++;
+        const e = this.s[this.p++];
+        out += e === 'n' ? '\n' : e === 't' ? '\t' : e === 'r' ? '\r' : e;
+      } else {
+        out += this.s[this.p++];
+      }
+    }
+    this.p++; // skip closing "
+    return out;
+  }
+
+  parseNumber() {
+    const m = /^-?\d+(?:\.\d+)?(?:[eE][+\-]?\d+)?/.exec(this.s.slice(this.p));
+    if (m) { this.p += m[0].length; return parseFloat(m[0]); }
+    return 0;
+  }
+
+  parseWord() {
+    const m = /^[a-zA-Z_]\w*/.exec(this.s.slice(this.p));
+    if (m) { this.p += m[0].length; return m[0]; }
+    return null;
+  }
+
+  parseValue() {
+    this.skipWS();
+    if (this.p >= this.n) return null;
+    const c = this.s[this.p];
+    if (c === '{') return this.parseTable();
+    if (c === '"') return this.parseString();
+    if (c === '-' || (c >= '0' && c <= '9')) return this.parseNumber();
+    const saved = this.p;
+    const w = this.parseWord();
+    if (w === 'true')  return true;
+    if (w === 'false') return false;
+    if (w === 'nil')   return null;
+    if (w) { this.p = saved; }
+    return null;
+  }
+
+  parseTable() {
+    this.p++; // skip {
+    const obj = {};
+    let ai = 1;
+    while (true) {
+      this.skipWS();
+      if (this.p >= this.n || this.s[this.p] === '}') { this.p++; break; }
+      if (this.s[this.p] === ',') { this.p++; continue; }
+
+      if (this.s[this.p] === '[') {
+        // Bracketed key: ["str"] or [num]
+        this.p++;
+        this.skipWS();
+        const key = this.s[this.p] === '"' ? this.parseString() : this.parseNumber();
+        this.skipWS();
+        if (this.s[this.p] === ']') this.p++;
+        this.skipWS();
+        if (this.s[this.p] === '=') this.p++;
+        obj[key] = this.parseValue();
+      } else {
+        // Bare word: either a key (word = value) or a positional value
+        const saved = this.p;
+        const w = this.parseWord();
+        if (w && w !== 'true' && w !== 'false' && w !== 'nil') {
+          this.skipWS();
+          if (this.s[this.p] === '=') {
+            this.p++;
+            obj[w] = this.parseValue();
+          } else {
+            obj[ai++] = w; // bare word used as positional value
+          }
+        } else {
+          this.p = saved; // restore and parse as value
+          const v = this.parseValue();
+          if (v !== null && v !== undefined) obj[ai++] = v;
+          else this.p++; // skip unknown char
+        }
+      }
+    }
+    return obj;
+  }
+
+  // Entry point — parses one or more top-level `name = value` assignments
+  parse() {
+    const top = {};
+    while (this.p < this.n) {
+      this.skipWS();
+      if (this.p >= this.n) break;
+      const name = this.parseWord();
+      if (!name) { this.p++; continue; }
+      this.skipWS();
+      if (this.s[this.p] === '=') {
+        this.p++;
+        top[name] = this.parseValue();
+      }
+    }
+    return top;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  Coordinate Conversion
+//  DCS uses flat-earth X (northing) / Y (easting) in meters per theater.
+//  Origins derived from known airbase positions (flat-earth approximation).
+// ═══════════════════════════════════════════════════════════════════════════
+const THEATER_ORIGINS = {
+  Caucasus:       { lat: 44.714, lon: 33.732 },
+  Nevada:         { lat: 36.000, lon: -116.467 },
+  PersianGulf:    { lat: 22.000, lon:  58.000 },
+  Syria:          { lat: 36.000, lon:  33.000 },
+  MarianaIslands: { lat: 21.500, lon: 145.000 },
+  Sinai:          { lat: 29.000, lon:  32.000 },
+  Kola:           { lat: 67.000, lon:  28.000 },
+};
+
+function dcsToLatLon(x, y, theater) {
+  const o = THEATER_ORIGINS[theater] || THEATER_ORIGINS.Caucasus;
+  const lat = o.lat + x / 111320;
+  const lon = o.lon + y / (111320 * Math.cos(lat * Math.PI / 180));
+  return { lat, lon };
+}
+
+function dms(deg, posDir, negDir) {
+  const abs = Math.abs(deg);
+  const d = Math.floor(abs);
+  const mf = (abs - d) * 60;
+  const m = Math.floor(mf);
+  const s = ((mf - m) * 60).toFixed(1);
+  const dir = deg >= 0 ? posDir : negDir;
+  return `${dir}${String(d).padStart(2,'0')}°${String(m).padStart(2,'0')}'${s.padStart(4,'0')}"`;
+}
+const latDms = (v) => dms(v, 'N', 'S');
+const lonDms = (v) => dms(v, 'E', 'W');
+
+// DTC native format: "DD.MM.SSN" / "DDD.MM.SSE" (period-delimited, dir suffix, whole seconds)
+function toDtcLat(lat) {
+  const abs = Math.abs(lat);
+  const d   = Math.floor(abs);
+  const mf  = (abs - d) * 60;
+  const m   = Math.floor(mf);
+  const s   = Math.round((mf - m) * 60);
+  const dir = lat >= 0 ? 'N' : 'S';
+  return `${String(d).padStart(2,'0')}.${String(m).padStart(2,'0')}.${String(s).padStart(2,'0')}${dir}`;
+}
+function toDtcLon(lon) {
+  const abs = Math.abs(lon);
+  const d   = Math.floor(abs);
+  const mf  = (abs - d) * 60;
+  const m   = Math.floor(mf);
+  const s   = Math.round((mf - m) * 60);
+  const dir = lon >= 0 ? 'E' : 'W';
+  return `${String(d).padStart(3,'0')}.${String(m).padStart(2,'0')}.${String(s).padStart(2,'0')}${dir}`;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  Mission Extractor
+// ═══════════════════════════════════════════════════════════════════════════
+function extractF16Flights(mission, theater) {
+  const flights = [];
+  const coal = mission.coalition || {};
+
+  for (const side of ['blue', 'red', 'neutrals']) {
+    const countries = coal[side]?.country;
+    if (!countries) continue;
+
+    for (const ck of Object.keys(countries)) {
+      const country = countries[ck];
+      const planeGroups = country?.plane?.group;
+      if (!planeGroups) continue;
+
+      for (const gk of Object.keys(planeGroups)) {
+        const group = planeGroups[gk];
+        if (!group?.units) continue;
+
+        // Gather F-16C units
+        const f16units = [];
+        for (const uk of Object.keys(group.units)) {
+          const u = group.units[uk];
+          if (u?.type === 'F-16C_50' || (typeof u?.type === 'string' && u.type.startsWith('F-16'))) {
+            f16units.push(u);
+          }
+        }
+        if (!f16units.length) continue;
+
+        // Waypoints from route.points
+        const waypoints = [];
+        let steerIdx = 0;
+        const pts = group.route?.points || {};
+        const ptKeys = Object.keys(pts).map(Number).filter(n => !isNaN(n)).sort((a, b) => a - b);
+
+        for (const k of ptKeys) {
+          const pt = pts[k];
+          if (!pt || pt.x === undefined) continue;
+          const { lat, lon } = dcsToLatLon(pt.x, pt.y, theater);
+          const type = pt.type || '';
+          const isTakeoff = type.includes('TakeOff') || type.includes('Takeoff') || type === 'TakeOffParking';
+          const isLand    = type === 'Land' || type === 'Landing';
+          if (!isTakeoff && !isLand) steerIdx++;
+
+          waypoints.push({
+            seq: isTakeoff ? 0 : isLand ? -1 : steerIdx,
+            isTakeoff, isLand,
+            x:         pt.x,               // raw DCS theater coordinate (meters)
+            y:         pt.y,               // raw DCS theater coordinate (meters)
+            lat, lon,                      // display-only (flat-earth approximation)
+            alt_m:     pt.alt    || 0,
+            alt_ft:    Math.round((pt.alt || 0) * 3.28084),
+            speed_ms:  pt.speed  || 0,
+            speed_kts: Math.round((pt.speed || 0) * 1.94384),
+            name:      pt.name   || '',
+            alt_type:  pt.alt_type || 'BARO',
+            type,
+            pointType:  'STPT',  // pilot-selectable: STPT | IP | TGT | VRP | PUP | OA1 | OA2
+            targetData: { vrpBearing: 0, vrpRange: 0.0, pupDistance: 0.0 }, // used when Type=TGT
+          });
+        }
+
+        // Radio from first unit (all units share the same preset channels)
+        const radio1 = {}, radio2 = {};
+        const ref = f16units[0];
+        if (ref?.Radio) {
+          const r1 = ref.Radio[1];
+          const r2 = ref.Radio[2];
+          if (r1?.channels) {
+            for (const ch of Object.keys(r1.channels)) radio1[parseInt(ch)] = r1.channels[ch];
+          }
+          if (r2?.channels) {
+            for (const ch of Object.keys(r2.channels)) radio2[parseInt(ch)] = r2.channels[ch];
+          }
+        }
+
+        flights.push({
+          groupId: group.groupId || gk,
+          name:    group.name    || `Group ${gk}`,
+          side,
+          country: country.name || '',
+          units: f16units.map(u => ({
+            name:     u.name     || '',
+            callsign: u.callsign?.name || '',
+            skill:    u.skill    || '',
+          })),
+          waypoints,
+          radio1,
+          radio2,
+        });
+      }
+    }
+  }
+  return flights;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  Channel helper: flatten radio object {1:freq, 2:freq, ...} into array[20]
+// ═══════════════════════════════════════════════════════════════════════════
+function flattenChannels(radio) {
+  const arr = [];
+  for (let i = 1; i <= 20; i++) {
+    arr.push(radio[i] !== undefined ? parseFloat(Number(radio[i]).toFixed(3)) : 0);
+  }
+  return arr;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  App state
+// ═══════════════════════════════════════════════════════════════════════════
+const state = {
+  theater: 'Caucasus',
+  missionName: '',
+  flights: [],
+  personalDtc:   null,
+  previewDtc:    null,   // cached DTC object shown in the preview panel
+  previewFlight: null,   // flight the preview was built from
+};
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  Rendering
+// ═══════════════════════════════════════════════════════════════════════════
+function wpTag(wp) {
+  if (wp.isTakeoff) return `<span class="wptag wptag-tkof">TKOF</span>`;
+  if (wp.isLand)    return `<span class="wptag wptag-rtb">RTB</span>`;
+  return `<span class="wptag wptag-tp">TP</span>`;
+}
+
+function renderFlights(flights) {
+  const container = document.getElementById('flights-container');
+  const sel       = document.getElementById('flight-select');
+  container.innerHTML = '';
+  sel.innerHTML       = '';
+
+  document.getElementById('no-f16s').style.display  = flights.length ? 'none' : 'block';
+  
+  for (const fl of flights) {
+    // Populate dropdown
+    const opt = document.createElement('option');
+    opt.value = fl.groupId;
+    opt.textContent = fl.name;
+    sel.appendChild(opt);
+
+    // Build unit chips
+    const chips = fl.units.map(u =>
+      `<span class="chip">${u.name}${u.callsign ? ` (${u.callsign})` : ''} <span class="skill">${u.skill}</span></span>`
+    ).join('');
+
+    // Waypoints rows — read-only mission view; role editing lives in the DTC Preview panel
+    const wpRows = fl.waypoints.map((wp, i) => {
+      const isNav = !wp.isTakeoff && !wp.isLand;
+      const type  = (wp.pointType || 'STPT').toLowerCase();
+      const sym   = { stpt:'○', ip:'□', tgt:'△', vrp:'◇', pup:'▽', oa1:'①', oa2:'②' }[type] || '○';
+      const roleCell = isNav
+        ? `<td><span class="pt-badge pt-${type}">${sym} ${wp.pointType || 'STPT'}</span></td>`
+        : `<td style="color:var(--muted)">—</td>`;
+      return `
+      <tr>
+        <td style="color:var(--muted);width:32px">${wp.isTakeoff || wp.isLand ? '—' : wp.seq}</td>
+        <td style="width:58px">${wpTag(wp)}</td>
+        ${roleCell}
+        <td style="color:var(--muted)">${wp.name || '—'}</td>
+        <td>${latDms(wp.lat)}</td>
+        <td>${lonDms(wp.lon)}</td>
+        <td>${wp.alt_ft.toLocaleString()} <span style="color:var(--muted);font-size:10px">${wp.alt_type}</span></td>
+        <td>${wp.speed_kts} <span style="color:var(--muted);font-size:10px">kts</span></td>
+      </tr>`;
+    }).join('');
+
+    // COM channel rows helper
+    const comRows = (radio, cls) => {
+      const keys = Object.keys(radio).map(Number).sort((a, b) => a - b);
+      return keys.map(ch =>
+        `<tr><td style="color:var(--muted);width:80px">CH ${String(ch).padStart(2,'0')}</td><td class="${cls}">${Number(radio[ch]).toFixed(3)}</td></tr>`
+      ).join('');
+    };
+
+    const card = document.createElement('div');
+    card.className = 'flight-card';
+    card.id = `fc-${fl.groupId}`;
+    card.innerHTML = `
+      <div class="flight-head">
+        <div class="flight-head-left" onclick="toggleFlight(${JSON.stringify(fl.groupId)})">
+          <span class="chevron">▼</span>
+          <div>
+            <div class="flight-name">${fl.name}</div>
+            <div class="flight-meta">${fl.side.toUpperCase()} · ${fl.country} · ${fl.units.length} aircraft · ${fl.waypoints.length} route points</div>
+          </div>
+        </div>
+        <div class="unit-chips">${chips}</div>
+      </div>
+      <div class="tabs" id="tabs-${fl.groupId}">
+        <div class="tab active" onclick="switchTab(${JSON.stringify(fl.groupId)}, 'wpt', this)">Waypoints</div>
+        <div class="tab" onclick="switchTab(${JSON.stringify(fl.groupId)}, 'c1',  this)">COM1 — UHF</div>
+        <div class="tab" onclick="switchTab(${JSON.stringify(fl.groupId)}, 'c2',  this)">COM2 — VHF</div>
+      </div>
+      <div class="tab-content">
+        <div class="tab-panel active" id="tp-${fl.groupId}-wpt">
+          <table>
+            <thead><tr><th>#</th><th>Type</th><th>Role</th><th>Name</th><th>Latitude</th><th>Longitude</th><th>Altitude (ft)</th><th>Speed</th></tr></thead>
+            <tbody>${wpRows || '<tr><td colspan="8" style="color:var(--muted);text-align:center">No waypoints</td></tr>'}</tbody>
+          </table>
+        </div>
+        <div class="tab-panel" id="tp-${fl.groupId}-c1">
+          <table>
+            <thead><tr><th>Channel</th><th>Frequency (MHz) — AN/ARC-164 UHF</th></tr></thead>
+            <tbody>${comRows(fl.radio1, 'uhf') || '<tr><td colspan="2" style="color:var(--muted)">No COM1 data</td></tr>'}</tbody>
+          </table>
+        </div>
+        <div class="tab-panel" id="tp-${fl.groupId}-c2">
+          <table>
+            <thead><tr><th>Channel</th><th>Frequency (MHz) — AN/ARC-222 VHF/UHF</th></tr></thead>
+            <tbody>${comRows(fl.radio2, 'vhf') || '<tr><td colspan="2" style="color:var(--muted)">No COM2 data</td></tr>'}</tbody>
+          </table>
+        </div>
+      </div>`;
+    container.appendChild(card);
+  }
+}
+
+// Called when pilot changes a waypoint's role via the dropdown
+function setWpType(sel) {
+  const gid = sel.dataset.gid;
+  const idx = parseInt(sel.dataset.idx, 10);
+  const val = sel.value;
+
+  // Update state
+  const flight = state.flights.find(f => String(f.groupId) === String(gid));
+  if (flight) flight.waypoints[idx].pointType = val;
+
+  // Recolor the select to match the role (pt- prefix)
+  sel.className = 'pttype pt-' + val.toLowerCase();
+
+  // Toggle TargetData sub-row in the preview panel (pvtdr- prefix)
+  const pvtdr = document.getElementById(`pvtdr-${gid}-${idx}`);
+  if (pvtdr) pvtdr.style.display = val === 'TGT' ? 'table-row' : 'none';
+}
+
+// Called when a TargetData input changes (VRP bearing/range, PUP distance)
+function setTargetData(inp) {
+  const gid   = inp.dataset.gid;
+  const idx   = parseInt(inp.dataset.idx, 10);
+  const field = inp.dataset.field;
+  const flight = state.flights.find(f => String(f.groupId) === String(gid));
+  if (flight?.waypoints[idx]?.targetData) {
+    flight.waypoints[idx].targetData[field] = parseFloat(inp.value) || 0;
+  }
+}
+
+function switchTab(groupId, panel, tabEl) {
+  const card = document.getElementById(`fc-${groupId}`);
+  card.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  card.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  tabEl.classList.add('active');
+  document.getElementById(`tp-${groupId}-${panel}`).classList.add('active');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  DTC Builder — v1.1 native ED JSON format
+//
+//  Top-level: { Aircraft, Version:"1.1", Navigation, Radio, Countermeasures, Datalink }
+//  Navigation.Steerpoints: keyed object "1"…"N", coords as "DD.MM.SSN"/"DDD.MM.SSE"
+//    TGT → adds TargetData: {VRP_Bearing, VRP_Range, PUP_Distance}
+//  Navigation.Routes: keyed object, each route has Name + Legs:[{STPT,Speed,Alt}]
+//  Countermeasures: { Settings:{Mode,BypassEnabled,Feedback,ChaffBingo,FlareBingo,AutoDelay},
+//    Programs:{Program1…6:{Chaff,Flare,Interval,Cycles}},
+//    ThreatTable:{"SA10":"Program4",…} }
+//  Datalink: { Settings:{OwnshipSTN,FighterChannel,MissionChannel,TDOA_Active},
+//    Network:{Members:{…},Donors:{…}} }
+//  ThreatTable keys have NO spaces (SA10 not "SA 10"); unmapped threats → PGM1.
+// ═══════════════════════════════════════════════════════════════════════════
+
+function buildDtc(flight) {
+  // ── Radio ──────────────────────────────────────────────────────────────
+  // Build UHF (COM1) and VHF (COM2) channel objects.
+  // Names come from a personal .dtc upload if available; otherwise blank.
+  const personalUhf = state.personalDtc?.Radio?.UHF?.Channels || {};
+  const personalVhf = state.personalDtc?.Radio?.VHF?.Channels || {};
+
+  const uhfChannels = {}, vhfChannels = {};
+  for (let i = 1; i <= 20; i++) {
+    const freq1 = flight.radio1[i];
+    const freq2 = flight.radio2[i];
+    if (freq1 !== undefined) {
+      uhfChannels[String(i)] = {
+        Frequency: parseFloat(Number(freq1).toFixed(3)),
+        Name: personalUhf[String(i)]?.Name || '',
+      };
+    }
+    if (freq2 !== undefined) {
+      vhfChannels[String(i)] = {
+        Frequency: parseFloat(Number(freq2).toFixed(3)),
+        Name: personalVhf[String(i)]?.Name || '',
+      };
+    }
+  }
+
+  // ── Countermeasures (v1.1) ─────────────────────────────────────────────
+  // Settings + Programs (Chaff/Flare, not BurstChaff/BurstFlare) + ThreatTable
+  // ThreatTable keys: no spaces (SA10, not "SA 10"); unmapped threats → PGM1.
+  const DEFAULT_CMDS = {
+    Settings: {
+      Mode: 'MAN', BypassEnabled: false, Feedback: 'BOTH',
+      ChaffBingo: 10, FlareBingo: 10, AutoDelay: 2.0,
+    },
+    Programs: {
+      Program1: { Chaff: 1, Flare: 1, Interval: 0.5,  Cycles: 10 },
+      Program2: { Chaff: 2, Flare: 0, Interval: 0.1,  Cycles:  5 },
+      Program3: { Chaff: 0, Flare: 2, Interval: 1.0,  Cycles:  3 },
+      Program4: { Chaff: 4, Flare: 4, Interval: 0.25, Cycles:  1 },
+      Program5: { Chaff: 1, Flare: 1, Interval: 0.1,  Cycles:  1 },
+      Program6: { Chaff: 0, Flare: 0, Interval: 0.0,  Cycles:  0 },
+    },
+    ThreatTable: {
+      '21': 'Program1', '23': 'Program1', '29': 'Program2', '31': 'Program2',
+      'SA2': 'Program4', 'SA3': 'Program2', 'SA6': 'Program2', 'SA8': 'Program2',
+      'SA10': 'Program4', 'SA11': 'Program2', 'SA15': 'Program2', 'SA19': 'Program4',
+      'AAA': 'Program1', 'E2': 'Program1',
+    },
+  };
+  const countermeasures = state.personalDtc?.Countermeasures || DEFAULT_CMDS;
+
+  // ── Datalink ────────────────────────────────────────────────────────────
+  const DEFAULT_DATALINK = {
+    Settings: { OwnshipSTN: '00000', FighterChannel: 1, MissionChannel: 1, TDOA_Active: false },
+    Network: { Members: {}, Donors: {} },
+  };
+  const datalink = state.personalDtc?.Datalink || DEFAULT_DATALINK;
+
+  // ── Navigation steerpoints ─────────────────────────────────────────────
+  // Exclude TakeOff and Landing. Keyed object "1"/{…}, "2"/{…}, …
+  // Coordinates: DTC native DMS strings "DD.MM.SSN" / "DDD.MM.SSE".
+  // TGT-type points carry an optional TargetData block.
+  const steerpointObj = {};
+  let stNum = 0;
+  for (const wp of flight.waypoints.filter(wp => !wp.isTakeoff && !wp.isLand)) {
+    stNum++;
+    const entry = {
+      Name: wp.name || `STPT${stNum}`,
+      Type: wp.pointType || 'STPT',
+      Lat:  toDtcLat(wp.lat),
+      Long: toDtcLon(wp.lon),
+      Alt:  wp.alt_ft,
+    };
+    if (wp.pointType === 'TGT' && wp.targetData) {
+      entry.TargetData = {
+        VRP_Bearing:  wp.targetData.vrpBearing,
+        VRP_Range:    parseFloat(wp.targetData.vrpRange.toFixed(2)),
+        PUP_Distance: parseFloat(wp.targetData.pupDistance.toFixed(2)),
+      };
+    }
+    steerpointObj[String(stNum)] = entry;
+  }
+
+  return {
+    Aircraft:         'F-16C_50',
+    Version:          '1.0',
+    Radio: {
+      UHF: { Channels: uhfChannels },
+      VHF: { Channels: vhfChannels },
+    },
+    Countermeasures:  countermeasures,
+    EWS:              ews,
+    Navigation: {
+      Steerpoints: steerpointObj,
+    },
+  };
+}
+
+// ── Step 1: build + render the preview panel ───────────────────────────────
+function previewDtc() {
+  const sel    = document.getElementById('flight-select');
+  const flight = state.flights.find(f => String(f.groupId) === String(sel.value));
+  if (!flight) return alert('Select a flight first.');
+
+  const dtc = buildDtc(flight);
+  state.previewDtc    = dtc;
+  state.previewFlight = flight;
+
+  document.getElementById('dtc-preview-subtitle').textContent = `— ${flight.name}`;
+
+  // ── Steerpoints — live from flight.waypoints so role dropdowns + TGT inputs are interactive
+  const navWps = flight.waypoints
+    .map((wp, originalIdx) => ({ wp, originalIdx }))
+    .filter(({ wp }) => !wp.isTakeoff && !wp.isLand);
+  const steerRows = navWps.map(({ wp, originalIdx }, steerIdx) => {
+    const stNum = steerIdx + 1;
+    const type  = (wp.pointType || 'STPT').toLowerCase();
+    return `
+      <tr>
+        <td style="color:var(--muted);width:28px">${stNum}</td>
+        <td>${wp.name || `STPT${stNum}`}</td>
+        <td>
+          <select class="pttype pt-${type}"
+            data-gid="${flight.groupId}" data-idx="${originalIdx}"
+            onchange="setWpType(this)">
+            <option value="STPT"${wp.pointType==='STPT'?' selected':''}>○  STPT</option>
+            <option value="IP"  ${wp.pointType==='IP'  ?' selected':''}>□  IP</option>
+            <option value="TGT" ${wp.pointType==='TGT' ?' selected':''}>△  TGT</option>
+            <option value="VRP" ${wp.pointType==='VRP' ?' selected':''}>◇  VRP</option>
+            <option value="PUP" ${wp.pointType==='PUP' ?' selected':''}>▽  PUP</option>
+            <option value="OA1" ${wp.pointType==='OA1' ?' selected':''}>①  OA1</option>
+            <option value="OA2" ${wp.pointType==='OA2' ?' selected':''}>②  OA2</option>
+          </select>
+        </td>
+        <td>${toDtcLat(wp.lat)}</td>
+        <td>${toDtcLon(wp.lon)}</td>
+        <td>${wp.alt_ft.toLocaleString()} <span style="color:var(--muted);font-size:10px">ft</span></td>
+      </tr>
+      <tr class="tgt-data-row" id="pvtdr-${flight.groupId}-${originalIdx}"${wp.pointType === 'TGT' ? '' : ' style="display:none"'}>
+        <td></td>
+        <td colspan="5">
+          <div class="tgt-data-wrap">
+            <label>VRP Bearing (°)
+              <input class="tgt-inp" type="number" min="0" max="360" step="1"
+                value="${wp.targetData.vrpBearing}"
+                data-gid="${flight.groupId}" data-idx="${originalIdx}" data-field="vrpBearing"
+                oninput="setTargetData(this)">
+            </label>
+            <label>VRP Range (nm)
+              <input class="tgt-inp" type="number" min="0" step="0.1"
+                value="${wp.targetData.vrpRange}"
+                data-gid="${flight.groupId}" data-idx="${originalIdx}" data-field="vrpRange"
+                oninput="setTargetData(this)">
+            </label>
+            <label>PUP Distance (nm)
+              <input class="tgt-inp" type="number" min="0" step="0.1"
+                value="${wp.targetData.pupDistance}"
+                data-gid="${flight.groupId}" data-idx="${originalIdx}" data-field="pupDistance"
+                oninput="setTargetData(this)">
+            </label>
+          </div>
+        </td>
+      </tr>`;
+  }).join('');
+
+  // ── COM channels ───────────────────────────────────────────────────────
+  const comRows = (channels, cls) => Object.entries(channels).map(([ch, d]) => `
+    <tr>
+      <td style="color:var(--muted);width:52px">CH ${String(ch).padStart(2,'0')}</td>
+      <td class="${cls}">${d.Frequency.toFixed(3)}</td>
+      <td style="color:var(--muted);font-size:11px">${d.Name || ''}</td>
+    </tr>`).join('');
+
+  // ── CMDS programs ──────────────────────────────────────────────────────
+  const cmdsRows = Object.entries(dtc.Countermeasures).map(([prog, p]) => `
+    <tr>
+      <td style="color:var(--muted)">${prog.replace('Program', 'PGM ')}</td>
+      <td style="color:var(--text);text-align:center">${p.BurstChaff}</td>
+      <td style="color:var(--text);text-align:center">${p.BurstFlare}</td>
+      <td style="color:var(--text);text-align:center">${p.Interval}s</td>
+      <td style="color:var(--text);text-align:center">${p.Cycles}</td>
+    </tr>`).join('');
+
+  // ── EWS — flatten nested object into key-value pills ──────────────────
+  const ewsItems = [];
+  (function flatEws(obj, prefix) {
+    for (const [k, v] of Object.entries(obj)) {
+      if (v !== null && typeof v === 'object') {
+        flatEws(v, prefix ? `${prefix}.${k}` : k);
+      } else {
+        const label = prefix ? `${prefix}.${k}` : k;
+        const valHtml = v === true  ? `<span class="ews-val-on">ON</span>`
+                      : v === false ? `<span class="ews-val-off">OFF</span>`
+                      : `<span style="color:var(--text)">${v}</span>`;
+        ewsItems.push(`<div class="ews-item"><span class="ek">${label}</span>${valHtml}</div>`);
+      }
+    }
+  })(dtc.EWS, '');
+
+  document.getElementById('dtc-preview-body').innerHTML = `
+    <div class="dtc-section">
+      <div class="dtc-section-title">Navigation — Steerpoints (${navWps.length}) <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0">— set role per point below</span></div>
+      <table>
+        <thead><tr><th>#</th><th>Name</th><th>Role</th><th>Latitude</th><th>Longitude</th><th>Altitude</th></tr></thead>
+        <tbody>${steerRows || '<tr><td colspan="6" style="color:var(--muted);text-align:center">No steerpoints</td></tr>'}</tbody>
+      </table>
+    </div>
+
+    <div class="dtc-grid-2">
+      <div class="dtc-section">
+        <div class="dtc-section-title">COM1 — UHF (AN/ARC-164)</div>
+        <table>
+          <thead><tr><th>CH</th><th>Frequency</th><th>Name</th></tr></thead>
+          <tbody>${comRows(dtc.Radio.UHF.Channels, 'uhf') || '<tr><td colspan="3" style="color:var(--muted)">—</td></tr>'}</tbody>
+        </table>
+      </div>
+      <div class="dtc-section">
+        <div class="dtc-section-title">COM2 — VHF (AN/ARC-222)</div>
+        <table>
+          <thead><tr><th>CH</th><th>Frequency</th><th>Name</th></tr></thead>
+          <tbody>${comRows(dtc.Radio.VHF.Channels, 'vhf') || '<tr><td colspan="3" style="color:var(--muted)">—</td></tr>'}</tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="dtc-grid-2">
+      <div class="dtc-section">
+        <div class="dtc-section-title">Countermeasures (CMDS)</div>
+        <table>
+          <thead><tr><th>Program</th><th style="text-align:center">Burst Chaff</th><th style="text-align:center">Burst Flare</th><th style="text-align:center">Interval</th><th style="text-align:center">Cycles</th></tr></thead>
+          <tbody>${cmdsRows}</tbody>
+        </table>
+      </div>
+      <div class="dtc-section">
+        <div class="dtc-section-title">EWS Settings</div>
+        <div class="ews-grid">${ewsItems.join('')}</div>
+      </div>
+    </div>
+  `;
+
+  const panel = document.getElementById('dtc-preview');
+  panel.classList.add('open');
+  panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// ── Step 1b: close the preview ─────────────────────────────────────────────
+function closeDtcPreview() {
+  document.getElementById('dtc-preview').classList.remove('open');
+  state.previewDtc    = null;
+  state.previewFlight = null;
+}
+
+// ── Step 2: rebuild DTC with current roles and download ────────────────────
+function downloadDtc() {
+  const flight = state.previewFlight;
+  if (!flight) return;
+  const dtc  = buildDtc(flight);   // always rebuild — captures role/TargetData edits from preview
+  const name = flight.name;
+
+  const json = JSON.stringify(dtc, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `${name.replace(/[^a-zA-Z0-9_\-]/g, '_')}.dtc`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ── Collapse / expand a flight card ────────────────────────────────────────
+function toggleFlight(gid) {
+  document.getElementById(`fc-${gid}`).classList.toggle('collapsed');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  File Handlers
+// ═══════════════════════════════════════════════════════════════════════════
+function showStatus(html) {
+  const sb = document.getElementById('status-bar');
+  sb.style.display = 'block';
+  sb.innerHTML = html;
+}
+
+document.getElementById('miz-input').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  document.getElementById('miz-fname').textContent = file.name;
+  document.getElementById('miz-card').classList.add('active');
+  document.getElementById('results').style.display = 'block';
+  document.getElementById('empty-state').style.display = 'none';
+  showStatus('<span class="warn">⟳ Parsing mission…</span>');
+
+  try {
+    const zip  = await JSZip.loadAsync(file);
+    const mf   = zip.file('mission');
+    if (!mf) throw new Error('No "mission" file found inside the .miz archive.');
+
+    // Detect theater
+    const tf = zip.file('theatre');
+    if (tf) state.theater = (await tf.async('string')).trim();
+
+    state.missionName = file.name.replace(/\.miz$/i, '');
+
+    // Check for native .dtc files (March 2026 feature — format TBD)
+    const nativeDtcs = Object.keys(zip.files).filter(f => f.toLowerCase().endsWith('.dtc'));
+
+    const lua = await mf.async('string');
+    const parsed = new LuaParser(lua).parse();
+    const mission = parsed.mission;
+    if (!mission) throw new Error('Could not parse mission table from Lua file.');
+
+    state.flights = extractF16Flights(mission, state.theater);
+    renderFlights(state.flights);
+
+    const dtcWarn = nativeDtcs.length
+      ? ` <span class="warn">· Native .dtc found (${nativeDtcs.join(', ')}) — format not yet parsed</span>`
+      : '';
+
+    showStatus(
+      `<span class="ok">✓</span> ${state.theater} · ${state.missionName} · ` +
+      `<span class="ok">${state.flights.length}</span> F-16C flight(s)${dtcWarn}`
+    );
+
+  } catch (err) {
+    showStatus(`<span class="err">✗ ${err.message}</span>`);
+    console.error(err);
+  }
+});
+
+document.getElementById('dtc-input').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  document.getElementById('dtc-fname').textContent = file.name;
+  document.getElementById('dtc-card').classList.add('active');
+
+  const text = await file.text();
+  let parsed = null;
+
+  // Native ED .dtc is JSON. Try JSON first, then Lua as fallback.
+  try {
+    parsed = JSON.parse(text);
+  } catch {
+    try {
+      // Fallback: attempt Lua parse (older format or manually created)
+      const luaParsed = new LuaParser(text).parse();
+      parsed = luaParsed.DTC || luaParsed.dtc || luaParsed;
+      if (!parsed || typeof parsed !== 'object' || !Object.keys(parsed).length) throw new Error('empty');
+    } catch {
+      alert('Could not parse .dtc file — expected JSON (native ED format).');
+      document.getElementById('dtc-fname').textContent = '';
+      document.getElementById('dtc-card').classList.remove('active');
+      return;
+    }
+  }
+
+  state.personalDtc = parsed;
+
+  // Build a summary of what will be merged
+  const parts = [];
+  if (parsed.Countermeasures) parts.push('CMDS');
+  if (parsed.EWS)              parts.push('EWS');
+  if (parsed.Radio)            parts.push('channel names');
+  const mergeDesc = parts.length ? parts.join(' + ') : 'data';
+
+  document.getElementById('merge-pill').style.display = 'inline-flex';
+  document.getElementById('merge-pill').textContent   = `✓ Merging ${mergeDesc} from ${file.name}`;
+});
+
+// ── Drag & Drop support ────────────────────────────────────────────────────
+for (const id of ['miz-card', 'dtc-card']) {
+  const card  = document.getElementById(id);
+  const input = card.querySelector('input[type=file]');
+
+  card.addEventListener('dragover', e => { e.preventDefault(); card.style.borderColor = 'var(--accent)'; });
+  card.addEventListener('dragleave', () => { card.style.borderColor = ''; });
+  card.addEventListener('drop', e => {
+    e.preventDefault();
+    card.style.borderColor = '';
+    const f = e.dataTransfer.files[0];
+    if (!f) return;
+    const dt = new DataTransfer();
+    dt.items.add(f);
+    input.files = dt.files;
+    input.dispatchEvent(new Event('change'));
+  });
+}
+</script>
+</body>
+</html>
