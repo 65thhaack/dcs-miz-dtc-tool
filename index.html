@@ -304,7 +304,7 @@
     }
     .dtc-preview-title .psub { color: var(--muted); font-size: 12px; font-weight: 400; }
     .dtc-preview-actions { display: flex; gap: 8px; align-items: center; }
-    .dtc-preview-body { padding: 20px; }
+    .dtc-preview-body { padding: 0; }
     /* Preview sections */
     .dtc-section { margin-bottom: 22px; }
     .dtc-section:last-child { margin-bottom: 0; }
@@ -378,6 +378,7 @@
       <h3>Personal CMDS Profile <span style="color:var(--muted);font-weight:400">(optional)</span></h3>
       <p>Upload your personal .dtc (from DCS Mission Editor) to merge CMDS programs into the export</p>
       <div class="fname" id="dtc-fname"></div>
+      <button class="btn btn-outline" id="dtc-clear-btn" style="display:none;margin-top:8px;position:relative;z-index:2" onclick="clearPersonalDtc(event)">✕ Clear</button>
     </label>
   </div>
 
@@ -410,6 +411,13 @@
           <span class="psub" id="dtc-preview-subtitle"></span>
         </div>
         <div class="dtc-preview-actions">
+          <div style="display:flex;align-items:center;gap:6px">
+            <input type="text" id="dtc-export-name" placeholder="filename" style="
+              background:var(--surface2);border:1px solid var(--border);border-radius:6px;
+              color:var(--text);padding:6px 10px;font-size:13px;width:200px;
+            ">
+            <span style="color:var(--muted);font-size:13px">.dtc</span>
+          </div>
           <button class="btn btn-outline" onclick="closeDtcPreview()">✕ Close</button>
           <button class="btn btn-success" onclick="downloadDtc()">⬇ Export DTC</button>
         </div>
@@ -863,6 +871,13 @@ function setTargetData(inp) {
   }
 }
 
+function switchDtcTab(panel, tabEl) {
+  document.querySelectorAll('#dtc-preview .tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('#dtc-preview .tab-panel').forEach(p => p.classList.remove('active'));
+  tabEl.classList.add('active');
+  document.getElementById(`dtp-${panel}`).classList.add('active');
+}
+
 function switchTab(groupId, panel, tabEl) {
   const card = document.getElementById(`fc-${groupId}`);
   card.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -1000,6 +1015,7 @@ function previewDtc() {
   state.previewFlight = flight;
 
   document.getElementById('dtc-preview-subtitle').textContent = `— ${flight.name}`;
+  document.getElementById('dtc-export-name').value = flight.name.replace(/[^a-zA-Z0-9_\-]/g, '_');
 
   // ── Steerpoints — live from flight.waypoints so role dropdowns + TGT inputs are interactive
   const navWps = flight.waypoints
@@ -1065,11 +1081,12 @@ function previewDtc() {
     </tr>`).join('');
 
   // ── CMDS programs ──────────────────────────────────────────────────────
-  const cmdsRows = Object.entries(dtc.Countermeasures).map(([prog, p]) => `
+  const cmdsPrograms = dtc.Countermeasures.Programs || dtc.Countermeasures;
+  const cmdsRows = Object.entries(cmdsPrograms).map(([prog, p]) => `
     <tr>
       <td style="color:var(--muted)">${prog.replace('Program', 'PGM ')}</td>
-      <td style="color:var(--text);text-align:center">${p.BurstChaff}</td>
-      <td style="color:var(--text);text-align:center">${p.BurstFlare}</td>
+      <td style="color:var(--text);text-align:center">${p.Chaff ?? p.BurstChaff}</td>
+      <td style="color:var(--text);text-align:center">${p.Flare ?? p.BurstFlare}</td>
       <td style="color:var(--text);text-align:center">${p.Interval}s</td>
       <td style="color:var(--text);text-align:center">${p.Cycles}</td>
     </tr>`).join('');
@@ -1090,43 +1107,77 @@ function previewDtc() {
     }
   })(dtc.EWS, '');
 
+  // ── Threat table rows ──────────────────────────────────────────────────
+  const threatTable = dtc.Countermeasures.ThreatTable || {};
+  const threatRows = Object.entries(threatTable).map(([threat, pgm]) => `
+    <tr>
+      <td style="color:var(--text)">${threat}</td>
+      <td style="color:var(--muted)">${pgm.replace('Program', 'PGM ')}</td>
+    </tr>`).join('');
+
+  // ── RWR priority table ────────────────────────────────────────────────
+  const rwrThreats = dtc.EWS?.RWR?.ThreatTable || [];
+  const rwrRows = rwrThreats
+    .slice().sort((a, b) => (a.priority ?? 99) - (b.priority ?? 99))
+    .map(t => `
+    <tr>
+      <td style="color:var(--muted);text-align:center">${t.priority ?? '—'}</td>
+      <td style="color:var(--text)">${t.id}</td>
+      <td style="color:var(--muted)">${t.symbol || '—'}</td>
+    </tr>`).join('');
+
   document.getElementById('dtc-preview-body').innerHTML = `
-    <div class="dtc-section">
-      <div class="dtc-section-title">Navigation — Steerpoints (${navWps.length}) <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0">— set role per point below</span></div>
-      <table>
-        <thead><tr><th>#</th><th>Name</th><th>Role</th><th>Latitude</th><th>Longitude</th><th>Altitude</th></tr></thead>
-        <tbody>${steerRows || '<tr><td colspan="6" style="color:var(--muted);text-align:center">No steerpoints</td></tr>'}</tbody>
-      </table>
+    <div class="tabs" style="padding:0 20px;border-bottom:1px solid var(--border)">
+      <div class="tab active" onclick="switchDtcTab('wpt',this)">Waypoints</div>
+      <div class="tab" onclick="switchDtcTab('c1',this)">COM1 — UHF</div>
+      <div class="tab" onclick="switchDtcTab('c2',this)">COM2 — VHF</div>
+      <div class="tab" onclick="switchDtcTab('cmds',this)">CMDS</div>
+      <div class="tab" onclick="switchDtcTab('threats',this)">Threats</div>
     </div>
-
-    <div class="dtc-grid-2">
-      <div class="dtc-section">
-        <div class="dtc-section-title">COM1 — UHF (AN/ARC-164)</div>
+    <div class="tab-content">
+      <div class="tab-panel active" id="dtp-wpt">
         <table>
-          <thead><tr><th>CH</th><th>Frequency</th><th>Name</th></tr></thead>
-          <tbody>${comRows(dtc.Radio.UHF.Channels, 'uhf') || '<tr><td colspan="3" style="color:var(--muted)">—</td></tr>'}</tbody>
+          <thead><tr><th>#</th><th>Name</th><th>Role</th><th>Latitude</th><th>Longitude</th><th>Altitude</th></tr></thead>
+          <tbody>${steerRows || '<tr><td colspan="6" style="color:var(--muted);text-align:center">No steerpoints</td></tr>'}</tbody>
         </table>
       </div>
-      <div class="dtc-section">
-        <div class="dtc-section-title">COM2 — VHF (AN/ARC-222)</div>
+      <div class="tab-panel" id="dtp-c1">
         <table>
           <thead><tr><th>CH</th><th>Frequency</th><th>Name</th></tr></thead>
-          <tbody>${comRows(dtc.Radio.VHF.Channels, 'vhf') || '<tr><td colspan="3" style="color:var(--muted)">—</td></tr>'}</tbody>
+          <tbody>${comRows(dtc.Radio.UHF.Channels, 'uhf') || '<tr><td colspan="3" style="color:var(--muted)">No COM1 data</td></tr>'}</tbody>
         </table>
       </div>
-    </div>
-
-    <div class="dtc-grid-2">
-      <div class="dtc-section">
-        <div class="dtc-section-title">Countermeasures (CMDS)</div>
+      <div class="tab-panel" id="dtp-c2">
         <table>
-          <thead><tr><th>Program</th><th style="text-align:center">Burst Chaff</th><th style="text-align:center">Burst Flare</th><th style="text-align:center">Interval</th><th style="text-align:center">Cycles</th></tr></thead>
+          <thead><tr><th>CH</th><th>Frequency</th><th>Name</th></tr></thead>
+          <tbody>${comRows(dtc.Radio.VHF.Channels, 'vhf') || '<tr><td colspan="3" style="color:var(--muted)">No COM2 data</td></tr>'}</tbody>
+        </table>
+      </div>
+      <div class="tab-panel" id="dtp-cmds">
+        <table>
+          <thead><tr><th>Program</th><th style="text-align:center">Chaff</th><th style="text-align:center">Flare</th><th style="text-align:center">Interval</th><th style="text-align:center">Cycles</th></tr></thead>
           <tbody>${cmdsRows}</tbody>
         </table>
+        <div style="margin-top:16px">
+          <div class="dtc-section-title" style="margin-bottom:8px">EWS Settings</div>
+          <div class="ews-grid">${ewsItems.join('')}</div>
+        </div>
       </div>
-      <div class="dtc-section">
-        <div class="dtc-section-title">EWS Settings</div>
-        <div class="ews-grid">${ewsItems.join('')}</div>
+      <div class="tab-panel" id="dtp-threats">
+        ${rwrRows ? `
+          <div class="dtc-section-title" style="margin-bottom:8px">RWR Threat Priorities</div>
+          <table style="margin-bottom:20px">
+            <thead><tr><th style="text-align:center">Priority</th><th>Threat ID</th><th>Symbol</th></tr></thead>
+            <tbody>${rwrRows}</tbody>
+          </table>` : ''}
+        ${threatRows
+          ? `<div class="dtc-section-title" style="margin-bottom:8px">CMDS Threat → Program</div>
+             <table>
+              <thead><tr><th>Threat</th><th>Assigned Program</th></tr></thead>
+              <tbody>${threatRows}</tbody>
+            </table>`
+          : (!rwrRows ? '<p style="color:var(--muted)">No threat table entries.</p>' : '')
+        }
       </div>
     </div>
   `;
@@ -1148,14 +1199,16 @@ function downloadDtc() {
   const flight = state.previewFlight;
   if (!flight) return;
   const dtc  = buildDtc(flight);   // always rebuild — captures role/TargetData edits from preview
-  const name = flight.name;
+
+  const inputName = document.getElementById('dtc-export-name').value.trim();
+  const name = (inputName || flight.name).replace(/[^a-zA-Z0-9_\-]/g, '_');
 
   const json = JSON.stringify(dtc, null, 2);
   const blob = new Blob([json], { type: 'application/json' });
   const url  = URL.createObjectURL(blob);
   const a    = document.createElement('a');
   a.href     = url;
-  a.download = `${name.replace(/[^a-zA-Z0-9_\-]/g, '_')}.dtc`;
+  a.download = `${name}.dtc`;
   a.click();
   URL.revokeObjectURL(url);
 }
@@ -1221,6 +1274,87 @@ document.getElementById('miz-input').addEventListener('change', async (e) => {
   }
 });
 
+// ── .dtc format normalizer ────────────────────────────────────────────────
+// Converts the user's lowercase schema into the PascalCase schema used internally.
+// If the file is already in PascalCase (native ED format) it is returned as-is.
+function normalizeDtc(raw) {
+  // Already in expected PascalCase format — pass through
+  if (raw.Countermeasures || raw.Radio || raw.EWS || raw.Navigation) return raw;
+
+  const out = {
+    Aircraft: raw.aircraft || 'F-16C_50',
+    Version:  raw.version  || '1.0',
+  };
+
+  // cmds → Countermeasures.Programs
+  if (raw.cmds) {
+    const Programs = {};
+    const manKeys = Object.keys(raw.cmds)
+      .filter(k => /^MAN_\d+$/.test(k))
+      .sort((a, b) => parseInt(a.split('_')[1]) - parseInt(b.split('_')[1]));
+
+    manKeys.forEach((key) => {
+      const num = parseInt(key.split('_')[1]);
+      const p = raw.cmds[key];
+      Programs[`Program${num}`] = {
+        Chaff:    p.chaff?.burst_qty  ?? 0,
+        Flare:    p.flare?.burst_qty  ?? 0,
+        Interval: p.chaff?.burst_intv ?? 0.5,
+        Cycles:   p.chaff?.salvo_qty  ?? 1,
+      };
+    });
+    // Pad missing programs (1–6) with zeros
+    for (let i = 1; i <= 6; i++) {
+      if (!Programs[`Program${i}`])
+        Programs[`Program${i}`] = { Chaff: 0, Flare: 0, Interval: 0.0, Cycles: 0 };
+    }
+
+    const bypass = raw.cmds.BYPASS;
+    out.Countermeasures = {
+      Settings: {
+        Mode: 'MAN',
+        BypassEnabled: !!(bypass?.chaff_qty || bypass?.flare_qty),
+        Feedback: 'BOTH',
+        ChaffBingo: 10, FlareBingo: 10, AutoDelay: 2.0,
+      },
+      Programs,
+      ThreatTable: {},
+    };
+  }
+
+  // rwr → EWS
+  if (raw.rwr) {
+    out.EWS = {
+      RWR: {
+        Search:      raw.rwr.search_tone  ?? true,
+        TargetSep:   false,
+        Altitude:    true,
+        AudioLevel:  raw.rwr.audio_level  ?? 5,
+        ThreatTable: raw.rwr.threat_table ?? [],
+      },
+    };
+  }
+
+  // datalink → Datalink
+  if (raw.datalink?.link16) {
+    const l16 = raw.datalink.link16;
+    out.Datalink = {
+      Settings: {
+        OwnshipSTN:     l16.own_ship_id          || '00000',
+        FighterChannel: parseInt(l16.group_id)   || 1,
+        MissionChannel: parseInt(l16.network_id) || 1,
+        TDOA_Active: false,
+      },
+      Network: { Members: {}, Donors: {} },
+    };
+  }
+
+  // laser codes — preserve for reference
+  if (raw.laser_codes) out.LaserCodes = raw.laser_codes;
+
+  return out;
+}
+
 document.getElementById('dtc-input').addEventListener('change', async (e) => {
   const file = e.target.files[0];
   if (!file) return;
@@ -1248,18 +1382,32 @@ document.getElementById('dtc-input').addEventListener('change', async (e) => {
     }
   }
 
-  state.personalDtc = parsed;
+  const normalized = normalizeDtc(parsed);
+  state.personalDtc = normalized;
 
   // Build a summary of what will be merged
   const parts = [];
-  if (parsed.Countermeasures) parts.push('CMDS');
-  if (parsed.EWS)              parts.push('EWS');
-  if (parsed.Radio)            parts.push('channel names');
+  if (normalized.Countermeasures) parts.push('CMDS');
+  if (normalized.EWS)             parts.push('EWS');
+  if (normalized.Radio)           parts.push('channel names');
+  if (normalized.Datalink)        parts.push('datalink');
+  if (normalized.LaserCodes)      parts.push('laser codes');
   const mergeDesc = parts.length ? parts.join(' + ') : 'data';
 
   document.getElementById('merge-pill').style.display = 'inline-flex';
   document.getElementById('merge-pill').textContent   = `✓ Merging ${mergeDesc} from ${file.name}`;
+  document.getElementById('dtc-clear-btn').style.display = 'inline-flex';
 });
+
+function clearPersonalDtc(e) {
+  e.preventDefault();
+  state.personalDtc = null;
+  document.getElementById('dtc-input').value = '';
+  document.getElementById('dtc-fname').textContent = '';
+  document.getElementById('dtc-card').classList.remove('active');
+  document.getElementById('dtc-clear-btn').style.display = 'none';
+  document.getElementById('merge-pill').style.display = 'none';
+}
 
 // ── Drag & Drop support ────────────────────────────────────────────────────
 for (const id of ['miz-card', 'dtc-card']) {
