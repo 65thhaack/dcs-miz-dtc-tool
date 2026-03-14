@@ -926,36 +926,11 @@ function buildDtc(flight) {
     }
   }
 
-  // ── Countermeasures (v1.1) ─────────────────────────────────────────────
-  // Settings + Programs (Chaff/Flare, not BurstChaff/BurstFlare) + ThreatTable
-  // ThreatTable keys: no spaces (SA10, not "SA 10"); unmapped threats → PGM1.
-  const DEFAULT_CMDS = {
-    Settings: {
-      Mode: 'MAN', BypassEnabled: false, Feedback: 'BOTH',
-      ChaffBingo: 10, FlareBingo: 10, AutoDelay: 2.0,
-    },
-    Programs: {
-      Program1: { Chaff: 1, Flare: 1, Interval: 0.5,  Cycles: 10 },
-      Program2: { Chaff: 2, Flare: 0, Interval: 0.1,  Cycles:  5 },
-      Program3: { Chaff: 0, Flare: 2, Interval: 1.0,  Cycles:  3 },
-      Program4: { Chaff: 4, Flare: 4, Interval: 0.25, Cycles:  1 },
-      Program5: { Chaff: 1, Flare: 1, Interval: 0.1,  Cycles:  1 },
-      Program6: { Chaff: 0, Flare: 0, Interval: 0.0,  Cycles:  0 },
-    },
-    ThreatTable: {
-      '21': 'Program1', '23': 'Program1', '29': 'Program2', '31': 'Program2',
-      'SA2': 'Program4', 'SA3': 'Program2', 'SA6': 'Program2', 'SA8': 'Program2',
-      'SA10': 'Program4', 'SA11': 'Program2', 'SA15': 'Program2', 'SA19': 'Program4',
-      'AAA': 'Program1', 'E2': 'Program1',
-    },
-  };
-  const countermeasures = state.personalDtc?.Countermeasures || DEFAULT_CMDS;
+  // ── Countermeasures — only populated when a personal .dtc is loaded ──────
+  const countermeasures = state.personalDtc?.Countermeasures || null;
 
-  // ── EWS ────────────────────────────────────────────────────────────────
-  const DEFAULT_EWS = {
-    RWR: { Search: true, TargetSep: false, Altitude: true },
-  };
-  const ews = state.personalDtc?.EWS || DEFAULT_EWS;
+  // ── EWS — only populated when a personal .dtc is loaded ────────────────
+  const ews = state.personalDtc?.EWS || null;
 
   // ── Datalink ────────────────────────────────────────────────────────────
   const DEFAULT_DATALINK = {
@@ -996,8 +971,8 @@ function buildDtc(flight) {
       UHF: { Channels: uhfChannels },
       VHF: { Channels: vhfChannels },
     },
-    Countermeasures:  countermeasures,
-    EWS:              ews,
+    ...(countermeasures ? { Countermeasures: countermeasures } : {}),
+    ...(ews            ? { EWS: ews }              : {}),
     Navigation: {
       Steerpoints: steerpointObj,
     },
@@ -1081,7 +1056,9 @@ function previewDtc() {
     </tr>`).join('');
 
   // ── CMDS programs ──────────────────────────────────────────────────────
-  const cmdsPrograms = dtc.Countermeasures.Programs || dtc.Countermeasures;
+  const cmdsPrograms = dtc.Countermeasures
+    ? (dtc.Countermeasures.Programs || dtc.Countermeasures)
+    : {};
   const cmdsRows = Object.entries(cmdsPrograms).map(([prog, p]) => `
     <tr>
       <td style="color:var(--muted)">${prog.replace('Program', 'PGM ')}</td>
@@ -1093,11 +1070,11 @@ function previewDtc() {
 
   // ── EWS — flatten nested object into key-value pills ──────────────────
   const ewsItems = [];
-  (function flatEws(obj, prefix) {
+  if (dtc.EWS) (function flatEws(obj, prefix) {
     for (const [k, v] of Object.entries(obj)) {
-      if (v !== null && typeof v === 'object') {
+      if (v !== null && typeof v === 'object' && !Array.isArray(v)) {
         flatEws(v, prefix ? `${prefix}.${k}` : k);
-      } else {
+      } else if (!Array.isArray(v)) {
         const label = prefix ? `${prefix}.${k}` : k;
         const valHtml = v === true  ? `<span class="ews-val-on">ON</span>`
                       : v === false ? `<span class="ews-val-off">OFF</span>`
@@ -1108,7 +1085,7 @@ function previewDtc() {
   })(dtc.EWS, '');
 
   // ── Threat table rows ──────────────────────────────────────────────────
-  const threatTable = dtc.Countermeasures.ThreatTable || {};
+  const threatTable = dtc.Countermeasures?.ThreatTable || {};
   const threatRows = Object.entries(threatTable).map(([threat, pgm]) => `
     <tr>
       <td style="color:var(--text)">${threat}</td>
@@ -1126,13 +1103,16 @@ function previewDtc() {
       <td style="color:var(--muted)">${t.symbol || '—'}</td>
     </tr>`).join('');
 
+  const hasCmds    = !!dtc.Countermeasures;
+  const hasThreats = !!(threatRows || rwrRows);
+
   document.getElementById('dtc-preview-body').innerHTML = `
     <div class="tabs" style="padding:0 20px;border-bottom:1px solid var(--border)">
       <div class="tab active" onclick="switchDtcTab('wpt',this)">Waypoints</div>
       <div class="tab" onclick="switchDtcTab('c1',this)">COM1 — UHF</div>
       <div class="tab" onclick="switchDtcTab('c2',this)">COM2 — VHF</div>
-      <div class="tab" onclick="switchDtcTab('cmds',this)">CMDS</div>
-      <div class="tab" onclick="switchDtcTab('threats',this)">Threats</div>
+      ${hasCmds    ? `<div class="tab" onclick="switchDtcTab('cmds',this)">CMDS</div>`    : ''}
+      ${hasThreats ? `<div class="tab" onclick="switchDtcTab('threats',this)">Threats</div>` : ''}
     </div>
     <div class="tab-content">
       <div class="tab-panel active" id="dtp-wpt">
