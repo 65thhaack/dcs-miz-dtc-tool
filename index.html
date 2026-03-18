@@ -1090,6 +1090,13 @@ function escapeAttr(value) {
     .replace(/>/g, '&gt;');
 }
 
+function queueSelectInputContents(inp) {
+  if (!(inp instanceof HTMLInputElement)) return;
+  requestAnimationFrame(() => {
+    if (document.activeElement === inp) inp.select();
+  });
+}
+
 function setWaypointName(inp) {
   const gid = inp.dataset.gid;
   const idx = parseInt(inp.dataset.idx, 10);
@@ -1577,6 +1584,8 @@ function buildF18PreviewHtml(flight, family) {
           data-radio="${radioIndex}"
           data-channel="${channelNum}"
           data-field="freq"
+          onfocus="queueSelectInputContents(this)"
+          ondblclick="queueSelectInputContents(this)"
           onchange="setCommChannelField(this)">
       </td>
       <td>
@@ -1642,7 +1651,7 @@ function buildF18PreviewHtml(flight, family) {
       const min = typeof rule?.min === 'number' ? ` min="${rule.min}"` : '';
       const max = typeof rule?.max === 'number' ? ` max="${rule.max}"` : '';
       const kindAttr = rule?.kind === 'int' ? 'int' : 'number';
-      input = `<input class="tgt-inp" type="number" value="${value}"${min}${max} step="${step}" data-gid="${flight.groupId}" data-path="${key}" data-kind="${kindAttr}" oninput="setF18NavSetting(this)">`;
+      input = `<input class="tgt-inp" type="number" value="${value}"${min}${max} step="${step}" data-gid="${flight.groupId}" data-path="${key}" data-kind="${kindAttr}" onfocus="queueSelectInputContents(this)" ondblclick="queueSelectInputContents(this)" onchange="setF18NavSetting(this)">`;
     } else {
       input = `<input class="tgt-inp" type="text" value="${value ?? ''}" data-gid="${flight.groupId}" data-path="${key}" data-kind="string" oninput="setF18NavSetting(this)">`;
     }
@@ -1793,18 +1802,24 @@ function buildF16PreviewHtml(flight, family) {
               <input class="tgt-inp" type="number" min="0" max="360" step="1"
                 value="${wp.targetData.vrpBearing}"
                 data-gid="${flight.groupId}" data-idx="${originalIdx}" data-field="vrpBearing"
+                onfocus="queueSelectInputContents(this)"
+                ondblclick="queueSelectInputContents(this)"
                 oninput="setTargetData(this)">
             </label>
             <label>VRP Range (nm)
               <input class="tgt-inp" type="number" min="0" step="0.1"
                 value="${wp.targetData.vrpRange}"
                 data-gid="${flight.groupId}" data-idx="${originalIdx}" data-field="vrpRange"
+                onfocus="queueSelectInputContents(this)"
+                ondblclick="queueSelectInputContents(this)"
                 oninput="setTargetData(this)">
             </label>
             <label>PUP Distance (nm)
               <input class="tgt-inp" type="number" min="0" step="0.1"
                 value="${wp.targetData.pupDistance}"
                 data-gid="${flight.groupId}" data-idx="${originalIdx}" data-field="pupDistance"
+                onfocus="queueSelectInputContents(this)"
+                ondblclick="queueSelectInputContents(this)"
                 oninput="setTargetData(this)">
             </label>
           </div>
@@ -1826,6 +1841,8 @@ function buildF16PreviewHtml(flight, family) {
           data-radio="${radioIndex}"
           data-channel="${Number(ch)}"
           data-field="freq"
+          onfocus="queueSelectInputContents(this)"
+          ondblclick="queueSelectInputContents(this)"
           onchange="setCommChannelField(this)">
       </td>
       <td>
