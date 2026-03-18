@@ -238,6 +238,10 @@
       cursor: pointer;
       border-bottom: 2px solid transparent;
       margin-bottom: -1px;
+      background: transparent;
+      border: 0;
+      font-family: inherit;
+      text-align: left;
     }
     .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
     .tab-content { padding: 16px; }
@@ -344,6 +348,18 @@
     }
     .comm-freq-inp:focus,
     .comm-name-inp:focus { outline: none; border-color: var(--accent); }
+    .wp-name-inp {
+      background: var(--bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 3px 6px;
+      font-size: 12px;
+      font-family: var(--mono);
+      width: 100%;
+      min-width: 120px;
+    }
+    .wp-name-inp:focus { outline: none; border-color: var(--accent); }
 
     /* ── Empty state ──────────────────────────────────────────────────── */
     .empty { text-align: center; padding: 48px 20px; color: var(--muted); }
@@ -902,6 +918,11 @@ function renderFlights(flights, cfg) {
   const formatLongitude = cfg.family === 'f16' ? lonDecimalMinutes : lonDms;
   
   for (const fl of flights) {
+    const safeGroupIdAttr = String(fl.groupId)
+      .replace(/&/g, '&amp;')
+      .replace(/"/g, '&quot;')
+      .replace(/</g, '&lt;');
+
     // Build unit chips
     const chips = fl.units.map(u =>
       `<span class="chip">${u.name}${u.callsign ? ` (${u.callsign})` : ''} <span class="skill">${u.skill}</span></span>`
@@ -950,16 +971,16 @@ function renderFlights(flights, cfg) {
         </div>
         <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
           <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">
-            <button class="btn btn-primary" type="button" data-family="${cfg.family}" data-gid="${String(fl.groupId).replace(/"/g, '&quot;')}" onclick="previewFlightButton(this)">👁 Preview</button>
-            <button class="btn btn-success" type="button" data-family="${cfg.family}" data-gid="${String(fl.groupId).replace(/"/g, '&quot;')}" onclick="exportFlightButton(this)">⬇ Export</button>
+            <button class="btn btn-primary" type="button" data-family="${cfg.family}" data-gid="${safeGroupIdAttr}" onclick="previewFlightButton(this)">👁 Preview/Edit</button>
+            <button class="btn btn-success" type="button" data-family="${cfg.family}" data-gid="${safeGroupIdAttr}" onclick="exportFlightButton(this)">⬇ Export</button>
           </div>
           <div class="unit-chips">${chips}</div>
         </div>
       </div>
       <div class="tabs" id="tabs-${cfg.cardPrefix}-${fl.groupId}">
-        <div class="tab active" onclick="switchTab(${JSON.stringify(cfg.cardPrefix)}, ${JSON.stringify(fl.groupId)}, 'wpt', this)">Waypoints</div>
-        <div class="tab" onclick="switchTab(${JSON.stringify(cfg.cardPrefix)}, ${JSON.stringify(fl.groupId)}, 'c1',  this)">COM1 — UHF</div>
-        <div class="tab" onclick="switchTab(${JSON.stringify(cfg.cardPrefix)}, ${JSON.stringify(fl.groupId)}, 'c2',  this)">COM2 — VHF</div>
+        <button class="tab flight-tab active" type="button" data-card-prefix="${cfg.cardPrefix}" data-group-id="${safeGroupIdAttr}" data-panel="wpt">Waypoints</button>
+        <button class="tab flight-tab" type="button" data-card-prefix="${cfg.cardPrefix}" data-group-id="${safeGroupIdAttr}" data-panel="c1">COM1 - UHF</button>
+        <button class="tab flight-tab" type="button" data-card-prefix="${cfg.cardPrefix}" data-group-id="${safeGroupIdAttr}" data-panel="c2">COM2 - VHF</button>
       </div>
       <div class="tab-content">
         <div class="tab-panel active" id="tp-${cfg.cardPrefix}-${fl.groupId}-wpt">
@@ -981,7 +1002,7 @@ function renderFlights(flights, cfg) {
           </table>
         </div>
       </div>`;
-    card.innerHTML += `<div class="inline-preview-panel" id="inline-preview-${cfg.cardPrefix}-${fl.groupId}" data-family="${cfg.family}" data-gid="${String(fl.groupId).replace(/"/g, '&quot;')}"></div>`;
+    card.innerHTML += `<div class="inline-preview-panel" id="inline-preview-${cfg.cardPrefix}-${fl.groupId}" data-family="${cfg.family}" data-gid="${safeGroupIdAttr}"></div>`;
     container.appendChild(card);
   }
 }
@@ -1059,6 +1080,22 @@ function setCommChannelField(inp) {
 function deepClone(obj) {
   if (obj === null || obj === undefined) return obj;
   return JSON.parse(JSON.stringify(obj));
+}
+
+function escapeAttr(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+function setWaypointName(inp) {
+  const gid = inp.dataset.gid;
+  const idx = parseInt(inp.dataset.idx, 10);
+  const flight = findFlightById(gid);
+  if (!flight || !Number.isInteger(idx) || idx < 0 || idx >= flight.waypoints.length) return;
+  flight.waypoints[idx].name = inp.value;
 }
 
 function defaultF18NavSettings() {
@@ -1186,11 +1223,21 @@ function switchInlinePreviewTabBtn(tabEl) {
 
 function switchTab(cardPrefix, groupId, panel, tabEl) {
   const card = document.getElementById(`fc-${cardPrefix}-${groupId}`);
+  if (!card) return;
   card.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   card.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
   tabEl.classList.add('active');
-  document.getElementById(`tp-${cardPrefix}-${groupId}-${panel}`).classList.add('active');
+  const targetPanel = document.getElementById(`tp-${cardPrefix}-${groupId}-${panel}`);
+  if (targetPanel) targetPanel.classList.add('active');
 }
+
+function onFlightTabClick(evt) {
+  const tabEl = evt.target.closest('.flight-tab');
+  if (!tabEl) return;
+  switchTab(tabEl.dataset.cardPrefix, tabEl.dataset.groupId, tabEl.dataset.panel, tabEl);
+}
+
+document.addEventListener('click', onFlightTabClick);
 
 function setSectionCount(section, count) {
   const el = document.getElementById(`section-count-${section}`);
@@ -1495,11 +1542,20 @@ function buildF18PreviewHtml(flight, family) {
   const activeTab = allowedTabs.includes(flight.inlinePreviewTab) ? flight.inlinePreviewTab : 'wpt';
 
   const navRows = flight.waypoints
-    .filter(wp => !wp.isTakeoff && !wp.isLand)
-    .map((wp, i) => `
+    .map((wp, originalIdx) => ({ wp, originalIdx }))
+    .filter(({ wp }) => !wp.isTakeoff && !wp.isLand)
+    .map(({ wp, originalIdx }, i) => `
       <tr>
         <td style="color:var(--muted)">${i + 1}</td>
-        <td>${wp.name || ''}</td>
+        <td>
+          <input
+            class="wp-name-inp"
+            type="text"
+            value="${escapeAttr(wp.name || '')}"
+            data-gid="${flight.groupId}"
+            data-idx="${originalIdx}"
+            oninput="setWaypointName(this)">
+        </td>
         <td>${toDtcLat(wp.lat)}</td>
         <td>${toDtcLon(wp.lon)}</td>
         <td>${wp.alt_ft.toLocaleString()} <span style="color:var(--muted);font-size:10px">ft</span></td>
@@ -1703,7 +1759,15 @@ function buildF16PreviewHtml(flight, family) {
     return `
       <tr>
         <td style="color:var(--muted);width:28px">${stNum}</td>
-        <td>${wp.name || ''}</td>
+        <td>
+          <input
+            class="wp-name-inp"
+            type="text"
+            value="${escapeAttr(wp.name || '')}"
+            data-gid="${flight.groupId}"
+            data-idx="${originalIdx}"
+            oninput="setWaypointName(this)">
+        </td>
         <td>
           <select class="pttype pt-${type}"
             data-gid="${flight.groupId}" data-idx="${originalIdx}"
