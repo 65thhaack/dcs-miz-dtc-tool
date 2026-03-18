@@ -623,6 +623,16 @@ function dms(deg, posDir, negDir) {
 const latDms = (v) => dms(v, 'N', 'S');
 const lonDms = (v) => dms(v, 'E', 'W');
 
+function decimalMinutes(deg, posDir, negDir, degreeWidth) {
+  const abs = Math.abs(deg);
+  const d = Math.floor(abs);
+  const minutes = ((abs - d) * 60).toFixed(3);
+  const dir = deg >= 0 ? posDir : negDir;
+  return `${dir}${String(d).padStart(degreeWidth, '0')}°${minutes.padStart(6, '0')}'`;
+}
+const latDecimalMinutes = (v) => decimalMinutes(v, 'N', 'S', 2);
+const lonDecimalMinutes = (v) => decimalMinutes(v, 'E', 'W', 3);
+
 // DTC native format: "DD.MM.SSN" / "DDD.MM.SSE" (period-delimited, dir suffix, whole seconds)
 function toDtcLat(lat) {
   const abs = Math.abs(lat);
@@ -865,6 +875,8 @@ function renderFlights(flights, cfg) {
 
   document.getElementById(cfg.emptyId).style.display = flights.length ? 'none' : 'block';
   setSectionCount(cfg.sectionKey, flights.length);
+  const formatLatitude = cfg.family === 'f16' ? latDecimalMinutes : latDms;
+  const formatLongitude = cfg.family === 'f16' ? lonDecimalMinutes : lonDms;
   
   for (const fl of flights) {
     // Build unit chips
@@ -886,8 +898,8 @@ function renderFlights(flights, cfg) {
         <td style="width:58px">${wpTag(wp)}</td>
         ${roleCell}
         <td style="color:var(--muted)">${wp.name || '—'}</td>
-        <td>${latDms(wp.lat)}</td>
-        <td>${lonDms(wp.lon)}</td>
+        <td>${formatLatitude(wp.lat)}</td>
+        <td>${formatLongitude(wp.lon)}</td>
         <td>${wp.alt_ft.toLocaleString()} <span style="color:var(--muted);font-size:10px">${wp.alt_type}</span></td>
         <td>${wp.speed_kts} <span style="color:var(--muted);font-size:10px">kts</span></td>
       </tr>`;
@@ -1616,8 +1628,8 @@ function buildF16PreviewHtml(flight, family) {
             <option value="OA2" ${wp.pointType==='OA2' ?' selected':''}>②  OA2</option>
           </select>
         </td>
-        <td>${toDtcLat(wp.lat)}</td>
-        <td>${toDtcLon(wp.lon)}</td>
+        <td>${latDecimalMinutes(wp.lat)}</td>
+        <td>${lonDecimalMinutes(wp.lon)}</td>
         <td>${wp.alt_ft.toLocaleString()} <span style="color:var(--muted);font-size:10px">ft</span></td>
       </tr>
       <tr class="tgt-data-row" id="pvtdr-${flight.groupId}-${originalIdx}"${wp.pointType === 'TGT' ? '' : ' style="display:none"'}>
