@@ -1,0 +1,118 @@
+{
+  "data": {
+    "ALR67": {
+      "CMDS": {
+        "CMDSProgramSettings": {
+          
+        },
+        "CMDS_Threat_table": {
+          
+        }
+      },
+      "RWR": {
+        "AAA": true,
+        "AI": true,
+        "FRND": false,
+        "NORM": true,
+        "UNK": true,
+        "RWR_Avionics_Threat_Table": {
+          
+        }
+      }
+    },
+    "COMM": {
+      "COMM1": {
+        
+      },
+      "COMM2": {
+        
+      },
+      "mirror_COMM1": true,
+      "mirror_COMM2": true
+    },
+    "WYPT": {
+      "mirror_NAV_PTS": false,
+      "NAV_PTS": [
+        {
+          "number": 1,
+          "note": "",
+          "x": 5778.5714285714,
+          "y": -224181.42857143,
+          "alt": 3048,
+          "speed": 647,
+          "lat": "26.12.07N",
+          "long": "054.00.56E"
+        },
+        {
+          "number": 2,
+          "note": "",
+          "x": 5246.87588,
+          "y": -124344.15222571,
+          "alt": 3048,
+          "speed": 647,
+          "lat": "26.11.50N",
+          "long": "055.00.54E"
+        },
+        {
+          "number": 3,
+          "note": "",
+          "x": 105570.28850601,
+          "y": -124485.43285298,
+          "alt": 3048,
+          "speed": 647,
+          "lat": "27.05.54N",
+          "long": "055.00.14E"
+        },
+        {
+          "number": 4,
+          "note": "",
+          "x": 105570.28850601,
+          "y": -222032.72912107,
+          "alt": 3048,
+          "speed": 647,
+          "lat": "27.05.54N",
+          "long": "054.01.10E"
+        }
+      ],
+      "NAV_ROUTE": [
+        
+      ],
+      "NAV_SETTINGS": {
+        "AA_Waypoint": {
+          "AA_WP_Enabled": false,
+          "AA_WP_Number": 59
+        },
+        "ACLS": {
+          "Frequency": 225,
+          "OnOff": false
+        },
+        "Altitude_Warning": {
+          "Warn_Alt_Baro": 2000,
+          "Warn_Alt_Rdr": 500
+        },
+        "Home_Waypoint": {
+          "FPAS_HOME_WP": 1
+        },
+        "ICLS": {
+          "Channel": 1,
+          "OnOff": false
+        },
+        "TACAN": {
+          "Channel": 1,
+          "ChannelMode": 1,
+          "Mode": 2,
+          "OnOff": false
+        }
+      },
+      "terrain": "PersianGulf"
+    },
+    "TCN": [
+      
+    ],
+    "terrain": "PersianGulf",
+    "name": "Aerial-1",
+    "type": "FA-18C_hornet"
+  },
+  "name": "Aerial-1",
+  "type": "FA-18C_hornet"
+}

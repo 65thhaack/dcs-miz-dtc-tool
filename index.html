@@ -360,6 +360,21 @@
       min-width: 120px;
     }
     .wp-name-inp:focus { outline: none; border-color: var(--accent); }
+    .nav-settings-group-row td {
+      padding: 10px 10px 4px;
+      color: var(--accent);
+      font-family: -apple-system, sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      background: rgba(88,166,255,0.08);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid #1c2128;
+    }
+    .nav-setting-name {
+      padding-left: 22px;
+    }
 
     /* ── Empty state ──────────────────────────────────────────────────── */
     .empty { text-align: center; padding: 48px 20px; color: var(--muted); }
@@ -781,6 +796,8 @@ function extractFlightsByType(mission, theater, unitMatcher, aircraftType) {
           waypoints,
           radio1,
           radio2,
+          groupX: group.x,
+          groupY: group.y,
         });
       }
     }
@@ -1052,6 +1069,13 @@ function getFlightCommName(flight, radioIndex, channel, fallback = '') {
 function setFlightCommName(flight, radioIndex, channel, value) {
   ensureFlightCommNames(flight);
   flight.commNames[radioIndex][channel] = value;
+}
+
+function setF18CommGuard(inp) {
+  const flight = findFlightById(inp.dataset.gid);
+  if (!flight) return;
+  if (inp.dataset.radio === '1') flight.guardComm1 = inp.checked;
+  else flight.guardComm2 = inp.checked;
 }
 
 function setCommChannelField(inp) {
@@ -1489,7 +1513,10 @@ function buildF18Dtc(flight) {
     RWR: { AAA: true, AI: true, FRND: false, NORM: true, UNK: true, RWR_Avionics_Threat_Table: {} },
   };
 
-  return { COMM1: comm1, COMM2: comm2, TCN: tcn, NAV_SETTINGS: navSettings, ALR67: alr67 };
+  const guardComm1 = flight.guardComm1 ?? state.personalDtc?._f18Comm?.COMM1?.Guard ?? true;
+  const guardComm2 = flight.guardComm2 ?? state.personalDtc?._f18Comm?.COMM2?.Guard ?? true;
+
+  return { COMM1: comm1, COMM2: comm2, TCN: tcn, NAV_SETTINGS: navSettings, ALR67: alr67, guardComm1, guardComm2 };
 }
 
 function buildF18DtcNative(flight) {
@@ -1501,33 +1528,58 @@ function buildF18DtcNative(flight) {
       return out;
     }, {});
 
-  const navPts = flight.waypoints
-    .filter(wp => !wp.isTakeoff && !wp.isLand)
-    .map((wp, idx) => ({
-      number: idx + 1,
+  // Skip the first waypoint if it's the group spawn position (in-air start)
+  const navWps = flight.waypoints.filter(wp => !wp.isTakeoff && !wp.isLand);
+  const firstWp = navWps[0];
+  const isSpawn = firstWp && flight.groupX !== undefined &&
+    Math.abs(firstWp.x - flight.groupX) < 0.01 && Math.abs(firstWp.y - flight.groupY) < 0.01;
+  const steerWps = isSpawn ? navWps.slice(1) : navWps;
+
+  const navPts = steerWps.map((wp, idx) => {
+    const n = idx + 1;
+    return {
+      alt: Math.max(0, Math.round(wp.alt_m || 0)),
+      altitudeType: 1,
+      id: `STPT${n}`,
+      idOA: `OA${n}`,
+      idOA_Line: `OA${n}Line`,
+      isOA: false,
       note: wp.name || '',
+      OA_Alt: 0,
+      OA_Bearing: 0,
+      OA_Bearing_Units: 1,
+      OA_DeltaX: 0,
+      OA_DeltaY: 0,
+      OA_Elevation_Units: 1,
+      OA_Range: 0,
+      OA_Range_Units: 1,
+      OA_X: 0,
+      OA_Y: 0,
+      R1: false,
+      R2: false,
+      R3: false,
+      text_note: '',
+      velocityType: 3,
+      wypt_num: n,
       x: wp.x || 0,
       y: wp.y || 0,
-      alt: Math.max(0, Math.round(wp.alt_m || 0)),
-      speed: Math.round((wp.speed_ms || 0) * 3.6),
-      lat: toDtcLat(wp.lat),
-      long: toDtcLon(wp.lon),
-    }));
+    };
+  });
 
   const wyptRaw = state.personalDtc?._rawWypt || {};
   return {
     data: {
       ALR67: f18.ALR67,
       COMM: {
-        COMM1: orderChannels(f18.COMM1),
-        COMM2: orderChannels(f18.COMM2),
+        COMM1: { ...orderChannels(f18.COMM1), Guard: f18.guardComm1 },
+        COMM2: { ...orderChannels(f18.COMM2), Guard: f18.guardComm2 },
         mirror_COMM1: true,
         mirror_COMM2: true,
       },
       WYPT: {
         mirror_NAV_PTS: wyptRaw.mirror_NAV_PTS ?? false,
         NAV_PTS: navPts,
-        NAV_ROUTE: wyptRaw.NAV_ROUTE || [],
+        NAV_ROUTE: wyptRaw.NAV_ROUTE || [[], [], []],
         NAV_SETTINGS: f18.NAV_SETTINGS,
         terrain: state.theater,
       },
@@ -1638,28 +1690,57 @@ function buildF18PreviewHtml(flight, family) {
     return rows;
   };
 
-  const navSettingRows = flattenObj(f18.NAV_SETTINGS).map(({ key, value, kind }) => {
-    const rule = F18_NAV_RULES[key];
-    let input = '';
-    if (kind === 'boolean') {
-      input = `<input type="checkbox" data-gid="${flight.groupId}" data-path="${key}" data-kind="boolean" ${value ? 'checked' : ''} onchange="setF18NavSetting(this)">`;
-    } else if (rule?.kind === 'enum') {
-      const opts = rule.options.map(opt => `<option value="${opt.value}"${Number(value) === Number(opt.value) ? ' selected' : ''}>${opt.label}</option>`).join('');
-      input = `<select class="tgt-inp" data-gid="${flight.groupId}" data-path="${key}" data-kind="enum" onchange="setF18NavSetting(this)">${opts}</select>`;
-    } else if (kind === 'number' || rule?.kind === 'int' || rule?.kind === 'number') {
-      const step = rule?.step ?? 1;
-      const min = typeof rule?.min === 'number' ? ` min="${rule.min}"` : '';
-      const max = typeof rule?.max === 'number' ? ` max="${rule.max}"` : '';
-      const kindAttr = rule?.kind === 'int' ? 'int' : 'number';
-      input = `<input class="tgt-inp" type="number" value="${value}"${min}${max} step="${step}" data-gid="${flight.groupId}" data-path="${key}" data-kind="${kindAttr}" onfocus="queueSelectInputContents(this)" ondblclick="queueSelectInputContents(this)" onchange="setF18NavSetting(this)">`;
-    } else {
-      input = `<input class="tgt-inp" type="text" value="${value ?? ''}" data-gid="${flight.groupId}" data-path="${key}" data-kind="string" oninput="setF18NavSetting(this)">`;
+  const navSettingEntries = flattenObj(f18.NAV_SETTINGS);
+  const navSettingSections = [];
+  const navSettingSectionMap = new Map();
+
+  for (const entry of navSettingEntries) {
+    const [rawSection = 'General', fieldName = entry.key] = entry.key.split('.', 2);
+    if (!navSettingSectionMap.has(rawSection)) {
+      const section = {
+        rawSection,
+        label: rawSection.split('_')[0] || rawSection,
+        items: [],
+      };
+      navSettingSectionMap.set(rawSection, section);
+      navSettingSections.push(section);
     }
-    return `
+    navSettingSectionMap.get(rawSection).items.push({
+      ...entry,
+      fieldName,
+    });
+  }
+
+  const navSettingRows = navSettingSections.map(section => {
+    const itemRows = section.items.map(({ key, value, kind, fieldName }) => {
+      const rule = F18_NAV_RULES[key];
+      let input = '';
+      if (kind === 'boolean') {
+        input = `<input type="checkbox" data-gid="${flight.groupId}" data-path="${key}" data-kind="boolean" ${value ? 'checked' : ''} onchange="setF18NavSetting(this)">`;
+      } else if (rule?.kind === 'enum') {
+        const opts = rule.options.map(opt => `<option value="${opt.value}"${Number(value) === Number(opt.value) ? ' selected' : ''}>${opt.label}</option>`).join('');
+        input = `<select class="tgt-inp" data-gid="${flight.groupId}" data-path="${key}" data-kind="enum" onchange="setF18NavSetting(this)">${opts}</select>`;
+      } else if (kind === 'number' || rule?.kind === 'int' || rule?.kind === 'number') {
+        const step = rule?.step ?? 1;
+        const min = typeof rule?.min === 'number' ? ` min="${rule.min}"` : '';
+        const max = typeof rule?.max === 'number' ? ` max="${rule.max}"` : '';
+        const kindAttr = rule?.kind === 'int' ? 'int' : 'number';
+        input = `<input class="tgt-inp" type="number" value="${value}"${min}${max} step="${step}" data-gid="${flight.groupId}" data-path="${key}" data-kind="${kindAttr}" onfocus="queueSelectInputContents(this)" ondblclick="queueSelectInputContents(this)" onchange="setF18NavSetting(this)">`;
+      } else {
+        input = `<input class="tgt-inp" type="text" value="${value ?? ''}" data-gid="${flight.groupId}" data-path="${key}" data-kind="string" oninput="setF18NavSetting(this)">`;
+      }
+
+      return `
     <tr>
-      <td style="color:var(--muted)">${key}</td>
+      <td class="nav-setting-name" style="color:var(--muted)">${fieldName}</td>
       <td>${input}</td>
     </tr>`;
+    }).join('');
+
+    return `
+    <tr class="nav-settings-group-row">
+      <td colspan="2">${section.label}</td>
+    </tr>${itemRows}`;
   }).join('');
 
   const cmdsRows = Object.entries(f18.ALR67?.CMDS?.CMDSProgramSettings || {}).map(([name, p]) => `
@@ -1717,12 +1798,20 @@ function buildF18PreviewHtml(flight, family) {
         </table>
       </div>
       <div class="tab-panel${activeTab==='c1' ? ' active' : ''}" data-ipanel="c1">
+        <label style="display:flex;align-items:center;gap:6px;margin-bottom:8px;font-size:12px;cursor:pointer">
+          <input type="checkbox" data-gid="${flight.groupId}" data-radio="1" ${f18.guardComm1 ? 'checked' : ''} onchange="setF18CommGuard(this)">
+          Guard (243.0 MHz monitor)
+        </label>
         <table>
           <thead><tr><th>CH</th><th>Frequency</th><th>Name</th></tr></thead>
           <tbody>${comRows(f18.COMM1, 'uhf', 1) || '<tr><td colspan="3" style="color:var(--muted)">No COMM1 data</td></tr>'}</tbody>
         </table>
       </div>
       <div class="tab-panel${activeTab==='c2' ? ' active' : ''}" data-ipanel="c2">
+        <label style="display:flex;align-items:center;gap:6px;margin-bottom:8px;font-size:12px;cursor:pointer">
+          <input type="checkbox" data-gid="${flight.groupId}" data-radio="2" ${f18.guardComm2 ? 'checked' : ''} onchange="setF18CommGuard(this)">
+          Guard (243.0 MHz monitor)
+        </label>
         <table>
           <thead><tr><th>CH</th><th>Frequency</th><th>Name</th></tr></thead>
           <tbody>${comRows(f18.COMM2, 'vhf', 2) || '<tr><td colspan="3" style="color:var(--muted)">No COMM2 data</td></tr>'}</tbody>
