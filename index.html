@@ -1140,6 +1140,131 @@ function defaultF18NavSettings() {
   };
 }
 
+const F18_COMM_DEFAULT_FREQS = {
+  1: 305, 2: 264, 3: 265, 4: 256, 5: 254,
+  6: 250, 7: 270, 8: 257, 9: 255, 10: 262,
+  11: 259, 12: 268, 13: 269, 14: 260, 15: 263,
+  16: 261, 17: 267, 18: 251, 19: 253, 20: 266,
+};
+
+function fillF18CommDefaults(comm, personalComm, radioIndex) {
+  for (let i = 1; i <= 20; i++) {
+    const key = `Channel_${i}`;
+    if (!comm[key]) {
+      comm[key] = {
+        frequency: F18_COMM_DEFAULT_FREQS[i],
+        modulation: 0,
+        name: personalComm?.[key]?.name || `CH ${i}`,
+      };
+    }
+  }
+
+  if (!comm.Channel_C) {
+    comm.Channel_C = {
+      frequency: 30,
+      modulation: 1,
+      name: personalComm?.Channel_C?.name || 'CUE',
+    };
+  }
+  if (!comm.Channel_G) {
+    comm.Channel_G = {
+      frequency: 243,
+      modulation: 0,
+      name: personalComm?.Channel_G?.name || 'GUARD',
+    };
+  }
+  if (!comm.Channel_M) {
+    comm.Channel_M = {
+      frequency: radioIndex === 1 ? 122.8 : 305,
+      modulation: 0,
+      name: personalComm?.Channel_M?.name || 'MAN',
+    };
+  }
+  if (!comm.Channel_S) {
+    comm.Channel_S = {
+      frequency: 156.05,
+      modulation: 1,
+      name: personalComm?.Channel_S?.name || 'MAR',
+    };
+  }
+}
+
+function defaultF18Alr67() {
+  return {
+    CMDS: {
+      CMDSProgramSettings: {
+        AUTO_1: { Chaff: { Interval: 1.5, Quantity: 1, Repeat: 4 }, Flare: { Quantity: 0 }, Other1: { Quantity: 0 }, Other2: { Quantity: 0 } },
+        AUTO_2: { Chaff: { Interval: 1, Quantity: 1, Repeat: 6 }, Flare: { Quantity: 0 }, Other1: { Quantity: 0 }, Other2: { Quantity: 0 } },
+        AUTO_3: { Chaff: { Interval: 0.5, Quantity: 1, Repeat: 8 }, Flare: { Quantity: 0 }, Other1: { Quantity: 0 }, Other2: { Quantity: 0 } },
+        BYP: { Chaff: { Interval: 1, Quantity: 2, Repeat: 1 }, Flare: { Quantity: 2 }, Other1: { Quantity: 0 }, Other2: { Quantity: 0 } },
+        delay_between_programs: 0,
+        MAN_1: { Chaff: { Interval: 1, Quantity: 1, Repeat: 10 }, Flare: { Quantity: 1 }, Other1: { Quantity: 0 }, Other2: { Quantity: 0 } },
+        MAN_2: { Chaff: { Interval: 0.5, Quantity: 1, Repeat: 10 }, Flare: { Quantity: 1 }, Other1: { Quantity: 0 }, Other2: { Quantity: 0 } },
+        MAN_3: { Chaff: { Interval: 1, Quantity: 2, Repeat: 5 }, Flare: { Quantity: 2 }, Other1: { Quantity: 0 }, Other2: { Quantity: 0 } },
+        MAN_4: { Chaff: { Interval: 0.5, Quantity: 2, Repeat: 10 }, Flare: { Quantity: 2 }, Other1: { Quantity: 0 }, Other2: { Quantity: 0 } },
+        MAN_5: { Chaff: { Interval: 1, Quantity: 1, Repeat: 2 }, Flare: { Quantity: 1 }, Other1: { Quantity: 0 }, Other2: { Quantity: 0 } },
+        MAN_6: { Chaff: { Interval: 0.75, Quantity: 2, Repeat: 20 }, Flare: { Quantity: 2 }, Other1: { Quantity: 0 }, Other2: { Quantity: 0 } },
+      },
+      CMDS_Threat_table: {
+        Air: {},
+        CMDS_Avionics_Threat_Table: [],
+        Ground: {},
+        Naval: {},
+        Other: {},
+      },
+    },
+    RWR: {
+      AAA: {},
+      AI: {},
+      FRND: {},
+      NORM: {},
+      UNK: {},
+      RWR_Avionics_Threat_Table: {
+        AAA: [],
+        AI: [],
+        FRND: [],
+        NORM: [],
+        UNK: [],
+      },
+    },
+  };
+}
+
+function normalizeF18Alr67(raw) {
+  const src = deepClone(raw || defaultF18Alr67());
+  if (!src.CMDS || typeof src.CMDS !== 'object') src.CMDS = {};
+  if (!src.CMDS.CMDSProgramSettings || typeof src.CMDS.CMDSProgramSettings !== 'object') {
+    src.CMDS.CMDSProgramSettings = defaultF18Alr67().CMDS.CMDSProgramSettings;
+  }
+  if (!src.CMDS.CMDS_Threat_table || typeof src.CMDS.CMDS_Threat_table !== 'object') src.CMDS.CMDS_Threat_table = {};
+
+  const tt = src.CMDS.CMDS_Threat_table;
+  if (!tt.Air || typeof tt.Air !== 'object' || Array.isArray(tt.Air)) tt.Air = {};
+  if (!tt.Ground || typeof tt.Ground !== 'object' || Array.isArray(tt.Ground)) tt.Ground = {};
+  if (!tt.Naval || typeof tt.Naval !== 'object' || Array.isArray(tt.Naval)) tt.Naval = {};
+  if (!tt.Other || typeof tt.Other !== 'object' || Array.isArray(tt.Other)) tt.Other = {};
+  if (!Array.isArray(tt.CMDS_Avionics_Threat_Table)) tt.CMDS_Avionics_Threat_Table = [];
+
+  if (!src.RWR || typeof src.RWR !== 'object') src.RWR = {};
+  if (!src.RWR.AAA || typeof src.RWR.AAA !== 'object' || Array.isArray(src.RWR.AAA)) src.RWR.AAA = {};
+  if (!src.RWR.AI || typeof src.RWR.AI !== 'object' || Array.isArray(src.RWR.AI)) src.RWR.AI = {};
+  if (!src.RWR.FRND || typeof src.RWR.FRND !== 'object' || Array.isArray(src.RWR.FRND)) src.RWR.FRND = {};
+  if (!src.RWR.NORM || typeof src.RWR.NORM !== 'object' || Array.isArray(src.RWR.NORM)) src.RWR.NORM = {};
+  if (!src.RWR.UNK || typeof src.RWR.UNK !== 'object' || Array.isArray(src.RWR.UNK)) src.RWR.UNK = {};
+
+  if (!src.RWR.RWR_Avionics_Threat_Table || typeof src.RWR.RWR_Avionics_Threat_Table !== 'object' || Array.isArray(src.RWR.RWR_Avionics_Threat_Table)) {
+    src.RWR.RWR_Avionics_Threat_Table = {};
+  }
+  const rwrAv = src.RWR.RWR_Avionics_Threat_Table;
+  if (!Array.isArray(rwrAv.AAA)) rwrAv.AAA = [];
+  if (!Array.isArray(rwrAv.AI)) rwrAv.AI = [];
+  if (!Array.isArray(rwrAv.FRND)) rwrAv.FRND = [];
+  if (!Array.isArray(rwrAv.NORM)) rwrAv.NORM = [];
+  if (!Array.isArray(rwrAv.UNK)) rwrAv.UNK = [];
+
+  return src;
+}
+
 const F18_NAV_RULES = {
   'AA_Waypoint.AA_WP_Number':      { kind: 'int', min: 1, max: 59, step: 1 },
   'ACLS.Frequency':                { kind: 'int', min: 200, max: 400, step: 1 },
@@ -1496,6 +1621,9 @@ function buildF18Dtc(flight) {
     }
   }
 
+  fillF18CommDefaults(comm1, personalComm1, 1);
+  fillF18CommDefaults(comm2, personalComm2, 2);
+
   let tcn = [];
   if (state.tacanCandidates.length) {
     ensureF18TacanSelection(flight);
@@ -1508,10 +1636,7 @@ function buildF18Dtc(flight) {
   }
   const navSettingsBase = flight.navSettingsF18 || state.personalDtc?._rawWypt?.NAV_SETTINGS || defaultF18NavSettings();
   const navSettings = deepClone(navSettingsBase);
-  const alr67 = state.personalDtc?._rawAlr67 || {
-    CMDS: { CMDSProgramSettings: {}, CMDS_Threat_table: {} },
-    RWR: { AAA: true, AI: true, FRND: false, NORM: true, UNK: true, RWR_Avionics_Threat_Table: {} },
-  };
+  const alr67 = normalizeF18Alr67(state.personalDtc?._rawAlr67 || defaultF18Alr67());
 
   const guardComm1 = flight.guardComm1 ?? state.personalDtc?._f18Comm?.COMM1?.Guard ?? true;
   const guardComm2 = flight.guardComm2 ?? state.personalDtc?._f18Comm?.COMM2?.Guard ?? true;
@@ -1538,13 +1663,13 @@ function buildF18DtcNative(flight) {
   const navPts = steerWps.map((wp, idx) => {
     const n = idx + 1;
     return {
-      alt: Math.max(0, Math.round(wp.alt_m || 0)),
+      alt: Math.max(0, Number(wp.alt_m || 0)),
       altitudeType: 1,
       id: `STPT${n}`,
       idOA: `OA${n}`,
       idOA_Line: `OA${n}Line`,
       isOA: false,
-      note: wp.name || '',
+      note: '',
       OA_Alt: 0,
       OA_Bearing: 0,
       OA_Bearing_Units: 1,
@@ -1566,27 +1691,27 @@ function buildF18DtcNative(flight) {
     };
   });
 
-  const wyptRaw = state.personalDtc?._rawWypt || {};
+  const commRaw = state.personalDtc?._f18Comm || {};
   return {
     data: {
       ALR67: f18.ALR67,
       COMM: {
         COMM1: { ...orderChannels(f18.COMM1), Guard: f18.guardComm1 },
         COMM2: { ...orderChannels(f18.COMM2), Guard: f18.guardComm2 },
-        mirror_COMM1: true,
-        mirror_COMM2: true,
+        mirror_COMM1: commRaw.mirror_COMM1 ?? false,
+        mirror_COMM2: commRaw.mirror_COMM2 ?? false,
       },
+      name: flight.name,
+      TCN: f18.TCN,
+      terrain: state.theater,
+      type: 'FA-18C_hornet',
       WYPT: {
-        mirror_NAV_PTS: wyptRaw.mirror_NAV_PTS ?? false,
+        mirror_NAV_PTS: false,
         NAV_PTS: navPts,
-        NAV_ROUTE: wyptRaw.NAV_ROUTE || [[], [], []],
+        NAV_ROUTE: [[], [], []],
         NAV_SETTINGS: f18.NAV_SETTINGS,
         terrain: state.theater,
       },
-      TCN: f18.TCN,
-      terrain: state.theater,
-      name: flight.name,
-      type: 'FA-18C_hornet',
     },
     name: flight.name,
     type: 'FA-18C_hornet',
