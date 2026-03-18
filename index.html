@@ -321,6 +321,29 @@
       font-family: var(--mono); width: 80px;
     }
     .tgt-inp:focus { outline: none; border-color: var(--red); }
+    .comm-freq-inp {
+      background: var(--bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 3px 6px;
+      font-size: 12px;
+      font-family: var(--mono);
+      width: 90px;
+    }
+    .comm-name-inp {
+      background: var(--bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 3px 6px;
+      font-size: 12px;
+      font-family: var(--mono);
+      width: 100%;
+      min-width: 120px;
+    }
+    .comm-freq-inp:focus,
+    .comm-name-inp:focus { outline: none; border-color: var(--accent); }
 
     /* ── Empty state ──────────────────────────────────────────────────── */
     .empty { text-align: center; padding: 48px 20px; color: var(--muted); }
@@ -992,6 +1015,47 @@ function setTargetData(inp) {
   }
 }
 
+function ensureFlightCommNames(flight) {
+  if (!flight.commNames || typeof flight.commNames !== 'object') {
+    flight.commNames = { 1: {}, 2: {} };
+  }
+  if (!flight.commNames[1] || typeof flight.commNames[1] !== 'object') flight.commNames[1] = {};
+  if (!flight.commNames[2] || typeof flight.commNames[2] !== 'object') flight.commNames[2] = {};
+}
+
+function getFlightCommName(flight, radioIndex, channel, fallback = '') {
+  ensureFlightCommNames(flight);
+  return flight.commNames[radioIndex][channel] ?? fallback;
+}
+
+function setFlightCommName(flight, radioIndex, channel, value) {
+  ensureFlightCommNames(flight);
+  flight.commNames[radioIndex][channel] = value;
+}
+
+function setCommChannelField(inp) {
+  const gid = inp.dataset.gid;
+  const radio = Number(inp.dataset.radio);
+  const channel = Number(inp.dataset.channel);
+  const field = inp.dataset.field;
+  const flight = findFlightById(gid);
+  if (!flight || ![1, 2].includes(radio) || !Number.isInteger(channel) || channel < 1 || channel > 20) return;
+
+  if (field === 'freq') {
+    const raw = parseFloat(inp.value);
+    if (!Number.isFinite(raw)) return;
+    const normalized = Math.max(0, parseFloat(raw.toFixed(3)));
+    if (radio === 1) flight.radio1[channel] = normalized;
+    else flight.radio2[channel] = normalized;
+    inp.value = normalized.toFixed(3);
+    return;
+  }
+
+  if (field === 'name') {
+    setFlightCommName(flight, radio, channel, inp.value.trim());
+  }
+}
+
 function deepClone(obj) {
   if (obj === null || obj === undefined) return obj;
   return JSON.parse(JSON.stringify(obj));
@@ -1159,13 +1223,13 @@ function buildDtc(flight) {
     if (freq1 !== undefined) {
       uhfChannels[String(i)] = {
         Frequency: parseFloat(Number(freq1).toFixed(3)),
-        Name: personalUhf[String(i)]?.Name || '',
+        Name: getFlightCommName(flight, 1, i, personalUhf[String(i)]?.Name || ''),
       };
     }
     if (freq2 !== undefined) {
       vhfChannels[String(i)] = {
         Frequency: parseFloat(Number(freq2).toFixed(3)),
-        Name: personalVhf[String(i)]?.Name || '',
+        Name: getFlightCommName(flight, 2, i, personalVhf[String(i)]?.Name || ''),
       };
     }
   }
@@ -1342,14 +1406,14 @@ function buildF18Dtc(flight) {
       comm1[`Channel_${i}`] = {
         frequency: parseFloat(Number(f1).toFixed(3)),
         modulation: 0,
-        name: personalComm1[`Channel_${i}`]?.name || `CH ${i}`,
+        name: getFlightCommName(flight, 1, i, personalComm1[`Channel_${i}`]?.name || `CH ${i}`),
       };
     }
     if (f2 !== undefined) {
       comm2[`Channel_${i}`] = {
         frequency: parseFloat(Number(f2).toFixed(3)),
         modulation: 0,
-        name: personalComm2[`Channel_${i}`]?.name || `CH ${i}`,
+        name: getFlightCommName(flight, 2, i, personalComm2[`Channel_${i}`]?.name || `CH ${i}`),
       };
     }
   }
@@ -1441,12 +1505,37 @@ function buildF18PreviewHtml(flight, family) {
         <td>${wp.alt_ft.toLocaleString()} <span style="color:var(--muted);font-size:10px">ft</span></td>
       </tr>`).join('');
 
-  const comRows = (comm, cls) => Object.entries(comm).map(([ch, d]) => `
+  const comRows = (comm, cls, radioIndex) => Object.entries(comm).map(([ch, d]) => {
+    const channelNum = Number(ch.replace('Channel_', ''));
+    return `
     <tr>
       <td style="color:var(--muted)">${ch.replace('Channel_', 'CH ')}</td>
-      <td class="${cls}">${Number(d.frequency).toFixed(3)}</td>
-      <td style="color:var(--muted)">${d.name || ''}</td>
-    </tr>`).join('');
+      <td>
+        <input
+          class="comm-freq-inp ${cls}"
+          type="number"
+          step="0.005"
+          min="0"
+          value="${Number(d.frequency).toFixed(3)}"
+          data-gid="${flight.groupId}"
+          data-radio="${radioIndex}"
+          data-channel="${channelNum}"
+          data-field="freq"
+          onchange="setCommChannelField(this)">
+      </td>
+      <td>
+        <input
+          class="comm-name-inp"
+          type="text"
+          value="${d.name || ''}"
+          data-gid="${flight.groupId}"
+          data-radio="${radioIndex}"
+          data-channel="${channelNum}"
+          data-field="name"
+          oninput="setCommChannelField(this)">
+      </td>
+    </tr>`;
+  }).join('');
 
   const selectedTcnKeys = new Set(flight.selectedTacanKeys || []);
   const tcnRows = state.tacanCandidates.length
@@ -1565,13 +1654,13 @@ function buildF18PreviewHtml(flight, family) {
       <div class="tab-panel${activeTab==='c1' ? ' active' : ''}" data-ipanel="c1">
         <table>
           <thead><tr><th>CH</th><th>Frequency</th><th>Name</th></tr></thead>
-          <tbody>${comRows(f18.COMM1, 'uhf') || '<tr><td colspan="3" style="color:var(--muted)">No COMM1 data</td></tr>'}</tbody>
+          <tbody>${comRows(f18.COMM1, 'uhf', 1) || '<tr><td colspan="3" style="color:var(--muted)">No COMM1 data</td></tr>'}</tbody>
         </table>
       </div>
       <div class="tab-panel${activeTab==='c2' ? ' active' : ''}" data-ipanel="c2">
         <table>
           <thead><tr><th>CH</th><th>Frequency</th><th>Name</th></tr></thead>
-          <tbody>${comRows(f18.COMM2, 'vhf') || '<tr><td colspan="3" style="color:var(--muted)">No COMM2 data</td></tr>'}</tbody>
+          <tbody>${comRows(f18.COMM2, 'vhf', 2) || '<tr><td colspan="3" style="color:var(--muted)">No COMM2 data</td></tr>'}</tbody>
         </table>
       </div>
       <div class="tab-panel${activeTab==='tcn' ? ' active' : ''}" data-ipanel="tcn">
@@ -1659,11 +1748,33 @@ function buildF16PreviewHtml(flight, family) {
       </tr>`;
   }).join('');
 
-  const comRows = (channels, cls) => Object.entries(channels).map(([ch, d]) => `
+  const comRows = (channels, cls, radioIndex) => Object.entries(channels).map(([ch, d]) => `
     <tr>
       <td style="color:var(--muted);width:52px">CH ${String(ch).padStart(2,'0')}</td>
-      <td class="${cls}">${d.Frequency.toFixed(3)}</td>
-      <td style="color:var(--muted);font-size:11px">${d.Name || ''}</td>
+      <td>
+        <input
+          class="comm-freq-inp ${cls}"
+          type="number"
+          step="0.005"
+          min="0"
+          value="${Number(d.Frequency).toFixed(3)}"
+          data-gid="${flight.groupId}"
+          data-radio="${radioIndex}"
+          data-channel="${Number(ch)}"
+          data-field="freq"
+          onchange="setCommChannelField(this)">
+      </td>
+      <td>
+        <input
+          class="comm-name-inp"
+          type="text"
+          value="${d.Name || ''}"
+          data-gid="${flight.groupId}"
+          data-radio="${radioIndex}"
+          data-channel="${Number(ch)}"
+          data-field="name"
+          oninput="setCommChannelField(this)">
+      </td>
     </tr>`).join('');
 
   let cmdsRows = '', cmdsIsNative = false;
@@ -1706,13 +1817,13 @@ function buildF16PreviewHtml(flight, family) {
       <div class="tab-panel${activeTab==='c1' ? ' active' : ''}" data-ipanel="c1">
         <table>
           <thead><tr><th>CH</th><th>Frequency</th><th>Name</th></tr></thead>
-          <tbody>${comRows(dtc.Radio.UHF.Channels, 'uhf') || '<tr><td colspan="3" style="color:var(--muted)">No COM1 data</td></tr>'}</tbody>
+          <tbody>${comRows(dtc.Radio.UHF.Channels, 'uhf', 1) || '<tr><td colspan="3" style="color:var(--muted)">No COM1 data</td></tr>'}</tbody>
         </table>
       </div>
       <div class="tab-panel${activeTab==='c2' ? ' active' : ''}" data-ipanel="c2">
         <table>
           <thead><tr><th>CH</th><th>Frequency</th><th>Name</th></tr></thead>
-          <tbody>${comRows(dtc.Radio.VHF.Channels, 'vhf') || '<tr><td colspan="3" style="color:var(--muted)">No COM2 data</td></tr>'}</tbody>
+          <tbody>${comRows(dtc.Radio.VHF.Channels, 'vhf', 2) || '<tr><td colspan="3" style="color:var(--muted)">No COM2 data</td></tr>'}</tbody>
         </table>
       </div>
       ${hasCmds ? `
