@@ -183,8 +183,8 @@
       flex-shrink: 0; transition: transform 0.15s;
     }
     .flight-card.collapsed .chevron { transform: rotate(-90deg); }
-    .flight-card.collapsed .tabs,
-    .flight-card.collapsed .tab-content { display: none; }
+    .flight-card.collapsed > .tabs,
+    .flight-card.collapsed > .tab-content { display: none; }
     .chip {
       background: var(--bg);
       border: 1px solid var(--border);
@@ -399,6 +399,19 @@
     }
     .comm-freq-inp:focus,
     .comm-name-inp:focus { outline: none; border-color: var(--accent); }
+    .cmds-inp {
+      background: var(--bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 2px 4px;
+      font-size: 12px;
+      font-family: var(--mono);
+      width: 46px;
+      text-align: center;
+    }
+    .cmds-inp:focus { outline: none; border-color: var(--accent); }
+    .cmds-cell { display:flex; align-items:center; justify-content:center; gap:3px; }
     .wp-name-inp {
       background: var(--bg);
       color: var(--text);
@@ -839,6 +852,18 @@ function extractFlightsByType(mission, theater, unitMatcher, aircraftType) {
           }
         }
 
+        // Extract default mission DTC from first unit
+        let defaultMissionDtc = null;
+        let defaultMissionDtcFileName = null;
+        const firstUnit = matchedUnits[0];
+        if (firstUnit?.DTC?.Cartridges?.[1]?.name) {
+          const dtcName = firstUnit.DTC.Cartridges[1].name;
+          if (state.missionDtcMap[dtcName]) {
+            defaultMissionDtc = state.missionDtcMap[dtcName];
+            defaultMissionDtcFileName = `${dtcName}.dtc`;
+          }
+        }
+
         flights.push({
           groupId: group.groupId || gk,
           name:    group.name    || `Group ${gk}`,
@@ -855,6 +880,8 @@ function extractFlightsByType(mission, theater, unitMatcher, aircraftType) {
           radio2,
           groupX: group.x,
           groupY: group.y,
+          defaultMissionDtc,
+          defaultMissionDtcFileName,
         });
       }
     }
@@ -961,6 +988,7 @@ const state = {
   f16Flights: [],
   f18Flights: [],
   tacanCandidates: [],
+  missionDtcMap: {}, // mission DTCs from DTC/ folder, keyed by filename (without .dtc)
   personalDtc:   null,
   pendingPersonalDtc: null,
   pendingImportTarget: null,
@@ -1010,6 +1038,9 @@ function renderFlights(flights, cfg) {
     const assigned = fl.personalDtc
       ? `<div class="assigned-pill">✓ Personal DTC<span class="fname">${fl.personalDtcFileName || 'assigned'}</span></div>`
       : '';
+    const missionDtcPill = fl.defaultMissionDtc
+      ? `<div class="assigned-pill" style="background:rgba(210,153,34,0.1);border-color:var(--amber);color:var(--amber)">📦 Default Mission DTC<span class="fname">${fl.defaultMissionDtcFileName || 'default'}</span><button class="btn btn-outline" type="button" style="margin-left:8px;padding:2px 6px;font-size:11px;display:inline;height:auto" onclick="viewMissionDtcForFlight('${cfg.family}', '${safeGroupIdAttr}')">View</button></div>`
+      : '';
 
     // Waypoints rows — read-only mission view; role editing lives in the DTC Preview panel
     const wpRows = fl.waypoints.map((wp, i) => {
@@ -1051,6 +1082,7 @@ function renderFlights(flights, cfg) {
             <div class="flight-name">${fl.name}</div>
             <div class="flight-meta">${fl.side.toUpperCase()} · ${fl.country} · ${fl.units.length} aircraft · ${fl.waypoints.length} route points</div>
             ${assigned}
+            ${missionDtcPill}
           </div>
         </div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">
@@ -1135,6 +1167,18 @@ function setTargetData(inp) {
   }
 }
 
+// Returns the mutable CMDS programs for a F-16 flight.
+// Deep-clones the source so edits are independent of _rawMpd (which deepClone breaks on import).
+function ensureF16CmdsPrograms(flight) {
+  if (!flight.f16CmdsPrograms) {
+    const pd = getFlightPersonalDtc(flight);
+    const src = pd?.Countermeasures?._nativePrograms
+      || flight.defaultMissionDtc?.Countermeasures?._nativePrograms;
+    flight.f16CmdsPrograms = src ? deepClone(src) : defaultF16Cmds();
+  }
+  return flight.f16CmdsPrograms;
+}
+
 function ensureFlightCommNames(flight) {
   if (!flight.commNames || typeof flight.commNames !== 'object') {
     flight.commNames = { 1: {}, 2: {} };
@@ -1181,6 +1225,41 @@ function setCommChannelField(inp) {
   if (field === 'name') {
     setFlightCommName(flight, radio, channel, inp.value.trim());
   }
+}
+
+// F-16 fields: "chaff_bq" | "chaff_sq" | "flare_bq" | "flare_sq" | "burst_intv" | "salvo_intv"
+// F-18 fields: "chaff_qty" | "chaff_rep" | "chaff_intv" | "flare_qty"
+function setCmdsField(inp) {
+  const flight = findFlightById(inp.dataset.gid);
+  if (!flight) return;
+  const prog = inp.dataset.prog;
+  const field = inp.dataset.field;
+  const raw = parseFloat(inp.value);
+  if (!Number.isFinite(raw) || raw < 0) { inp.value = inp.dataset.prev ?? 0; return; }
+
+  if (inp.dataset.aircraft === 'f18') {
+    // F-18: store edits per-flight; applied in buildF18Dtc
+    if (!flight.f18CmdsEdits) flight.f18CmdsEdits = {};
+    if (!flight.f18CmdsEdits[prog]) flight.f18CmdsEdits[prog] = {};
+    const e = flight.f18CmdsEdits[prog];
+    if (field === 'chaff_qty')  { e.Chaff = e.Chaff || {}; e.Chaff.Quantity  = Math.round(raw); inp.value = Math.round(raw); }
+    else if (field === 'chaff_rep')  { e.Chaff = e.Chaff || {}; e.Chaff.Repeat   = Math.round(raw); inp.value = Math.round(raw); }
+    else if (field === 'chaff_intv') { e.Chaff = e.Chaff || {}; e.Chaff.Interval = parseFloat(raw.toFixed(3)); inp.value = raw.toFixed(2); }
+    else if (field === 'flare_qty')  { e.Flare = e.Flare || {}; e.Flare.Quantity  = Math.round(raw); inp.value = Math.round(raw); }
+    return;
+  }
+
+  // F-16: always route through flight.f16CmdsPrograms (independent of _rawMpd deep-clone)
+  const programs = ensureF16CmdsPrograms(flight);
+  if (!programs || !programs[prog]) return;
+
+  const p = programs[prog];
+  if (field === 'chaff_bq')    { p.Chaff = p.Chaff || {}; p.Chaff.BurstQuantity = Math.round(raw); inp.value = Math.round(raw); }
+  else if (field === 'chaff_sq')    { p.Chaff = p.Chaff || {}; p.Chaff.SalvoQuantity = Math.round(raw); inp.value = Math.round(raw); }
+  else if (field === 'flare_bq')    { p.Flare = p.Flare || {}; p.Flare.BurstQuantity = Math.round(raw); inp.value = Math.round(raw); }
+  else if (field === 'flare_sq')    { p.Flare = p.Flare || {}; p.Flare.SalvoQuantity = Math.round(raw); inp.value = Math.round(raw); }
+  else if (field === 'burst_intv')  { p.Chaff = p.Chaff || {}; p.Chaff.BurstInterval = parseFloat(raw.toFixed(3)); inp.value = raw.toFixed(2); }
+  else if (field === 'salvo_intv')  { p.Chaff = p.Chaff || {}; p.Chaff.SalvoInterval = parseFloat(raw.toFixed(3)); inp.value = raw.toFixed(2); }
 }
 
 function deepClone(obj) {
@@ -1269,6 +1348,25 @@ function fillF18CommDefaults(comm, personalComm, radioIndex) {
       name: personalComm?.Channel_S?.name || 'MAR',
     };
   }
+}
+
+function defaultF16Cmds() {
+  const prog = (cBQ, cSQ, cBI, cSI, fBQ, fSQ) => ({
+    Chaff: { BurstQuantity: cBQ, SalvoQuantity: cSQ, BurstInterval: cBI, SalvoInterval: cSI },
+    Flare: { BurstQuantity: fBQ, SalvoQuantity: fSQ, BurstInterval: cBI, SalvoInterval: cSI },
+  });
+  return {
+    MAN_1: prog(1, 1, 0.020, 1.0,  1, 1),
+    MAN_2: prog(1, 1, 0.020, 0.5,  0, 0),
+    MAN_3: prog(1, 1, 0.050, 1.0,  1, 1),
+    MAN_4: prog(2, 1, 0.020, 0.5,  0, 0),
+    MAN_5: prog(2, 1, 0.020, 1.0,  2, 1),
+    MAN_6: prog(2, 1, 0.050, 2.0,  2, 1),
+    AUTO_1: prog(1, 1, 0.020, 1.5, 0, 0),
+    AUTO_2: prog(1, 1, 0.020, 1.0, 0, 0),
+    AUTO_3: prog(1, 1, 0.020, 0.5, 0, 0),
+    BYP:    prog(2, 1, 0.020, 0.5, 2, 1),
+  };
 }
 
 function defaultF18Alr67() {
@@ -1521,8 +1619,14 @@ function buildDtc(flight) {
     }
   }
 
-  // ── Countermeasures — only populated when a personal .dtc is loaded ──────
-  const countermeasures = personalDtc?.Countermeasures || null;
+  // ── Countermeasures — always show editable programs (personal DTC, mission DTC, or defaults) ──
+  const _cmdsBase = personalDtc?.Countermeasures || flight.defaultMissionDtc?.Countermeasures || null;
+  const countermeasures = {
+    ...(_cmdsBase || {}),
+    _nativePrograms: flight.f16CmdsPrograms || ensureF16CmdsPrograms(flight),
+    _nativeBingo: _cmdsBase?._nativeBingo || {},
+    _nativeThreatMap: _cmdsBase?._nativeThreatMap || {},
+  };
 
   // ── EWS — only populated when a personal .dtc is loaded ────────────────
   const ews = personalDtc?.EWS || null;
@@ -1652,10 +1756,16 @@ function buildDtcNative(flight) {
     });
   }
 
-  // ── Passthrough ELINT and MPD from personal .dtc ─────────────────────────
+  // ── Passthrough ELINT and MPD from personal .dtc (fall back to mission DTC) ──────────
   const pd = personalDtc;
   const elint = pd?._rawElint || {};
-  const mpd   = pd?._rawMpd   || {};
+  const mpdSrc = pd?._rawMpd || flight.defaultMissionDtc?._rawMpd || {};
+  // Always inject f16CmdsPrograms when set — deepClone on import breaks the _rawMpd reference,
+  // so the only reliable source for edits is flight.f16CmdsPrograms.
+  const f16Cmds = flight.f16CmdsPrograms;
+  const mpd = f16Cmds
+    ? { ...mpdSrc, CMDS: { ...(mpdSrc.CMDS || {}), CMDSProgramSettings: f16Cmds } }
+    : mpdSrc;
   const mpdWithNav = {
     ...mpd,
     mirror_NAV_PTS: false,
@@ -1723,6 +1833,15 @@ function buildF18Dtc(flight) {
   const navSettingsBase = flight.navSettingsF18 || personalDtc?._rawWypt?.NAV_SETTINGS || defaultF18NavSettings();
   const navSettings = deepClone(navSettingsBase);
   const alr67 = normalizeF18Alr67(personalDtc?._rawAlr67 || defaultF18Alr67());
+  // Apply per-flight CMDS edits on top of the normalized defaults
+  if (flight.f18CmdsEdits) {
+    for (const [prog, edits] of Object.entries(flight.f18CmdsEdits)) {
+      if (alr67.CMDS.CMDSProgramSettings[prog]) {
+        if (edits.Chaff) Object.assign(alr67.CMDS.CMDSProgramSettings[prog].Chaff, edits.Chaff);
+        if (edits.Flare) Object.assign(alr67.CMDS.CMDSProgramSettings[prog].Flare, edits.Flare);
+      }
+    }
+  }
 
   const guardComm1 = flight.guardComm1 ?? personalDtc?._f18Comm?.COMM1?.Guard ?? true;
   const guardComm2 = flight.guardComm2 ?? personalDtc?._f18Comm?.COMM2?.Guard ?? true;
@@ -1806,16 +1925,39 @@ function buildF18DtcNative(flight) {
 }
 
 function buildF18PreviewHtml(flight, family) {
-  const f18 = buildF18Dtc(flight);
-  state.previewDtc = f18;
+  // If viewing mission DTC, use it; otherwise build from flight data
+  const isMissionDtcView = state.missionDtcViewMode && state.previewDtc;
+  const f18 = isMissionDtcView ? state.previewDtc : buildF18Dtc(flight);
+  if (!isMissionDtcView) {
+    state.previewDtc = f18;
+  }
   ensureF18TacanSelection(flight);
   const allowedTabs = ['wpt', 'navset', 'c1', 'c2', 'tcn', 'cmds', 'rwr'];
   const activeTab = allowedTabs.includes(flight.inlinePreviewTab) ? flight.inlinePreviewTab : 'wpt';
 
-  const navRows = flight.waypoints
-    .map((wp, originalIdx) => ({ wp, originalIdx }))
-    .filter(({ wp }) => !wp.isTakeoff && !wp.isLand)
-    .map(({ wp, originalIdx }, i) => `
+  // Use DTC steerpoints if viewing mission DTC with nav data; otherwise use flight waypoints
+  let navRows = '';
+  const hasDtcNav = isMissionDtcView && f18.Navigation?.Steerpoints;
+
+  if (hasDtcNav) {
+    // Read-only steerpoints from DTC
+    navRows = f18.Navigation.Steerpoints.map((pt, idx) => {
+      const { lat, lon } = dcsToLatLon(pt.x, pt.y, state.theater);
+      return `
+      <tr>
+        <td style="color:var(--muted)">${idx + 1}</td>
+        <td style="color:var(--text)">${pt.name || '—'}</td>
+        <td style="color:var(--text)">${toDtcLat(lat)}</td>
+        <td style="color:var(--text)">${toDtcLon(lon)}</td>
+        <td style="color:var(--text)">${pt.alt_ft.toLocaleString()} <span style="color:var(--muted);font-size:10px">ft</span></td>
+      </tr>`;
+    }).join('');
+  } else {
+    // Editable waypoints from flight
+    navRows = flight.waypoints
+      .map((wp, originalIdx) => ({ wp, originalIdx }))
+      .filter(({ wp }) => !wp.isTakeoff && !wp.isLand)
+      .map(({ wp, originalIdx }, i) => `
       <tr>
         <td style="color:var(--muted)">${i + 1}</td>
         <td>
@@ -1831,10 +1973,13 @@ function buildF18PreviewHtml(flight, family) {
         <td>${toDtcLon(wp.lon)}</td>
         <td>${wp.alt_ft.toLocaleString()} <span style="color:var(--muted);font-size:10px">ft</span></td>
       </tr>`).join('');
+  }
 
-  const comRows = (comm, cls, radioIndex) => Object.entries(comm).map(([ch, d]) => {
-    const channelNum = Number(ch.replace('Channel_', ''));
-    return `
+  const comRows = (comm, cls, radioIndex) => {
+    if (!comm || typeof comm !== 'object') return '';
+    return Object.entries(comm).map(([ch, d]) => {
+      const channelNum = Number(ch.replace('Channel_', ''));
+      return `
     <tr>
       <td style="color:var(--muted)">${ch.replace('Channel_', 'CH ')}</td>
       <td>
@@ -1864,7 +2009,8 @@ function buildF18PreviewHtml(flight, family) {
           oninput="setCommChannelField(this)">
       </td>
     </tr>`;
-  }).join('');
+    }).join('');
+  };
 
   const selectedTcnKeys = new Set(flight.selectedTacanKeys || []);
   const tcnRows = state.tacanCandidates.length
@@ -1955,14 +2101,25 @@ function buildF18PreviewHtml(flight, family) {
     </tr>${itemRows}`;
   }).join('');
 
-  const cmdsRows = Object.entries(f18.ALR67?.CMDS?.CMDSProgramSettings || {}).map(([name, p]) => `
+  const cmdsRows = Object.entries(f18.ALR67?.CMDS?.CMDSProgramSettings || {})
+    .filter(([, p]) => p && typeof p === 'object')
+    .map(([name, p]) => {
+      const gid = flight.groupId;
+      const inp = (field, val, step) =>
+        `<input class="cmds-inp" type="number" min="0" step="${step}"
+          value="${val}"
+          data-gid="${gid}" data-prog="${name}" data-field="${field}" data-aircraft="f18"
+          onfocus="this.dataset.prev=this.value;queueSelectInputContents(this)"
+          onchange="setCmdsField(this)">`;
+      return `
     <tr>
       <td style="color:var(--muted)">${name}</td>
-      <td style="text-align:center">${p?.Chaff?.Quantity ?? 0}</td>
-      <td style="text-align:center">${p?.Chaff?.Repeat ?? 0}</td>
-      <td style="text-align:center">${p?.Chaff?.Interval ?? 0}</td>
-      <td style="text-align:center">${p?.Flare?.Quantity ?? 0}</td>
-    </tr>`).join('');
+      <td><div class="cmds-cell">${inp('chaff_qty', p?.Chaff?.Quantity ?? 0, 1)}</div></td>
+      <td><div class="cmds-cell">${inp('chaff_rep', p?.Chaff?.Repeat ?? 0, 1)}</div></td>
+      <td><div class="cmds-cell">${inp('chaff_intv', (p?.Chaff?.Interval ?? 0).toFixed(2), 0.01)}<span style="color:var(--muted)">s</span></div></td>
+      <td><div class="cmds-cell">${inp('flare_qty', p?.Flare?.Quantity ?? 0, 1)}</div></td>
+    </tr>`;
+    }).join('');
 
   const rwrTable = f18.ALR67?.RWR?.RWR_Avionics_Threat_Table || {};
   const rwrRows = Object.entries(rwrTable)
@@ -1983,7 +2140,7 @@ function buildF18PreviewHtml(flight, family) {
 
   return `
     <div class="inline-preview-head">
-      <div class="inline-preview-title">Preview — ${flight.name} (F/A-18C)</div>
+      <div class="inline-preview-title">${isMissionDtcView ? `Default Mission DTC — ${flight.name} (F/A-18C) · ${state.missionDtcFileName}` : `Preview — ${flight.name} (F/A-18C)`}</div>
       <div style="display:flex;align-items:center;gap:8px">
         <button class="btn btn-outline" type="button" onclick="importDtcForFlight('${family}', '${flight.groupId}')">⤴ Import DTC</button>
         <button class="btn btn-outline" type="button" onclick="showPreviewFlightMap('${family}', '${flight.groupId}')">🗺 Map</button>
@@ -2060,18 +2217,55 @@ function buildF18PreviewHtml(flight, family) {
 }
 
 function buildF16PreviewHtml(flight, family) {
-  const dtc = buildDtc(flight);
-  state.previewDtc = dtc;
+  // If viewing mission DTC, use it; otherwise build from flight data
+  const isMissionDtcView = state.missionDtcViewMode && state.previewDtc;
+  const dtc = isMissionDtcView ? state.previewDtc : buildDtc(flight);
+
+  // Debug logging
+  if (isMissionDtcView) {
+    console.log('Mission DTC View:', {
+      isMissionDtcView,
+      dtcKeys: Object.keys(dtc),
+      hasRadio: !!dtc.Radio,
+      radioKeys: dtc.Radio ? Object.keys(dtc.Radio) : null,
+      uhfChannels: dtc.Radio?.UHF?.Channels,
+      vhfChannels: dtc.Radio?.VHF?.Channels,
+    });
+  }
+  if (!isMissionDtcView) {
+    state.previewDtc = dtc;
+  }
   const allowedTabs = ['wpt', 'c1', 'c2', 'cmds'];
   const activeTab = allowedTabs.includes(flight.inlinePreviewTab) ? flight.inlinePreviewTab : 'wpt';
 
-  const navWps = flight.waypoints
-    .map((wp, originalIdx) => ({ wp, originalIdx }))
-    .filter(({ wp }) => !wp.isTakeoff && !wp.isLand);
-  const steerRows = navWps.map(({ wp, originalIdx }, steerIdx) => {
-    const stNum = steerIdx + 1;
-    const type  = (wp.pointType || 'STPT').toLowerCase();
-    return `
+  // Use DTC steerpoints if viewing mission DTC with nav data; otherwise use flight waypoints
+  let steerRows = '';
+  const hasDtcNav = isMissionDtcView && dtc.Navigation?.Steerpoints;
+
+  if (hasDtcNav) {
+    // Read-only steerpoints from DTC
+    steerRows = dtc.Navigation.Steerpoints.map((pt, idx) => {
+      const { lat, lon } = dcsToLatLon(pt.x, pt.y, state.theater);
+      return `
+      <tr>
+        <td style="color:var(--muted);width:28px">${idx + 1}</td>
+        <td style="color:var(--text)">${pt.name || '—'}</td>
+        <td style="color:var(--muted)">—</td>
+        <td style="color:var(--text)">${latDecimalMinutes(lat)}</td>
+        <td style="color:var(--text)">${lonDecimalMinutes(lon)}</td>
+        <td style="color:var(--text)">${pt.alt_ft.toLocaleString()} <span style="color:var(--muted);font-size:10px">ft</span></td>
+        <td style="color:var(--muted)">—</td>
+      </tr>`;
+    }).join('');
+  } else {
+    // Editable waypoints from flight
+    const navWps = flight.waypoints
+      .map((wp, originalIdx) => ({ wp, originalIdx }))
+      .filter(({ wp }) => !wp.isTakeoff && !wp.isLand);
+    steerRows = navWps.map(({ wp, originalIdx }, steerIdx) => {
+      const stNum = steerIdx + 1;
+      const type  = (wp.pointType || 'STPT').toLowerCase();
+      return `
       <tr>
         <td style="color:var(--muted);width:28px">${stNum}</td>
         <td>
@@ -2131,9 +2325,12 @@ function buildF16PreviewHtml(flight, family) {
           </div>
         </td>
       </tr>`;
-  }).join('');
+    }).join('');
+  }
 
-  const comRows = (channels, cls, radioIndex) => Object.entries(channels).map(([ch, d]) => `
+  const comRows = (channels, cls, radioIndex) => {
+    if (!channels || typeof channels !== 'object') return '';
+    return Object.entries(channels).map(([ch, d]) => `
     <tr>
       <td style="color:var(--muted);width:52px">CH ${String(ch).padStart(2,'0')}</td>
       <td>
@@ -2163,28 +2360,34 @@ function buildF16PreviewHtml(flight, family) {
           oninput="setCommChannelField(this)">
       </td>
     </tr>`).join('');
+  };
 
   let cmdsRows = '', cmdsIsNative = false;
   if (dtc.Countermeasures?._nativePrograms) {
     cmdsIsNative = true;
     cmdsRows = Object.entries(dtc.Countermeasures._nativePrograms).map(([prog, p]) => {
       const c = p.Chaff || {}, f = p.Flare || {};
+      const gid = flight.groupId;
+      const inp = (field, val, step) =>
+        `<input class="cmds-inp" type="number" min="0" step="${step}"
+          value="${val}"
+          data-gid="${gid}" data-prog="${prog}" data-field="${field}"
+          onfocus="this.dataset.prev=this.value;queueSelectInputContents(this)"
+          onchange="setCmdsField(this)">`;
       return `
       <tr>
         <td style="color:var(--muted)">${prog}</td>
-        <td style="color:var(--text);text-align:center">${c.BurstQuantity ?? 0} × ${c.SalvoQuantity ?? 0}</td>
-        <td style="color:var(--text);text-align:center">${f.BurstQuantity ?? 0} × ${f.SalvoQuantity ?? 0}</td>
-        <td style="color:var(--text);text-align:center">${c.BurstInterval ?? 0}s</td>
-        <td style="color:var(--text);text-align:center">${c.SalvoInterval ?? 0}s</td>
+        <td><div class="cmds-cell">${inp('chaff_bq', c.BurstQuantity ?? 0, 1)}<span style="color:var(--muted)">×</span>${inp('chaff_sq', c.SalvoQuantity ?? 0, 1)}</div></td>
+        <td><div class="cmds-cell">${inp('flare_bq', f.BurstQuantity ?? 0, 1)}<span style="color:var(--muted)">×</span>${inp('flare_sq', f.SalvoQuantity ?? 0, 1)}</div></td>
+        <td><div class="cmds-cell">${inp('burst_intv', (c.BurstInterval ?? 0).toFixed(2), 0.01)}<span style="color:var(--muted)">s</span></div></td>
+        <td><div class="cmds-cell">${inp('salvo_intv', (c.SalvoInterval ?? 0).toFixed(2), 0.01)}<span style="color:var(--muted)">s</span></div></td>
       </tr>`;
     }).join('');
   }
 
-  const hasCmds = !!dtc.Countermeasures;
-
   return `
     <div class="inline-preview-head">
-      <div class="inline-preview-title">Preview — ${flight.name} (F-16C)</div>
+      <div class="inline-preview-title">${isMissionDtcView ? `Default Mission DTC — ${flight.name} (F-16C) · ${state.missionDtcFileName}` : `Preview — ${flight.name} (F-16C)`}</div>
       <div style="display:flex;align-items:center;gap:8px">
         <button class="btn btn-outline" type="button" onclick="importDtcForFlight('${family}', '${flight.groupId}')">⤴ Import DTC</button>
         <button class="btn btn-outline" type="button" onclick="showPreviewFlightMap('${family}', '${flight.groupId}')">🗺 Map</button>
@@ -2197,44 +2400,43 @@ function buildF16PreviewHtml(flight, family) {
         <div class="tab${activeTab==='wpt' ? ' active' : ''}" data-panel="wpt" onclick="switchInlinePreviewTabBtn(this)">Waypoints</div>
         <div class="tab${activeTab==='c1' ? ' active' : ''}" data-panel="c1" onclick="switchInlinePreviewTabBtn(this)">COM1</div>
         <div class="tab${activeTab==='c2' ? ' active' : ''}" data-panel="c2" onclick="switchInlinePreviewTabBtn(this)">COM2</div>
-        ${hasCmds ? `<div class="tab${activeTab==='cmds' ? ' active' : ''}" data-panel="cmds" onclick="switchInlinePreviewTabBtn(this)">CMDS</div>` : ''}
+        <div class="tab${activeTab==='cmds' ? ' active' : ''}" data-panel="cmds" onclick="switchInlinePreviewTabBtn(this)">CMDS</div>
       </div>
       <div class="tab-content" style="padding:10px 0 0">
       <div class="tab-panel${activeTab==='wpt' ? ' active' : ''}" data-ipanel="wpt">
         <table>
-          <thead><tr><th>Waypoint</th><th>Name</th><th>Role</th><th>Latitude</th><th>Longitude</th><th>Altitude</th></tr></thead>
-          <tbody>${steerRows || '<tr><td colspan="6" style="color:var(--muted);text-align:center">No steerpoints</td></tr>'}</tbody>
+          <thead><tr>${hasDtcNav ? '<th>#</th><th>Name</th><th>Type</th><th>Latitude</th><th>Longitude</th><th>Altitude</th><th>Speed</th>' : '<th>Waypoint</th><th>Name</th><th>Role</th><th>Latitude</th><th>Longitude</th><th>Altitude</th>'}</tr></thead>
+          <tbody>${steerRows || '<tr><td colspan="7" style="color:var(--muted);text-align:center">No steerpoints</td></tr>'}</tbody>
         </table>
       </div>
       <div class="tab-panel${activeTab==='c1' ? ' active' : ''}" data-ipanel="c1">
         <table>
           <thead><tr><th>CH</th><th>Frequency</th><th>Name</th></tr></thead>
-          <tbody>${comRows(dtc.Radio.UHF.Channels, 'uhf', 1) || '<tr><td colspan="3" style="color:var(--muted)">No COM1 data</td></tr>'}</tbody>
+          <tbody>${comRows(dtc.Radio?.UHF?.Channels, 'uhf', 1) || '<tr><td colspan="3" style="color:var(--muted)">No COM1 data</td></tr>'}</tbody>
         </table>
       </div>
       <div class="tab-panel${activeTab==='c2' ? ' active' : ''}" data-ipanel="c2">
         <table>
           <thead><tr><th>CH</th><th>Frequency</th><th>Name</th></tr></thead>
-          <tbody>${comRows(dtc.Radio.VHF.Channels, 'vhf', 2) || '<tr><td colspan="3" style="color:var(--muted)">No COM2 data</td></tr>'}</tbody>
+          <tbody>${comRows(dtc.Radio?.VHF?.Channels, 'vhf', 2) || '<tr><td colspan="3" style="color:var(--muted)">No COM2 data</td></tr>'}</tbody>
         </table>
       </div>
-      ${hasCmds ? `
       <div class="tab-panel${activeTab==='cmds' ? ' active' : ''}" data-ipanel="cmds">
         <table>
           ${cmdsIsNative
             ? `<thead><tr><th>Program</th><th style="text-align:center">Chaff BQ×SQ</th><th style="text-align:center">Flare BQ×SQ</th><th style="text-align:center">Burst Intv</th><th style="text-align:center">Salvo Intv</th></tr></thead>`
             : `<thead><tr><th>Program</th><th style="text-align:center">Chaff</th><th style="text-align:center">Flare</th><th style="text-align:center">Interval</th><th style="text-align:center">Cycles</th></tr></thead>`
           }
-          <tbody>${cmdsRows}</tbody>
+          <tbody>${cmdsRows || '<tr><td colspan="5" style="color:var(--muted);text-align:center">No CMDS data</td></tr>'}</tbody>
         </table>
-      </div>` : ''}
+      </div>
       </div>
     </div>
   `;
 }
 
 // ── Step 1: build + render the preview panel ───────────────────────────────
-function previewDtc(family = 'f16', groupId = null) {
+function previewDtc(family = 'f16', groupId = null, isMissionDtc = false) {
   const isF18 = family === 'f18';
   const flights = isF18 ? state.f18Flights : state.f16Flights;
   const flight = groupId !== null
@@ -2260,10 +2462,19 @@ function previewDtc(family = 'f16', groupId = null) {
   const html = isF18 ? buildF18PreviewHtml(flight, family) : buildF16PreviewHtml(flight, family);
   preview.innerHTML = html;
   preview.classList.add('open');
-  preview.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  // Scroll flight card header into view, then preview will be visible below
+  const cardHead = card?.querySelector('.flight-head');
+  if (cardHead) {
+    cardHead.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  } else {
+    preview.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
 }
 
 function closeInlinePreview(family, groupId) {
+  state.missionDtcViewMode = false;
+  state.missionDtcFileName = null;
   const preview = document.getElementById(`inline-preview-${family}-${groupId}`);
   if (!preview) return;
   preview.classList.remove('open');
@@ -2271,7 +2482,23 @@ function closeInlinePreview(family, groupId) {
 }
 
 function previewFlightButton(btn) {
+  state.missionDtcViewMode = false;
+  state.missionDtcFileName = null;
   previewDtc(btn.dataset.family, btn.dataset.gid);
+}
+
+function viewMissionDtcForFlight(family, groupId) {
+  const flights = family === 'f18' ? state.f18Flights : state.f16Flights;
+  const flight = flights.find(f => String(f.groupId) === String(groupId));
+  if (!flight || !flight.defaultMissionDtc) return;
+
+  // Load mission DTC into preview state
+  state.previewDtc = flight.defaultMissionDtc;
+  state.missionDtcViewMode = true;
+  state.missionDtcFileName = flight.defaultMissionDtcFileName;
+
+  // Trigger preview display
+  previewDtc(family, groupId, true);
 }
 
 function exportFlightDtc(family, groupId) {
@@ -2337,8 +2564,26 @@ async function handleMizFile(file) {
 
     state.missionName = file.name.replace(/\.miz$/i, '');
 
-    // Check for native .dtc files (March 2026 feature — format TBD)
-    const nativeDtcs = Object.keys(zip.files).filter(f => f.toLowerCase().endsWith('.dtc'));
+    // Extract mission .dtc files from DTC/ folder
+    state.missionDtcMap = {};
+    const dtcFiles = Object.keys(zip.files).filter(f => f.startsWith('DTC/') && f.toLowerCase().endsWith('.dtc'));
+    for (const dtcPath of dtcFiles) {
+      const dtcFile = zip.file(dtcPath);
+      if (dtcFile) {
+        try {
+          const dtcText = await dtcFile.async('string');
+          const dtcParsed = JSON.parse(dtcText);
+          const normalized = normalizeDtc(dtcParsed);
+          if (normalized) {
+            // Extract filename without .dtc extension (e.g., "DTC/PG_Weasel_Default.dtc" → "PG_Weasel_Default")
+            const filename = dtcPath.replace(/^DTC\//, '').replace(/\.dtc$/i, '');
+            state.missionDtcMap[filename] = normalized;
+          }
+        } catch (err) {
+          console.warn(`Failed to parse mission DTC ${dtcPath}:`, err);
+        }
+      }
+    }
 
     const lua = await mf.async('string');
     const parsed = new LuaParser(lua).parse();
@@ -2365,15 +2610,19 @@ async function handleMizFile(file) {
       sectionKey: 'f18',
     });
 
-    const dtcWarn = nativeDtcs.length
-      ? ` <span class="warn">· Native .dtc found (${nativeDtcs.join(', ')}) — format not yet parsed</span>`
-      : '';
+    // Build status message about mission DTCs
+    const dtcMsgParts = [];
+    const missionDtcNames = Object.keys(state.missionDtcMap);
+    if (missionDtcNames.length > 0) {
+      dtcMsgParts.push(`<span class="ok">✓ ${missionDtcNames.length}</span> mission DTC(s) loaded`);
+    }
+    const dtcMsg = dtcMsgParts.length > 0 ? ` · ${dtcMsgParts.join(' · ')}` : '';
 
     showStatus(
       `<span class="ok">✓</span> ${state.theater} · ${state.missionName} · ` +
       `<span class="ok">${state.f16Flights.length}</span> F-16C flight(s) · ` +
       `<span class="ok">${state.f18Flights.length}</span> F/A-18C flight(s) · ` +
-      `<span class="ok">${state.tacanCandidates.length}</span> TACAN station(s)${dtcWarn}`
+      `<span class="ok">${state.tacanCandidates.length}</span> TACAN station(s)${dtcMsg}`
     );
 
   } catch (err) {
@@ -2455,6 +2704,20 @@ function normalizeDtc(raw) {
   const rwrRaw = raw.data.ELINT?.RWR;
   if (rwrRaw) {
     out.EWS = { RWR: rwrRaw };
+  }
+
+  // Navigation — extract steerpoints from DTC if present
+  if (raw.data?.NAV?.Steerpoints && Array.isArray(raw.data.NAV.Steerpoints)) {
+    out.Navigation = {
+      Steerpoints: raw.data.NAV.Steerpoints.map(pt => ({
+        id: pt.ID || 0,
+        name: pt.Name || '',
+        x: pt.X || 0,
+        y: pt.Y || 0,
+        alt_m: pt.Alt || 0,
+        alt_ft: Math.round((pt.Alt || 0) * 3.28084),
+      }))
+    };
   }
 
   return out;
