@@ -424,6 +424,16 @@
       min-width: 120px;
     }
     .wp-name-inp:focus { outline: none; border-color: var(--accent); }
+    .wp-del-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 12px;
+      padding: 1px 2px;
+      opacity: 0.4;
+      line-height: 1;
+    }
+    .wp-del-btn:hover { opacity: 1; color: #e05252; }
     .nav-settings-group-row td {
       padding: 10px 10px 4px;
       color: var(--accent);
@@ -1080,7 +1090,7 @@ function renderFlights(flights, cfg) {
           <span class="chevron">▼</span>
           <div>
             <div class="flight-name">${fl.name}</div>
-            <div class="flight-meta">${fl.side.toUpperCase()} · ${fl.country} · ${fl.units.length} aircraft · ${fl.waypoints.length} route points</div>
+            <div class="flight-meta">${fl._standalone ? '<span style="color:var(--amber)">DTC Only</span> — no mission loaded' : `${fl.side.toUpperCase()} · ${fl.country} · ${fl.units.length} aircraft · ${fl.waypoints.length} route points`}</div>
             ${assigned}
             ${missionDtcPill}
           </div>
@@ -1288,6 +1298,42 @@ function setWaypointName(inp) {
   const flight = findFlightById(gid);
   if (!flight || !Number.isInteger(idx) || idx < 0 || idx >= flight.waypoints.length) return;
   flight.waypoints[idx].name = inp.value;
+}
+
+function removeWaypoint(btn) {
+  const gid = btn.dataset.gid;
+  const idx = parseInt(btn.dataset.idx, 10);
+  const flight = findFlightById(gid);
+  if (!flight || !Number.isInteger(idx) || idx < 0 || idx >= flight.waypoints.length) return;
+  flight.waypoints.splice(idx, 1);
+  // Re-number seq on remaining nav waypoints
+  let seq = 0;
+  for (const wp of flight.waypoints) {
+    if (!wp.isTakeoff && !wp.isLand) wp.seq = ++seq;
+  }
+  const family = flight.aircraftType === 'FA-18C_hornet' ? 'f18' : 'f16';
+  flight.inlinePreviewTab = 'wpt';
+  previewDtc(family, flight.groupId);
+}
+
+function removeWaypointFromMap(btn) {
+  const flight = _mapCurrentFlight;
+  const family = _mapCurrentFamily;
+  const idx = parseInt(btn.dataset.idx, 10);
+  if (!flight || !Number.isInteger(idx) || idx < 0 || idx >= flight.waypoints.length) return;
+  flight.waypoints.splice(idx, 1);
+  let seq = 0;
+  for (const wp of flight.waypoints) {
+    if (!wp.isTakeoff && !wp.isLand) wp.seq = ++seq;
+  }
+  // Re-render the preview panel if it's open
+  const previewEl = document.getElementById(`inline-preview-${family}-${flight.groupId}`);
+  if (previewEl?.classList.contains('open')) {
+    flight.inlinePreviewTab = 'wpt';
+    previewDtc(family, flight.groupId);
+  }
+  // Redraw the map
+  showPreviewFlightMap(family, flight.groupId);
 }
 
 function defaultF18NavSettings() {
@@ -1766,12 +1812,11 @@ function buildDtcNative(flight) {
   const mpd = f16Cmds
     ? { ...mpdSrc, CMDS: { ...(mpdSrc.CMDS || {}), CMDSProgramSettings: f16Cmds } }
     : mpdSrc;
-  const mpdWithNav = {
-    ...mpd,
-    mirror_NAV_PTS: false,
-    NAV_PTS: navPts,
-    terrain: state.theater,
-  };
+  // For standalone DTC flights (no mission loaded), preserve the original NAV_PTS
+  // and terrain from the personal DTC rather than overwriting with an empty list.
+  const mpdWithNav = (flight._standalone && navPts.length === 0)
+    ? { ...mpd }
+    : { ...mpd, mirror_NAV_PTS: false, NAV_PTS: navPts, terrain: state.theater };
 
   return {
     data: {
@@ -1911,13 +1956,17 @@ function buildF18DtcNative(flight) {
       TCN: f18.TCN,
       terrain: state.theater,
       type: 'FA-18C_hornet',
-      WYPT: {
-        mirror_NAV_PTS: false,
-        NAV_PTS: navPts,
-        NAV_ROUTE: [[], [], []],
-        NAV_SETTINGS: f18.NAV_SETTINGS,
-        terrain: state.theater,
-      },
+      // For standalone DTC flights (no mission loaded), preserve the original WYPT
+      // block from the personal DTC, merging in any UI-edited NAV_SETTINGS.
+      WYPT: (flight._standalone && navPts.length === 0 && personalDtc?._rawWypt)
+        ? { ...personalDtc._rawWypt, NAV_SETTINGS: f18.NAV_SETTINGS }
+        : {
+          mirror_NAV_PTS: false,
+          NAV_PTS: navPts,
+          NAV_ROUTE: [[], [], []],
+          NAV_SETTINGS: f18.NAV_SETTINGS,
+          terrain: state.theater,
+        },
     },
     name: flight.name,
     type: 'FA-18C_hornet',
@@ -1959,6 +2008,11 @@ function buildF18PreviewHtml(flight, family) {
       .filter(({ wp }) => !wp.isTakeoff && !wp.isLand)
       .map(({ wp, originalIdx }, i) => `
       <tr>
+        <td style="width:20px;padding:0 4px 0 0">
+          <button class="wp-del-btn" type="button" title="Remove waypoint"
+            data-gid="${flight.groupId}" data-idx="${originalIdx}"
+            onclick="removeWaypoint(this)">🗑</button>
+        </td>
         <td style="color:var(--muted)">${i + 1}</td>
         <td>
           <input
@@ -2161,8 +2215,8 @@ function buildF18PreviewHtml(flight, family) {
       <div class="tab-content" style="padding:10px 0 0">
       <div class="tab-panel${activeTab==='wpt' ? ' active' : ''}" data-ipanel="wpt">
         <table>
-          <thead><tr><th>#</th><th>Name</th><th>Latitude</th><th>Longitude</th><th>Altitude</th></tr></thead>
-          <tbody>${navRows || '<tr><td colspan="5" style="color:var(--muted);text-align:center">No waypoints</td></tr>'}</tbody>
+          <thead><tr>${hasDtcNav ? '<th>#</th>' : '<th></th><th>#</th>'}<th>Name</th><th>Latitude</th><th>Longitude</th><th>Altitude</th></tr></thead>
+          <tbody>${navRows || `<tr><td colspan="${hasDtcNav ? 5 : 6}" style="color:var(--muted);text-align:center">No waypoints</td></tr>`}</tbody>
         </table>
       </div>
       <div class="tab-panel${activeTab==='navset' ? ' active' : ''}" data-ipanel="navset">
@@ -2267,6 +2321,11 @@ function buildF16PreviewHtml(flight, family) {
       const type  = (wp.pointType || 'STPT').toLowerCase();
       return `
       <tr>
+        <td style="width:20px;padding:0 4px 0 0">
+          <button class="wp-del-btn" type="button" title="Remove waypoint"
+            data-gid="${flight.groupId}" data-idx="${originalIdx}"
+            onclick="removeWaypoint(this)">🗑</button>
+        </td>
         <td style="color:var(--muted);width:28px">${stNum}</td>
         <td>
           <input
@@ -2405,7 +2464,7 @@ function buildF16PreviewHtml(flight, family) {
       <div class="tab-content" style="padding:10px 0 0">
       <div class="tab-panel${activeTab==='wpt' ? ' active' : ''}" data-ipanel="wpt">
         <table>
-          <thead><tr>${hasDtcNav ? '<th>#</th><th>Name</th><th>Type</th><th>Latitude</th><th>Longitude</th><th>Altitude</th><th>Speed</th>' : '<th>Waypoint</th><th>Name</th><th>Role</th><th>Latitude</th><th>Longitude</th><th>Altitude</th>'}</tr></thead>
+          <thead><tr>${hasDtcNav ? '<th>#</th><th>Name</th><th>Type</th><th>Latitude</th><th>Longitude</th><th>Altitude</th><th>Speed</th>' : '<th></th><th>Waypoint</th><th>Name</th><th>Role</th><th>Latitude</th><th>Longitude</th><th>Altitude</th>'}</tr></thead>
           <tbody>${steerRows || '<tr><td colspan="7" style="color:var(--muted);text-align:center">No steerpoints</td></tr>'}</tbody>
         </table>
       </div>
@@ -2590,8 +2649,14 @@ async function handleMizFile(file) {
     const mission = parsed.mission;
     if (!mission) throw new Error('Could not parse mission table from Lua file.');
 
+    // If standalone DTC flights were present, reset the merge pill since the
+    // assignment no longer applies to the new mission flights.
+    const hadStandalone = allFlights().some(f => f._standalone);
     state.f16Flights = extractF16Flights(mission, state.theater);
     state.f18Flights = extractF18Flights(mission, state.theater);
+    if (hadStandalone) {
+      document.getElementById('merge-pill').style.display = 'none';
+    }
     state.tacanCandidates = extractTacanCandidates(mission);
     document.getElementById('map-all-btn').style.display =
       (state.f16Flights.length + state.f18Flights.length) > 0 ? 'inline-flex' : 'none';
@@ -2777,6 +2842,14 @@ function clearPersonalDtc(e) {
     delete f.guardComm1;
     delete f.guardComm2;
   }
+  // Remove standalone flights (created when a DTC was loaded without a mission)
+  state.f16Flights = state.f16Flights.filter(f => !f._standalone);
+  state.f18Flights = state.f18Flights.filter(f => !f._standalone);
+  // If no mission is loaded either, go back to the empty state
+  if (!state.missionName) {
+    document.getElementById('results').style.display = 'none';
+    document.getElementById('empty-state').style.display = 'block';
+  }
   document.getElementById('dtc-input').value = '';
   document.getElementById('dtc-fname').textContent = '';
   document.getElementById('dtc-card').classList.remove('active');
@@ -2835,14 +2908,87 @@ function getDtcMergeParts(normalized) {
   return parts.length ? parts.join(' + ') : 'data';
 }
 
+function createStandaloneFlight(normalized, fileName) {
+  const isF18 = normalized._aircraft === 'F18';
+  const family = isF18 ? 'f18' : 'f16';
+  const groupId = `standalone-${Date.now()}`;
+  const baseName = fileName.replace(/\.dtc$/i, '');
+
+  // Pull NAV_PTS and terrain from the raw DTC block
+  const rawNav = isF18 ? normalized._rawWypt : normalized._rawMpd;
+  const navPts = rawNav?.NAV_PTS || [];
+  const terrain = rawNav?.terrain;
+  if (terrain) state.theater = terrain;
+
+  // Convert DTC steerpoints to the same waypoint format used by mission flights
+  const waypoints = navPts.map((pt, i) => {
+    const { lat, lon } = dcsToLatLon(pt.x || 0, pt.y || 0, state.theater);
+    const altM = pt.alt || 0;
+    const seq = isF18 ? (pt.wypt_num || i + 1) : (pt.number || i + 1);
+    return {
+      seq,
+      isTakeoff: false,
+      isLand: false,
+      x: pt.x || 0,
+      y: pt.y || 0,
+      lat, lon,
+      alt_m: altM,
+      alt_ft: Math.round(altM * 3.28084),
+      speed_ms: 0,
+      speed_kts: 0,
+      name: pt.note || pt.text_note || '',
+      alt_type: 'BARO',
+      type: 'Turning Point',
+      pointType: pt.type || 'STPT',
+      targetData: { vrpBearing: 0, vrpRange: 0, pupDistance: 0 },
+    };
+  });
+
+  const radio1 = {}, radio2 = {};
+  const uhfCh = normalized.Radio?.UHF?.Channels || {};
+  const vhfCh = normalized.Radio?.VHF?.Channels || {};
+  for (const [k, v] of Object.entries(uhfCh)) radio1[Number(k)] = v.Frequency;
+  for (const [k, v] of Object.entries(vhfCh)) radio2[Number(k)] = v.Frequency;
+
+  return {
+    flight: {
+      groupId,
+      name: baseName,
+      aircraftType: isF18 ? 'FA-18C_hornet' : 'F-16C_50',
+      side: 'blue',
+      country: '',
+      units: [],
+      waypoints,
+      radio1,
+      radio2,
+      _standalone: true,
+    },
+    family,
+  };
+}
+
 function openFlightSelectDialogForDtc() {
   const pending = state.pendingPersonalDtc;
   if (!pending?.normalized) return;
 
   const flights = getDtcTargetFlights(pending.normalized);
-  if (!flights.length) {
-    alert('No compatible flights found for this DTC profile. Load a mission with matching aircraft first.');
+  const missionFlights = flights.filter(f => !f._standalone);
+  if (!missionFlights.length) {
+    // No real mission flights — create a standalone DTC-only flight.
+    // Remove any existing standalone flights of this type first (re-import case).
+    if (pending.normalized._aircraft === 'F18') {
+      state.f18Flights = state.f18Flights.filter(f => !f._standalone);
+    } else {
+      state.f16Flights = state.f16Flights.filter(f => !f._standalone);
+    }
+    const { flight, family } = createStandaloneFlight(pending.normalized, pending.fileName);
+    const flightsArr = family === 'f18' ? state.f18Flights : state.f16Flights;
+    flightsArr.push(flight);
     state.pendingPersonalDtc = null;
+    document.getElementById('results').style.display = 'block';
+    document.getElementById('empty-state').style.display = 'none';
+    rerenderFlightCards();
+    assignPersonalDtcToFlight(family, flight, pending.normalized, pending.fileName);
     return;
   }
 
@@ -2855,7 +3001,7 @@ function openFlightSelectDialogForDtc() {
   title.textContent = `Assign Personal DTC to Flight (${family})`;
   subtitle.textContent = `Choose which flight should receive ${pending.fileName}.`;
 
-  body.innerHTML = flights.map(f => {
+  body.innerHTML = missionFlights.map(f => {
     const meta = `${f.side.toUpperCase()} · ${f.country || 'Unknown'} · ${f.units.length} aircraft`;
     return `<button class="flight-select-item" type="button" onclick="selectFlightForPendingDtc('${f.aircraftType === 'FA-18C_hornet' ? 'f18' : 'f16'}','${escapeAttr(f.groupId)}')">
       <div class="line1">${f.name}</div>
@@ -2887,7 +3033,7 @@ function assignPersonalDtcToFlight(family, flight, normalized, fileName) {
   document.getElementById('dtc-clear-btn').style.display = 'inline-flex';
 
   rerenderFlightCards();
-  flight.inlinePreviewTab = 'cmds';
+  flight.inlinePreviewTab = flight._standalone ? 'wpt' : 'cmds';
   previewDtc(family, flight.groupId);
 }
 
@@ -2960,6 +3106,8 @@ let _leafletMap = null;
 let _leafletLayerGroup = null;
 let _mapFlightLayers = [];  // [{ flight, polyline, markers, color, legendEl }]
 let _selectedMapIdx = -1;
+let _mapCurrentFlight = null;
+let _mapCurrentFamily = null;
 
 function ensureLeafletMap() {
   if (_leafletMap) return;
@@ -3086,28 +3234,33 @@ function showPreviewFlightMap(family, groupId) {
 
   if (!allLatlngs.length) return;
 
-  openMapModal(`${flight.name} — Mission vs DTC`, 'Mission route is blue dashed. Exported DTC route is amber solid.');
+  _mapCurrentFlight = flight;
+  _mapCurrentFamily = family;
+
+  openMapModal(`${flight.name} — Mission vs DTC`, 'Blue dashed = mission route · Amber = DTC steerpoints');
+
+  const navWps = flight.waypoints
+    .map((wp, originalIdx) => ({ wp, originalIdx }))
+    .filter(({ wp }) => !wp.isTakeoff && !wp.isLand);
 
   const legend = document.getElementById('map-legend');
   legend.innerHTML = `
-    <div style="font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:8px">Layers</div>
-    <div style="display:flex;align-items:flex-start;gap:8px;padding:6px 8px;border-radius:5px;font-size:12px;margin-bottom:6px;background:rgba(88,166,255,0.08)">
-      <span style="width:12px;height:12px;border-radius:50%;border:2px solid #58a6ff;flex-shrink:0;margin-top:1px"></span>
-      <div>
-        <div style="font-weight:700">Mission Route</div>
-        <div style="font-size:11px;color:var(--muted)">${missionPoints.length} route point(s), includes takeoff/landing when present</div>
+    <div style="display:flex;gap:8px;margin-bottom:10px">
+      <div style="display:flex;align-items:center;gap:5px;font-size:11px">
+        <span style="width:10px;height:10px;border-radius:50%;border:2px solid #58a6ff;flex-shrink:0"></span>Mission
+      </div>
+      <div style="display:flex;align-items:center;gap:5px;font-size:11px">
+        <span style="width:10px;height:10px;border-radius:50%;background:#fbbf24;flex-shrink:0"></span>DTC
       </div>
     </div>
-    <div style="display:flex;align-items:flex-start;gap:8px;padding:6px 8px;border-radius:5px;font-size:12px;background:rgba(251,191,36,0.08)">
-      <span style="width:12px;height:12px;border-radius:50%;background:#fbbf24;flex-shrink:0;margin-top:1px;box-shadow:0 0 4px rgba(251,191,36,0.5)"></span>
-      <div>
-        <div style="font-weight:700">Exported DTC</div>
-        <div style="font-size:11px;color:var(--muted)">${dtcPoints.length} steerpoint(s) written to the DTC export</div>
-      </div>
-    </div>
-    <div style="margin-top:12px;font-size:11px;color:var(--muted);line-height:1.5">
-      Use this to confirm the exported DTC points match the intended mission path and filtered steerpoint set.
-    </div>`;
+    <div style="font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:6px">Steerpoints</div>
+    ${navWps.length ? navWps.map(({ wp, originalIdx }, i) => `
+    <div style="display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid var(--border)">
+      <button class="wp-del-btn" type="button" title="Remove" data-idx="${originalIdx}" onclick="removeWaypointFromMap(this)">🗑</button>
+      <span style="color:var(--muted);font-size:11px;width:18px;flex-shrink:0">${i + 1}</span>
+      <span style="flex:1;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${wp.name || '<span style="color:var(--muted)">—</span>'}</span>
+      <span style="font-size:10px;color:var(--muted);flex-shrink:0">${wp.alt_ft.toLocaleString()}ft</span>
+    </div>`).join('') : '<div style="font-size:12px;color:var(--muted)">No steerpoints</div>'}`;
 
   const missionLatlngs = missionPoints.map(point => [point.lat, point.lon]);
   if (missionLatlngs.length > 1) {
