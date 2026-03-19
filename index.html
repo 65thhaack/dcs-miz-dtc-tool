@@ -194,6 +194,31 @@
       white-space: nowrap;
     }
     .chip .skill { color: var(--muted); }
+    .assigned-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      margin-top: 6px;
+      background: rgba(63,185,80,0.12);
+      border: 1px solid var(--green);
+      color: var(--green);
+      border-radius: 12px;
+      padding: 2px 9px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      max-width: 100%;
+    }
+    .assigned-pill .fname {
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 10px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 240px;
+      margin-top: 0;
+    }
     .inline-preview-panel {
       display: none;
       margin: 0 16px 16px;
@@ -222,6 +247,31 @@
       color: var(--muted);
       margin-bottom: 6px;
     }
+
+    /* ── Flight Selection Modal ───────────────────────────────────────── */
+    .flight-select-list {
+      display: grid;
+      gap: 8px;
+      max-height: min(52vh, 420px);
+      overflow-y: auto;
+      padding: 4px;
+    }
+    .flight-select-item {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      text-align: left;
+      padding: 10px 12px;
+      cursor: pointer;
+    }
+    .flight-select-item:hover {
+      border-color: var(--accent);
+      background: #162232;
+    }
+    .flight-select-item .line1 { font-size: 13px; font-weight: 700; color: var(--accent); }
+    .flight-select-item .line2 { font-size: 11px; color: var(--muted); margin-top: 2px; }
 
     /* ── Tabs ─────────────────────────────────────────────────────────── */
     .tabs {
@@ -443,7 +493,10 @@
       <h3>Personal DTC Profile <span style="color:var(--muted);font-weight:400">(optional)</span></h3>
       <p>Upload your personal .dtc (from DCS Mission Editor) to merge radio / EW / TACAN data into exports</p>
       <div class="fname" id="dtc-fname"></div>
-      <button class="btn btn-outline" id="dtc-clear-btn" style="display:none;margin-top:8px;position:relative;z-index:2" onclick="clearPersonalDtc(event)">✕ Clear</button>
+      <div style="display:flex;gap:8px;justify-content:center;margin-top:8px;position:relative;z-index:2">
+        <button class="btn btn-outline" id="dtc-open-btn" style="display:none" onclick="openPersonalDtcSelector(event)">↻ Open</button>
+        <button class="btn btn-outline" id="dtc-clear-btn" style="display:none" onclick="clearPersonalDtc(event)">✕ Clear</button>
+      </div>
     </label>
   </div>
 
@@ -908,6 +961,8 @@ const state = {
   f18Flights: [],
   tacanCandidates: [],
   personalDtc:   null,
+  pendingPersonalDtc: null,
+  pendingImportTarget: null,
   previewDtc:    null,
 };
 
@@ -922,6 +977,10 @@ function wpTag(wp) {
 
 function allFlights() {
   return [...state.f16Flights, ...state.f18Flights];
+}
+
+function getFlightPersonalDtc(flight) {
+  return flight?.personalDtc || null;
 }
 
 function findFlightById(groupId) {
@@ -947,6 +1006,9 @@ function renderFlights(flights, cfg) {
     const chips = fl.units.map(u =>
       `<span class="chip">${u.name}${u.callsign ? ` (${u.callsign})` : ''} <span class="skill">${u.skill}</span></span>`
     ).join('');
+    const assigned = fl.personalDtc
+      ? `<div class="assigned-pill">✓ Personal DTC<span class="fname">${fl.personalDtcFileName || 'assigned'}</span></div>`
+      : '';
 
     // Waypoints rows — read-only mission view; role editing lives in the DTC Preview panel
     const wpRows = fl.waypoints.map((wp, i) => {
@@ -987,6 +1049,7 @@ function renderFlights(flights, cfg) {
           <div>
             <div class="flight-name">${fl.name}</div>
             <div class="flight-meta">${fl.side.toUpperCase()} · ${fl.country} · ${fl.units.length} aircraft · ${fl.waypoints.length} route points</div>
+            ${assigned}
           </div>
         </div>
         <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
@@ -1025,6 +1088,23 @@ function renderFlights(flights, cfg) {
     card.innerHTML += `<div class="inline-preview-panel" id="inline-preview-${cfg.cardPrefix}-${fl.groupId}" data-family="${cfg.family}" data-gid="${safeGroupIdAttr}"></div>`;
     container.appendChild(card);
   }
+}
+
+function rerenderFlightCards() {
+  renderFlights(state.f16Flights, {
+    containerId: 'flights-container-f16',
+    emptyId: 'no-f16s',
+    cardPrefix: 'f16',
+    family: 'f16',
+    sectionKey: 'f16',
+  });
+  renderFlights(state.f18Flights, {
+    containerId: 'flights-container-f18',
+    emptyId: 'no-f18s',
+    cardPrefix: 'f18',
+    family: 'f18',
+    sectionKey: 'f18',
+  });
 }
 
 // Called when pilot changes a waypoint's role via the dropdown
@@ -1316,7 +1396,8 @@ function setF18NavSetting(inp) {
   if (!flight) return;
 
   if (!flight.navSettingsF18) {
-    const base = state.personalDtc?._rawWypt?.NAV_SETTINGS || defaultF18NavSettings();
+    const flightDtc = getFlightPersonalDtc(flight);
+    const base = flightDtc?._rawWypt?.NAV_SETTINGS || defaultF18NavSettings();
     flight.navSettingsF18 = deepClone(base);
   }
 
@@ -1418,9 +1499,10 @@ function toggleSection(section) {
 //  CMDS/RWR rendered from state.personalDtc (native format).
 // ═══════════════════════════════════════════════════════════════════════════
 function buildDtc(flight) {
+  const personalDtc = getFlightPersonalDtc(flight);
   // ── Radio — mission presets (used for preview COM tabs) ────────────────
-  const personalUhf = state.personalDtc?.Radio?.UHF?.Channels || {};
-  const personalVhf = state.personalDtc?.Radio?.VHF?.Channels || {};
+  const personalUhf = personalDtc?.Radio?.UHF?.Channels || {};
+  const personalVhf = personalDtc?.Radio?.VHF?.Channels || {};
 
   const uhfChannels = {}, vhfChannels = {};
   for (let i = 1; i <= 20; i++) {
@@ -1441,10 +1523,10 @@ function buildDtc(flight) {
   }
 
   // ── Countermeasures — only populated when a personal .dtc is loaded ──────
-  const countermeasures = state.personalDtc?.Countermeasures || null;
+  const countermeasures = personalDtc?.Countermeasures || null;
 
   // ── EWS — only populated when a personal .dtc is loaded ────────────────
-  const ews = state.personalDtc?.EWS || null;
+  const ews = personalDtc?.EWS || null;
 
   // ── Navigation steerpoints ─────────────────────────────────────────────
   // Exclude TakeOff and Landing. Keyed object "1"/{…}, "2"/{…}, …
@@ -1495,6 +1577,7 @@ function buildDtc(flight) {
 //  NAV   = native NAV_PTS list from mission waypoints
 // ═══════════════════════════════════════════════════════════════════════════
 function buildDtcNative(flight) {
+  const personalDtc = getFlightPersonalDtc(flight);
   // ── COMM — mission radio → Channel_N keys with integer MHz freq ───────────
   const comm1 = {}, comm2 = {};
   for (let i = 1; i <= 20; i++) {
@@ -1571,7 +1654,7 @@ function buildDtcNative(flight) {
   }
 
   // ── Passthrough ELINT and MPD from personal .dtc ─────────────────────────
-  const pd = state.personalDtc;
+  const pd = personalDtc;
   const elint = pd?._rawElint || {};
   const mpd   = pd?._rawMpd   || {};
   const mpdWithNav = {
@@ -1601,8 +1684,9 @@ function buildDtcNative(flight) {
 }
 
 function buildF18Dtc(flight) {
-  const personalComm1 = state.personalDtc?._f18Comm?.COMM1 || {};
-  const personalComm2 = state.personalDtc?._f18Comm?.COMM2 || {};
+  const personalDtc = getFlightPersonalDtc(flight);
+  const personalComm1 = personalDtc?._f18Comm?.COMM1 || {};
+  const personalComm2 = personalDtc?._f18Comm?.COMM2 || {};
   const comm1 = {}, comm2 = {};
 
   for (let i = 1; i <= 20; i++) {
@@ -1635,14 +1719,14 @@ function buildF18Dtc(flight) {
       .filter(t => selected.has(tcnCandidateKey(t)))
       .map(t => deepClone(t));
   } else {
-    tcn = Array.isArray(state.personalDtc?._rawTcn) ? state.personalDtc._rawTcn : [];
+    tcn = Array.isArray(personalDtc?._rawTcn) ? personalDtc._rawTcn : [];
   }
-  const navSettingsBase = flight.navSettingsF18 || state.personalDtc?._rawWypt?.NAV_SETTINGS || defaultF18NavSettings();
+  const navSettingsBase = flight.navSettingsF18 || personalDtc?._rawWypt?.NAV_SETTINGS || defaultF18NavSettings();
   const navSettings = deepClone(navSettingsBase);
-  const alr67 = normalizeF18Alr67(state.personalDtc?._rawAlr67 || defaultF18Alr67());
+  const alr67 = normalizeF18Alr67(personalDtc?._rawAlr67 || defaultF18Alr67());
 
-  const guardComm1 = flight.guardComm1 ?? state.personalDtc?._f18Comm?.COMM1?.Guard ?? true;
-  const guardComm2 = flight.guardComm2 ?? state.personalDtc?._f18Comm?.COMM2?.Guard ?? true;
+  const guardComm1 = flight.guardComm1 ?? personalDtc?._f18Comm?.COMM1?.Guard ?? true;
+  const guardComm2 = flight.guardComm2 ?? personalDtc?._f18Comm?.COMM2?.Guard ?? true;
 
   return { COMM1: comm1, COMM2: comm2, TCN: tcn, NAV_SETTINGS: navSettings, ALR67: alr67, guardComm1, guardComm2 };
 }
@@ -1694,7 +1778,8 @@ function buildF18DtcNative(flight) {
     };
   });
 
-  const commRaw = state.personalDtc?._f18Comm || {};
+  const personalDtc = getFlightPersonalDtc(flight);
+  const commRaw = personalDtc?._f18Comm || {};
   return {
     data: {
       ALR67: f18.ALR67,
@@ -1901,7 +1986,9 @@ function buildF18PreviewHtml(flight, family) {
     <div class="inline-preview-head">
       <div class="inline-preview-title">Preview — ${flight.name} (F/A-18C)</div>
       <div style="display:flex;align-items:center;gap:8px">
+        <button class="btn btn-outline" type="button" onclick="importDtcForFlight('${family}', '${flight.groupId}')">⤴ Import DTC</button>
         <button class="btn btn-outline" type="button" onclick="showPreviewFlightMap('${family}', '${flight.groupId}')">🗺 Map</button>
+        <button class="btn btn-success" type="button" onclick="exportFlightDtc('${family}', '${flight.groupId}')">⬇ Export</button>
         <button class="btn btn-outline" type="button" onclick="closeInlinePreview('${family}', '${flight.groupId}')">✕ Close</button>
       </div>
     </div>
@@ -2100,7 +2187,9 @@ function buildF16PreviewHtml(flight, family) {
     <div class="inline-preview-head">
       <div class="inline-preview-title">Preview — ${flight.name} (F-16C)</div>
       <div style="display:flex;align-items:center;gap:8px">
+        <button class="btn btn-outline" type="button" onclick="importDtcForFlight('${family}', '${flight.groupId}')">⤴ Import DTC</button>
         <button class="btn btn-outline" type="button" onclick="showPreviewFlightMap('${family}', '${flight.groupId}')">🗺 Map</button>
+        <button class="btn btn-success" type="button" onclick="exportFlightDtc('${family}', '${flight.groupId}')">⬇ Export</button>
         <button class="btn btn-outline" type="button" onclick="closeInlinePreview('${family}', '${flight.groupId}')">✕ Close</button>
       </div>
     </div>
@@ -2397,40 +2486,8 @@ async function handleDtcFile(file) {
     document.getElementById('dtc-card').classList.remove('active');
     return;
   }
-  state.personalDtc = normalized;
-
-  // Re-render the preview if one is already showing so CMDS/Threats tabs appear immediately
-  // Re-render any open inline previews so merged tabs update immediately.
-  document.querySelectorAll('.inline-preview-panel.open').forEach(panel => {
-    previewDtc(panel.dataset.family, panel.dataset.gid);
-  });
-
-  // Build a summary of what will be merged
-  const parts = [];
-  if (normalized._native) {
-    if (normalized._aircraft === 'F18') {
-      if (normalized._rawAlr67?.CMDS) parts.push('ALR67 CMDS');
-      if (normalized._rawAlr67?.RWR)  parts.push('ALR67 RWR');
-      if (normalized._rawTcn?.length) parts.push('TACAN presets');
-      if (normalized._rawWypt?.NAV_SETTINGS) parts.push('NAV settings');
-      if (normalized.Radio)           parts.push('radio presets');
-    } else {
-      // Real DCS native format — describe what sections are present
-      if (normalized._rawMpd?.CMDS)   parts.push('CMDS (MAN1-6/AUTO1-3/BYP)');
-      if (normalized._rawElint?.RWR)  parts.push('RWR priorities');
-      if (normalized.Radio)           parts.push('radio presets');
-    }
-  } else {
-    if (normalized.Countermeasures) parts.push('CMDS');
-    if (normalized.EWS)             parts.push('EWS');
-    if (normalized.Radio)           parts.push('channel names');
-    if (normalized.LaserCodes)      parts.push('laser codes');
-  }
-  const mergeDesc = parts.length ? parts.join(' + ') : 'data';
-
-  document.getElementById('merge-pill').style.display = 'inline-flex';
-  document.getElementById('merge-pill').textContent   = `✓ Merging ${mergeDesc} from ${file.name}`;
-  document.getElementById('dtc-clear-btn').style.display = 'inline-flex';
+  state.pendingPersonalDtc = { fileName: file.name, normalized };
+  openFlightSelectDialogForDtc();
 }
 
 document.getElementById('dtc-input').addEventListener('change', async (e) => {
@@ -2438,14 +2495,195 @@ document.getElementById('dtc-input').addEventListener('change', async (e) => {
   await handleDtcFile(file);
 });
 
+document.addEventListener('DOMContentLoaded', () => {
+  const importInput = document.getElementById('flight-import-dtc-input');
+  if (!importInput) return;
+  importInput.addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    await handleFlightImportDtcFile(file);
+  });
+});
+
 function clearPersonalDtc(e) {
   e.preventDefault();
   state.personalDtc = null;
+  state.pendingPersonalDtc = null;
+  for (const f of allFlights()) {
+    delete f.personalDtc;
+    delete f.personalDtcFileName;
+    delete f.navSettingsF18;
+    delete f.guardComm1;
+    delete f.guardComm2;
+  }
   document.getElementById('dtc-input').value = '';
   document.getElementById('dtc-fname').textContent = '';
   document.getElementById('dtc-card').classList.remove('active');
+  document.getElementById('dtc-open-btn').style.display = 'none';
   document.getElementById('dtc-clear-btn').style.display = 'none';
   document.getElementById('merge-pill').style.display = 'none';
+  rerenderFlightCards();
+
+  document.querySelectorAll('.inline-preview-panel.open').forEach(panel => {
+    previewDtc(panel.dataset.family, panel.dataset.gid);
+  });
+}
+
+function openPersonalDtcSelector(e) {
+  if (e) e.preventDefault();
+
+  const fileName = document.getElementById('dtc-fname')?.textContent?.trim();
+  if (!state.personalDtc || !fileName) {
+    alert('Load a personal .dtc first.');
+    return;
+  }
+
+  state.pendingPersonalDtc = {
+    fileName,
+    normalized: deepClone(state.personalDtc),
+  };
+  openFlightSelectDialogForDtc();
+}
+
+function getDtcTargetFlights(normalized) {
+  if (normalized?._aircraft === 'F18') return state.f18Flights;
+  if (normalized?._aircraft === 'F16') return state.f16Flights;
+  return allFlights();
+}
+
+function getDtcMergeParts(normalized) {
+  const parts = [];
+  if (normalized?._native) {
+    if (normalized._aircraft === 'F18') {
+      if (normalized._rawAlr67?.CMDS) parts.push('ALR67 CMDS');
+      if (normalized._rawAlr67?.RWR) parts.push('ALR67 RWR');
+      if (normalized._rawTcn?.length) parts.push('TACAN presets');
+      if (normalized._rawWypt?.NAV_SETTINGS) parts.push('NAV settings');
+      if (normalized.Radio) parts.push('radio presets');
+    } else {
+      if (normalized._rawMpd?.CMDS) parts.push('CMDS (MAN1-6/AUTO1-3/BYP)');
+      if (normalized._rawElint?.RWR) parts.push('RWR priorities');
+      if (normalized.Radio) parts.push('radio presets');
+    }
+  } else {
+    if (normalized?.Countermeasures) parts.push('CMDS');
+    if (normalized?.EWS) parts.push('EWS');
+    if (normalized?.Radio) parts.push('channel names');
+    if (normalized?.LaserCodes) parts.push('laser codes');
+  }
+  return parts.length ? parts.join(' + ') : 'data';
+}
+
+function openFlightSelectDialogForDtc() {
+  const pending = state.pendingPersonalDtc;
+  if (!pending?.normalized) return;
+
+  const flights = getDtcTargetFlights(pending.normalized);
+  if (!flights.length) {
+    alert('No compatible flights found for this DTC profile. Load a mission with matching aircraft first.');
+    state.pendingPersonalDtc = null;
+    return;
+  }
+
+  const body = document.getElementById('flight-select-body');
+  const title = document.getElementById('flight-select-title');
+  const subtitle = document.getElementById('flight-select-subtitle');
+  if (!body || !title || !subtitle) return;
+
+  const family = pending.normalized?._aircraft === 'F18' ? 'F/A-18C' : 'F-16C';
+  title.textContent = `Assign Personal DTC to Flight (${family})`;
+  subtitle.textContent = `Choose which flight should receive ${pending.fileName}.`;
+
+  body.innerHTML = flights.map(f => {
+    const meta = `${f.side.toUpperCase()} · ${f.country || 'Unknown'} · ${f.units.length} aircraft`;
+    return `<button class="flight-select-item" type="button" onclick="selectFlightForPendingDtc('${f.aircraftType === 'FA-18C_hornet' ? 'f18' : 'f16'}','${escapeAttr(f.groupId)}')">
+      <div class="line1">${f.name}</div>
+      <div class="line2">${meta}</div>
+    </button>`;
+  }).join('');
+
+  document.getElementById('flight-select-modal').style.display = 'flex';
+}
+
+function closeFlightSelectDialog() {
+  document.getElementById('flight-select-modal').style.display = 'none';
+}
+
+function assignPersonalDtcToFlight(family, flight, normalized, fileName) {
+  if (!flight || !normalized) return;
+
+  flight.personalDtc = deepClone(normalized);
+  flight.personalDtcFileName = fileName || flight.personalDtcFileName || 'personal.dtc';
+  state.personalDtc = flight.personalDtc;
+
+  document.getElementById('dtc-fname').textContent = flight.personalDtcFileName;
+  document.getElementById('dtc-card').classList.add('active');
+
+  const mergeDesc = getDtcMergeParts(flight.personalDtc);
+  document.getElementById('merge-pill').style.display = 'inline-flex';
+  document.getElementById('merge-pill').textContent = `✓ ${mergeDesc} assigned to ${flight.name}`;
+  document.getElementById('dtc-open-btn').style.display = 'inline-flex';
+  document.getElementById('dtc-clear-btn').style.display = 'inline-flex';
+
+  rerenderFlightCards();
+  flight.inlinePreviewTab = 'cmds';
+  previewDtc(family, flight.groupId);
+}
+
+function selectFlightForPendingDtc(family, groupId) {
+  const pending = state.pendingPersonalDtc;
+  if (!pending?.normalized) return;
+
+  const flights = family === 'f18' ? state.f18Flights : state.f16Flights;
+  const flight = flights.find(f => String(f.groupId) === String(groupId));
+  if (!flight) return;
+
+  closeFlightSelectDialog();
+  state.pendingPersonalDtc = null;
+  assignPersonalDtcToFlight(family, flight, pending.normalized, pending.fileName);
+}
+
+function importDtcForFlight(family, groupId) {
+  const input = document.getElementById('flight-import-dtc-input');
+  if (!input) return;
+  state.pendingImportTarget = { family, groupId: String(groupId) };
+  input.value = '';
+  input.click();
+}
+
+async function handleFlightImportDtcFile(file) {
+  if (!file) return;
+  const target = state.pendingImportTarget;
+  state.pendingImportTarget = null;
+  if (!target) return;
+
+  const flights = target.family === 'f18' ? state.f18Flights : state.f16Flights;
+  const flight = flights.find(f => String(f.groupId) === String(target.groupId));
+  if (!flight) {
+    alert('Could not find the selected flight.');
+    return;
+  }
+
+  let parsed = null;
+  try {
+    parsed = JSON.parse(await file.text());
+  } catch {
+    alert('Could not parse .dtc file — expected JSON format (from Saved Games\\DCS\\dtc\\).');
+    return;
+  }
+
+  const normalized = normalizeDtc(parsed);
+  if (!normalized) {
+    alert('Unrecognized .dtc format.\nExpected real DCS native format with at least { "data": { "COMM" }, "name", "type" }.');
+    return;
+  }
+
+  const expected = target.family === 'f18' ? 'F18' : 'F16';
+  if (normalized._aircraft !== expected) {
+    alert(`This DTC is for ${normalized._aircraft === 'F18' ? 'F/A-18C' : 'F-16C'} and cannot be imported into ${target.family === 'f18' ? 'F/A-18C' : 'F-16C'} flight ${flight.name}.`);
+    return;
+  }
+
+  assignPersonalDtcToFlight(target.family, flight, normalized, file.name);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -2771,6 +3009,25 @@ for (const id of ['miz-card', 'dtc-card']) {
   });
 }
 </script>
+
+<!-- Personal DTC Flight Selection Modal -->
+<div id="flight-select-modal" style="display:none;position:fixed;inset:0;z-index:9200;align-items:center;justify-content:center;background:rgba(0,0,0,0.78)">
+  <div style="position:absolute;inset:0" onclick="closeFlightSelectDialog()"></div>
+  <div style="position:relative;background:var(--surface);border:1px solid var(--border);border-radius:10px;width:min(92vw,620px);max-height:min(84vh,760px);display:flex;flex-direction:column;overflow:hidden">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--border);background:var(--surface2)">
+      <div>
+        <div id="flight-select-title" style="font-weight:700;color:var(--accent);font-size:14px">Assign Personal DTC to Flight</div>
+        <div id="flight-select-subtitle" style="font-size:11px;color:var(--muted);margin-top:2px">Select a flight to continue.</div>
+      </div>
+      <button class="btn btn-outline" type="button" onclick="closeFlightSelectDialog()">✕ Cancel</button>
+    </div>
+    <div style="padding:12px 12px 14px">
+      <div class="flight-select-list" id="flight-select-body"></div>
+    </div>
+  </div>
+</div>
+
+<input type="file" id="flight-import-dtc-input" accept=".dtc" style="display:none">
 
 <!-- All-Flights Map Modal -->
 <div id="map-modal" style="display:none;position:fixed;inset:0;z-index:9000;align-items:center;justify-content:center;background:rgba(0,0,0,0.78)">
