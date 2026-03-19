@@ -1727,11 +1727,13 @@ function buildDtc(flight) {
 // ═══════════════════════════════════════════════════════════════════════════
 function buildDtcNative(flight) {
   const personalDtc = getFlightPersonalDtc(flight);
-  // ── COMM — mission radio → Channel_N keys with integer MHz freq ───────────
+  // ── COMM — personal DTC overrides mission radio (same pattern as CMDS) ───
   const comm1 = {}, comm2 = {};
+  const personalUhf = personalDtc?.Radio?.UHF?.Channels || {};
+  const personalVhf = personalDtc?.Radio?.VHF?.Channels || {};
   for (let i = 1; i <= 20; i++) {
-    const f1 = flight.radio1[i];
-    const f2 = flight.radio2[i];
+    const f1 = personalUhf[String(i)]?.Frequency ?? flight.radio1[i];
+    const f2 = personalVhf[String(i)]?.Frequency ?? flight.radio2[i];
     if (f1 !== undefined) comm1[`Channel_${i}`] = { freq: parseFloat(Number(f1).toFixed(3)), modulation: 1 };
     if (f2 !== undefined) comm2[`Channel_${i}`] = { freq: parseFloat(Number(f2).toFixed(3)), modulation: 1 };
   }
