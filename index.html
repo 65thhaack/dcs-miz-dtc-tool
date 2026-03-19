@@ -164,6 +164,7 @@
       background: var(--surface2);
       padding: 12px 16px;
       display: flex;
+      flex-wrap: wrap;
       align-items: flex-start;
       justify-content: space-between;
       border-bottom: 1px solid var(--border);
@@ -1052,13 +1053,11 @@ function renderFlights(flights, cfg) {
             ${assigned}
           </div>
         </div>
-        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
-          <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">
-            <button class="btn btn-primary" type="button" data-family="${cfg.family}" data-gid="${safeGroupIdAttr}" onclick="previewFlightButton(this)">👁 Preview/Edit</button>
-            <button class="btn btn-success" type="button" data-family="${cfg.family}" data-gid="${safeGroupIdAttr}" onclick="exportFlightButton(this)">⬇ Export</button>
-          </div>
-          <div class="unit-chips">${chips}</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">
+          <button class="btn btn-primary" type="button" data-family="${cfg.family}" data-gid="${safeGroupIdAttr}" onclick="previewFlightButton(this)">👁 Preview/Edit</button>
+          <button class="btn btn-success" type="button" data-family="${cfg.family}" data-gid="${safeGroupIdAttr}" onclick="exportFlightButton(this)">⬇ Export</button>
         </div>
+        ${chips ? `<div class="unit-chips" style="flex-basis:100%;padding-top:8px;margin-top:4px;border-top:1px solid var(--border)">${chips}</div>` : ''}
       </div>
       <div class="tabs" id="tabs-${cfg.cardPrefix}-${fl.groupId}">
         <button class="tab flight-tab active" type="button" data-card-prefix="${cfg.cardPrefix}" data-group-id="${safeGroupIdAttr}" data-panel="wpt">Waypoints</button>
