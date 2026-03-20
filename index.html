@@ -1358,10 +1358,11 @@ function fillF18CommDefaults(comm, personalComm, radioIndex) {
   for (let i = 1; i <= 20; i++) {
     const key = `Channel_${i}`;
     if (!comm[key]) {
+      const pCh = personalComm?.[key];
       comm[key] = {
-        frequency: F18_COMM_DEFAULT_FREQS[i],
-        modulation: 0,
-        name: personalComm?.[key]?.name || `CH ${i}`,
+        frequency: pCh?.frequency ?? F18_COMM_DEFAULT_FREQS[i],
+        modulation: pCh?.modulation ?? 0,
+        name: pCh?.name || `CH ${i}`,
       };
     }
   }
@@ -1649,8 +1650,8 @@ function buildDtc(flight) {
 
   const uhfChannels = {}, vhfChannels = {};
   for (let i = 1; i <= 20; i++) {
-    const freq1 = flight.radio1[i];
-    const freq2 = flight.radio2[i];
+    const freq1 = personalUhf[String(i)]?.Frequency ?? flight.radio1[i];
+    const freq2 = personalVhf[String(i)]?.Frequency ?? flight.radio2[i];
     if (freq1 !== undefined) {
       uhfChannels[String(i)] = {
         Frequency: parseFloat(Number(freq1).toFixed(3)),
@@ -1846,20 +1847,22 @@ function buildF18Dtc(flight) {
   const comm1 = {}, comm2 = {};
 
   for (let i = 1; i <= 20; i++) {
-    const f1 = flight.radio1[i];
-    const f2 = flight.radio2[i];
+    const pCh1 = personalComm1[`Channel_${i}`];
+    const pCh2 = personalComm2[`Channel_${i}`];
+    const f1 = pCh1?.frequency ?? flight.radio1[i];
+    const f2 = pCh2?.frequency ?? flight.radio2[i];
     if (f1 !== undefined) {
       comm1[`Channel_${i}`] = {
         frequency: parseFloat(Number(f1).toFixed(3)),
-        modulation: 0,
-        name: getFlightCommName(flight, 1, i, personalComm1[`Channel_${i}`]?.name || `CH ${i}`),
+        modulation: pCh1?.modulation ?? 0,
+        name: getFlightCommName(flight, 1, i, pCh1?.name || `CH ${i}`),
       };
     }
     if (f2 !== undefined) {
       comm2[`Channel_${i}`] = {
         frequency: parseFloat(Number(f2).toFixed(3)),
-        modulation: 0,
-        name: getFlightCommName(flight, 2, i, personalComm2[`Channel_${i}`]?.name || `CH ${i}`),
+        modulation: pCh2?.modulation ?? 0,
+        name: getFlightCommName(flight, 2, i, pCh2?.name || `CH ${i}`),
       };
     }
   }
@@ -3024,6 +3027,11 @@ function assignPersonalDtcToFlight(family, flight, normalized, fileName) {
   flight.personalDtc = deepClone(normalized);
   flight.personalDtcFileName = fileName || flight.personalDtcFileName || 'personal.dtc';
   state.personalDtc = flight.personalDtc;
+
+  // Reset lazily-initialized fields so they get re-derived from the new personal DTC
+  delete flight.f16CmdsPrograms;
+  delete flight.f18CmdsEdits;
+  delete flight.navSettingsF18;
 
   document.getElementById('dtc-fname').textContent = flight.personalDtcFileName;
   document.getElementById('dtc-card').classList.add('active');
