@@ -10,7 +10,9 @@ Parse DCS mission files and generate Data Transfer Cartridge (DTC) files for F-1
    - Radio presets (COM1/UHF and COM2/VHF frequencies)
    - Countermeasure programs, EWS settings, and other avionics data
 3. **Optional: Merge personal DTC** — Upload your own `.dtc` profile to merge personal radio/EWS/TACAN data into all exports
-4. **Export DTC** — Click the export button on any flight to download its `.dtc` file ready for import into DCS
+4. **Export DTC** — Two export paths are available per flight:
+   - **Export Miz as DTC** — Quick export directly from the flight card using raw mission data
+   - **Preview/Edit → Export Merged DTC** — Open the preview panel to review and edit, then export the fully merged DTC
 
 ## Features
 
@@ -23,15 +25,19 @@ Parse DCS mission files and generate Data Transfer Cartridge (DTC) files for F-1
 - **Navigation Settings** — TACAN, ICLS, Bullseye, and Air-to-Air waypoint offsets
 
 ### Viewing & Editing
-- **Inline preview** — See all DTC data in a formatted table before export
+- **Inline preview** — See all DTC data in a formatted table before export; opening preview hides the quick-export button to avoid duplicate exports
 - **Route maps** — Click "Map" to visualize mission waypoints vs. DTC steerpoints on an interactive map
 - **Edit before export** — Modify waypoint names, altitudes, speeds, frequencies, and other data
+- **Waypoint roles** — Change each steerpoint's role (STPT, IP, TGT, VRP, PUP, OA1, OA2) in the preview panel; roles are saved into the exported DTC and restored when that DTC is reimported as a personal profile
 - **CMDS editing** — Edit countermeasure programs (Chaff/Flare burst quantity, salvo quantity, burst interval, salvo interval) directly in the preview panel; changes are reflected in the exported DTC
+- **Custom export filename** — Each export button has an editable filename field pre-filled with the flight name; change it before exporting to control the output `.dtc` filename
 
 ### Personal DTC Merge
 - Upload a saved personal `.dtc` profile from your DCS user folder
 - The tool automatically merges CMDS, radio presets, and EWS data into all flight exports
 - Keep your custom settings consistent across multiple mission DTCs
+- **Clear buttons** — Both the mission file and personal DTC cards have a **✕ Clear** button to unload them independently without refreshing the page
+- **Mission DTC chip** — When a mission contains a built-in default DTC, a chip appears on the flight card; click **View** to inspect it in the preview panel. If you've loaded a personal DTC that overrides it, the button changes to **Restore** — clicking it removes the personal DTC override and reverts the flight back to its mission defaults
 
 ## File Formats
 
@@ -50,14 +56,17 @@ Parse DCS mission files and generate Data Transfer Cartridge (DTC) files for F-1
 1. Open your DCS mission (.miz)
 2. Review the extracted F-16C/F-18 flights
 3. For each flight you want to use:
-   - Click the flight card to expand preview
-   - Review steerpoints, radio presets, and other settings
-   - Edit CMDS programs in the CMDS tab if needed
-   - Click "Export DTC" and save to your DCS folder
+   a. Quick export: edit the filename field and click "Export Miz as DTC"
+      — OR —
+   b. Click "Preview/Edit" to open the inline preview:
+      - Review steerpoints, radio presets, and other settings
+      - Edit waypoint roles, CMDS programs, frequencies as needed
+      - Edit the filename field and click "Export Merged DTC"
+      - Click "✕ Close" when done
 4. In DCS Mission Editor:
    - Open your mission
    - Go to the flight settings
-   - Import the `.dtc` file into the aircraft
+   - Import the .dtc file into the aircraft
    - Fly the mission!
 ```
 

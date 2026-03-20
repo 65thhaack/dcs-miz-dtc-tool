@@ -509,6 +509,9 @@
       <h3>Mission File (.miz)</h3>
       <p>Click to open or drag &amp; drop your DCS mission</p>
       <div class="fname" id="miz-fname"></div>
+      <div style="display:flex;gap:8px;justify-content:center;margin-top:8px;position:relative;z-index:2">
+        <button class="btn btn-outline" id="miz-clear-btn" style="display:none" onclick="clearMiz(event)">✕ Clear</button>
+      </div>
     </label>
 
     <label class="upload-card" id="dtc-card" for="dtc-input">
@@ -1049,7 +1052,14 @@ function renderFlights(flights, cfg) {
       ? `<div class="assigned-pill">✓ Personal DTC<span class="fname">${fl.personalDtcFileName || 'assigned'}</span></div>`
       : '';
     const missionDtcPill = fl.defaultMissionDtc
-      ? `<div class="assigned-pill" style="background:rgba(210,153,34,0.1);border-color:var(--amber);color:var(--amber)">📦 Default Mission DTC<span class="fname">${fl.defaultMissionDtcFileName || 'default'}</span><button class="btn btn-outline" type="button" style="margin-left:8px;padding:2px 6px;font-size:11px;display:inline;height:auto" onclick="viewMissionDtcForFlight('${cfg.family}', '${safeGroupIdAttr}')">View</button></div>`
+      ? (() => {
+          const hasPersonal = !!fl.personalDtc;
+          const btnLabel = hasPersonal ? 'Restore' : 'View';
+          const btnOnClick = hasPersonal
+            ? `restoreMissionDtcForFlight('${cfg.family}', '${safeGroupIdAttr}')`
+            : `viewMissionDtcForFlight('${cfg.family}', '${safeGroupIdAttr}')`;
+          return `<div class="assigned-pill" style="background:rgba(210,153,34,0.1);border-color:var(--amber);color:var(--amber)">📦 Default Mission DTC<span class="fname">${fl.defaultMissionDtcFileName || 'default'}</span><button class="btn btn-outline" type="button" style="margin-left:8px;padding:2px 6px;font-size:11px;display:inline;height:auto" onclick="${btnOnClick}">${btnLabel}</button></div>`;
+        })()
       : '';
 
     // Waypoints rows — read-only mission view; role editing lives in the DTC Preview panel
@@ -1095,9 +1105,12 @@ function renderFlights(flights, cfg) {
             ${missionDtcPill}
           </div>
         </div>
-        <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">
+        <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;align-items:center">
           <button class="btn btn-primary" type="button" data-family="${cfg.family}" data-gid="${safeGroupIdAttr}" onclick="previewFlightButton(this)">👁 Preview/Edit</button>
-          <button class="btn btn-success" type="button" data-family="${cfg.family}" data-gid="${safeGroupIdAttr}" onclick="exportFlightButton(this)">⬇ Export</button>
+          <div id="card-export-${cfg.cardPrefix}-${safeGroupIdAttr}" style="display:flex;gap:6px;align-items:center">
+            <input type="text" class="card-export-name-inp" value="${fl.name.replace(/[^a-zA-Z0-9_\-]/g, '_')}" style="font-size:12px;padding:4px 8px;border:1px solid var(--border);border-radius:4px;background:var(--surface);color:var(--text);width:160px" title="Export filename (without .dtc)">
+            <button class="btn btn-success" type="button" data-family="${cfg.family}" data-gid="${safeGroupIdAttr}" onclick="exportFlightButton(this)">⬇ Export Miz as DTC</button>
+          </div>
         </div>
         ${chips ? `<div class="unit-chips" style="flex-basis:100%;padding-top:8px;margin-top:4px;border-top:1px solid var(--border)">${chips}</div>` : ''}
       </div>
@@ -2203,7 +2216,8 @@ function buildF18PreviewHtml(flight, family) {
       <div style="display:flex;align-items:center;gap:8px">
         <button class="btn btn-outline" type="button" onclick="importDtcForFlight('${family}', '${flight.groupId}')">⤴ Import DTC</button>
         <button class="btn btn-outline" type="button" onclick="showPreviewFlightMap('${family}', '${flight.groupId}')">🗺 Map</button>
-        <button class="btn btn-success" type="button" onclick="exportFlightDtc('${family}', '${flight.groupId}')">⬇ Export</button>
+        <input type="text" class="export-name-inp" value="${(flight.name || 'flight').replace(/[^a-zA-Z0-9_\-]/g, '_')}" style="font-size:12px;padding:4px 8px;border:1px solid var(--border);border-radius:4px;background:var(--surface);color:var(--text);width:160px" title="Export filename (without .dtc)">
+        <button class="btn btn-success" type="button" onclick="exportFlightDtc('${family}', '${flight.groupId}')">⬇ Export Merged DTC</button>
         <button class="btn btn-outline" type="button" onclick="closeInlinePreview('${family}', '${flight.groupId}')">✕ Close</button>
       </div>
     </div>
@@ -2455,7 +2469,8 @@ function buildF16PreviewHtml(flight, family) {
       <div style="display:flex;align-items:center;gap:8px">
         <button class="btn btn-outline" type="button" onclick="importDtcForFlight('${family}', '${flight.groupId}')">⤴ Import DTC</button>
         <button class="btn btn-outline" type="button" onclick="showPreviewFlightMap('${family}', '${flight.groupId}')">🗺 Map</button>
-        <button class="btn btn-success" type="button" onclick="exportFlightDtc('${family}', '${flight.groupId}')">⬇ Export</button>
+        <input type="text" class="export-name-inp" value="${(flight.name || 'flight').replace(/[^a-zA-Z0-9_\-]/g, '_')}" style="font-size:12px;padding:4px 8px;border:1px solid var(--border);border-radius:4px;background:var(--surface);color:var(--text);width:160px" title="Export filename (without .dtc)">
+        <button class="btn btn-success" type="button" onclick="exportFlightDtc('${family}', '${flight.groupId}')">⬇ Export Merged DTC</button>
         <button class="btn btn-outline" type="button" onclick="closeInlinePreview('${family}', '${flight.groupId}')">✕ Close</button>
       </div>
     </div>
@@ -2527,6 +2542,10 @@ function previewDtc(family = 'f16', groupId = null, isMissionDtc = false) {
   preview.innerHTML = html;
   preview.classList.add('open');
 
+  // Hide the card-level export row while the preview is open
+  const exportDiv = document.getElementById(`card-export-${family}-${flight.groupId}`);
+  if (exportDiv) exportDiv.style.display = 'none';
+
   // Scroll flight card header into view, then preview will be visible below
   const cardHead = card?.querySelector('.flight-head');
   if (cardHead) {
@@ -2543,6 +2562,9 @@ function closeInlinePreview(family, groupId) {
   if (!preview) return;
   preview.classList.remove('open');
   preview.innerHTML = '';
+  const cardPrefix = family === 'f18' ? 'f18' : 'f16';
+  const exportDiv = document.getElementById(`card-export-${cardPrefix}-${groupId}`);
+  if (exportDiv) exportDiv.style.display = 'flex';
 }
 
 function previewFlightButton(btn) {
@@ -2565,13 +2587,57 @@ function viewMissionDtcForFlight(family, groupId) {
   previewDtc(family, groupId, true);
 }
 
-function exportFlightDtc(family, groupId) {
+function restoreMissionDtcForFlight(family, groupId) {
+  const flights = family === 'f18' ? state.f18Flights : state.f16Flights;
+  const flight = flights.find(f => String(f.groupId) === String(groupId));
+  if (!flight) return;
+
+  delete flight.personalDtc;
+  delete flight.personalDtcFileName;
+  delete flight.f16CmdsPrograms;
+  delete flight.f18CmdsEdits;
+  delete flight.navSettingsF18;
+
+  // Reset waypoint roles to defaults from the mission DTC if present, else STPT
+  const rawNav = family === 'f18' ? flight.defaultMissionDtc?._rawWypt : flight.defaultMissionDtc?._rawMpd;
+  const navPts = rawNav?.NAV_PTS;
+  if (navPts && Array.isArray(navPts)) {
+    const navWps = flight.waypoints.filter(w => !w.isTakeoff && !w.isLand);
+    navPts.forEach((pt, i) => {
+      if (navWps[i]) navWps[i].pointType = pt.type || 'STPT';
+    });
+  } else {
+    flight.waypoints.forEach(w => { w.pointType = 'STPT'; });
+  }
+
+  // If no other flights have a personal DTC, clear the global merge pill
+  const anyPersonal = [...state.f16Flights, ...state.f18Flights].some(f => f.personalDtc);
+  if (!anyPersonal) {
+    document.getElementById('merge-pill').style.display = 'none';
+    document.getElementById('dtc-fname').textContent = '';
+    document.getElementById('dtc-card').classList.remove('active');
+    document.getElementById('dtc-open-btn').style.display = 'none';
+    document.getElementById('dtc-clear-btn').style.display = 'none';
+    state.personalDtc = null;
+  }
+
+  rerenderFlightCards();
+  document.querySelectorAll('.inline-preview-panel.open').forEach(panel => {
+    previewDtc(panel.dataset.family, panel.dataset.gid);
+  });
+}
+
+function exportFlightDtc(family, groupId, overrideName) {
   const flights = family === 'f18' ? state.f18Flights : state.f16Flights;
   const flight = flights.find(f => String(f.groupId) === String(groupId));
   if (!flight) return;
 
   const dtc = family === 'f18' ? buildF18DtcNative(flight) : buildDtcNative(flight);
-  const name = (flight.name || 'flight').replace(/[^a-zA-Z0-9_\-]/g, '_');
+  const cardPrefix = family === 'f18' ? 'f18' : 'f16';
+  const panel = document.getElementById(`inline-preview-${cardPrefix}-${groupId}`);
+  const previewNameInput = panel?.querySelector('.export-name-inp');
+  const rawName = overrideName ?? previewNameInput?.value ?? flight.name ?? 'flight';
+  const name = rawName.replace(/[^a-zA-Z0-9_\-]/g, '_') || 'flight';
 
   const json = JSON.stringify(dtc, null, 2);
   const blob = new Blob([json], { type: 'application/json' });
@@ -2584,7 +2650,10 @@ function exportFlightDtc(family, groupId) {
 }
 
 function exportFlightButton(btn) {
-  exportFlightDtc(btn.dataset.family, btn.dataset.gid);
+  const cardPrefix = btn.dataset.family === 'f18' ? 'f18' : 'f16';
+  const exportDiv = document.getElementById(`card-export-${cardPrefix}-${btn.dataset.gid}`);
+  const nameInput = exportDiv?.querySelector('.card-export-name-inp');
+  exportFlightDtc(btn.dataset.family, btn.dataset.gid, nameInput?.value);
 }
 
 // ── Collapse / expand a flight card ────────────────────────────────────────
@@ -2613,6 +2682,7 @@ async function handleMizFile(file) {
 
   document.getElementById('miz-fname').textContent = file.name;
   document.getElementById('miz-card').classList.add('active');
+  document.getElementById('miz-clear-btn').style.display = 'inline-flex';
   document.getElementById('results').style.display = 'block';
   document.getElementById('empty-state').style.display = 'none';
   showStatus('<span class="warn">⟳ Parsing mission…</span>');
@@ -2868,6 +2938,31 @@ function clearPersonalDtc(e) {
   });
 }
 
+function clearMiz(e) {
+  e.preventDefault();
+  state.missionName = null;
+  state.theater = null;
+  state.missionDtcMap = {};
+  state.tacanCandidates = [];
+  state.f16Flights = state.f16Flights.filter(f => f._standalone);
+  state.f18Flights = state.f18Flights.filter(f => f._standalone);
+  if (state.f16Flights.length === 0 && state.f18Flights.length === 0) {
+    document.getElementById('results').style.display = 'none';
+    document.getElementById('empty-state').style.display = 'block';
+  } else {
+    rerenderFlightCards();
+  }
+  document.getElementById('miz-input').value = '';
+  document.getElementById('miz-fname').textContent = '';
+  document.getElementById('miz-card').classList.remove('active');
+  document.getElementById('miz-clear-btn').style.display = 'none';
+  document.getElementById('map-all-btn').style.display = 'none';
+  showStatus('');
+  document.querySelectorAll('.inline-preview-panel.open').forEach(panel => {
+    previewDtc(panel.dataset.family, panel.dataset.gid);
+  });
+}
+
 function openPersonalDtcSelector(e) {
   if (e) e.preventDefault();
 
@@ -3033,6 +3128,18 @@ function assignPersonalDtcToFlight(family, flight, normalized, fileName) {
   delete flight.f18CmdsEdits;
   delete flight.navSettingsF18;
 
+  // Apply pointType (role) from NAV_PTS in the imported DTC back onto mission waypoints
+  const rawNav = normalized._aircraft === 'F18' ? normalized._rawWypt : normalized._rawMpd;
+  const importedNavPts = rawNav?.NAV_PTS;
+  if (importedNavPts && Array.isArray(importedNavPts) && !flight._standalone) {
+    const navWps = flight.waypoints.filter(w => !w.isTakeoff && !w.isLand);
+    importedNavPts.forEach((pt, i) => {
+      if (pt.type && pt.type !== 'STPT' && navWps[i]) {
+        navWps[i].pointType = pt.type;
+      }
+    });
+  }
+
   document.getElementById('dtc-fname').textContent = flight.personalDtcFileName;
   document.getElementById('dtc-card').classList.add('active');
 
@@ -3114,6 +3221,36 @@ const MAP_COLORS = [
 
 let _leafletMap = null;
 let _leafletLayerGroup = null;
+let _leafletTileLayer = null;
+
+const MAP_TILES = {
+  dark: {
+    url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+    opts: { attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>', subdomains: 'abcd', maxZoom: 19 },
+  },
+  light: {
+    url: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+    opts: { attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>', subdomains: 'abcd', maxZoom: 19 },
+  },
+  terrain: {
+    url: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
+    opts: { attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="https://opentopomap.org">OpenTopoMap</a>', maxZoom: 17 },
+  },
+};
+
+function setMapTile(name) {
+  if (!_leafletMap || !MAP_TILES[name]) return;
+  if (_leafletTileLayer) _leafletMap.removeLayer(_leafletTileLayer);
+  const { url, opts } = MAP_TILES[name];
+  _leafletTileLayer = L.tileLayer(url, opts).addTo(_leafletMap);
+  _leafletTileLayer.bringToBack();
+  ['dark','light','terrain'].forEach(n => {
+    const btn = document.getElementById('map-tile-' + n);
+    if (!btn) return;
+    if (n === name) { btn.classList.remove('btn-outline'); }
+    else { btn.classList.add('btn-outline'); }
+  });
+}
 let _mapFlightLayers = [];  // [{ flight, polyline, markers, color, legendEl }]
 let _selectedMapIdx = -1;
 let _mapCurrentFlight = null;
@@ -3124,11 +3261,7 @@ function ensureLeafletMap() {
 
   const modal = document.getElementById('map-modal');
   _leafletMap = L.map('map-el', { zoomControl: true });
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-    subdomains: 'abcd',
-    maxZoom: 18,
-  }).addTo(_leafletMap);
+  setMapTile('dark');
   _leafletLayerGroup = L.layerGroup().addTo(_leafletMap);
   modal.querySelector('.map-modal-overlay').addEventListener('click', function(e) {
     if (e.target === this) closeFlightMap();
@@ -3462,6 +3595,11 @@ for (const id of ['miz-card', 'dtc-card']) {
       <span id="map-title" style="font-weight:700;color:var(--accent);font-size:14px"></span>
       <div style="display:flex;align-items:center;gap:10px">
         <span id="map-hint" style="font-size:11px;color:var(--muted)">Click a route or legend row to highlight</span>
+        <div style="display:flex;gap:2px;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:2px">
+          <button id="map-tile-dark" class="btn btn-sm" type="button" onclick="setMapTile('dark')" style="padding:3px 8px;font-size:11px;border-radius:4px">Dark</button>
+          <button id="map-tile-light" class="btn btn-sm btn-outline" type="button" onclick="setMapTile('light')" style="padding:3px 8px;font-size:11px;border-radius:4px">Light</button>
+          <button id="map-tile-terrain" class="btn btn-sm btn-outline" type="button" onclick="setMapTile('terrain')" style="padding:3px 8px;font-size:11px;border-radius:4px">Terrain</button>
+        </div>
         <button class="btn btn-outline" type="button" onclick="closeFlightMap()">✕ Close</button>
       </div>
     </div>
