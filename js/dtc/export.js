@@ -1,7 +1,6 @@
 import { state } from '../state.js';
-import { findFlightById, allFlights } from '../utils.js';
-import { buildDtc, buildDtcNative } from './builder-f16.js';
-import { buildF18Dtc, buildF18DtcNative } from './builder-f18.js';
+import { buildDtcNative } from './builder-f16.js';
+import { buildF18DtcNative } from './builder-f18.js';
 
 export function getDtcMergeParts(normalized) {
   const parts = [];
