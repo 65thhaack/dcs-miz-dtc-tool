@@ -1,5 +1,5 @@
 import { state } from '../state.js';
-import { escapeAttr, toDtcLat, toDtcLon, getFlightPersonalDtc } from '../utils.js';
+import { escapeAttr } from '../utils.js';
 import { latDecimalMinutes, lonDecimalMinutes, dcsToLatLon } from '../coords.js';
 import { buildDtc } from '../dtc/builder-f16.js';
 import { buildPreviewShell } from './preview.js';

@@ -1,5 +1,5 @@
 import { state } from '../state.js';
-import { escapeAttr, toDtcLat, toDtcLon, getFlightPersonalDtc } from '../utils.js';
+import { escapeAttr, toDtcLat, toDtcLon } from '../utils.js';
 import { dcsToLatLon } from '../coords.js';
 import { tcnCandidateKey } from '../miz/extractor.js';
 import { buildF18Dtc, ensureF18TacanSelection } from '../dtc/builder-f18.js';
