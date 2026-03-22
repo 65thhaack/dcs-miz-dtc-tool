@@ -41,23 +41,3 @@ export function decimalMinutes(deg, posDir, negDir, degreeWidth) {
 }
 export const latDecimalMinutes = (v) => decimalMinutes(v, 'N', 'S', 2);
 export const lonDecimalMinutes = (v) => decimalMinutes(v, 'E', 'W', 3);
-
-// DTC native format: "DD.MM.SSN" / "DDD.MM.SSE" (period-delimited, dir suffix, whole seconds)
-export function toDtcLat(lat) {
-  const abs = Math.abs(lat);
-  const d   = Math.floor(abs);
-  const mf  = (abs - d) * 60;
-  const m   = Math.floor(mf);
-  const s   = Math.round((mf - m) * 60);
-  const dir = lat >= 0 ? 'N' : 'S';
-  return `${String(d).padStart(2,'0')}.${String(m).padStart(2,'0')}.${String(s).padStart(2,'0')}${dir}`;
-}
-export function toDtcLon(lon) {
-  const abs = Math.abs(lon);
-  const d   = Math.floor(abs);
-  const mf  = (abs - d) * 60;
-  const m   = Math.floor(mf);
-  const s   = Math.round((mf - m) * 60);
-  const dir = lon >= 0 ? 'E' : 'W';
-  return `${String(d).padStart(3,'0')}.${String(m).padStart(2,'0')}.${String(s).padStart(2,'0')}${dir}`;
-}
