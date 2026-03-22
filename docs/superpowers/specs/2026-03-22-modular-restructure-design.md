@@ -1,3 +1,4 @@
+
 # DCS Miz Tool — Modular Restructure Design
 
 **Date:** 2026-03-22
@@ -43,13 +44,16 @@ js/
     preview.js                    — previewDtc, closeInlinePreview, switchInlinePreviewTabBtn, buildPreviewShell
     preview-f16.js                — buildF16PreviewHtml
     preview-f18.js                — buildF18PreviewHtml
-    editors.js                    — setWaypointName, removeWaypoint, setWpType, setTargetData, setCommChannelField, setCmdsField, setF18NavSetting, setF18CommGuard, setF18TacanSelected
+    editors.js                    — setWaypointName, removeWaypoint, setWpType, setTargetData, setCommChannelField,
+                                    setCmdsField, setF18NavSetting, setF18CommGuard, setF18TacanSelected
     modals.js                     — openFlightSelectDialogForDtc, selectFlightForPendingDtc, closeFlightSelectDialog
 
   map/
-    map.js                        — ensureLeafletMap, openMapModal, showPreviewFlightMap, setMapTile
+    map.js                        — ensureLeafletMap, openMapModal, showPreviewFlightMap, setMapTile, closeFlightMap,
+                                    removeWaypointFromMap, getMapState (accessor for _mapCurrentFlight/_mapCurrentFamily)
 
-  handlers.js                     — handleMizFile, handleDtcFile, clearMiz, clearPersonalDtc, restoreMissionDtcForFlight,
+  handlers.js                     — handleMizFile, handleDtcFile, handleFlightImportDtcFile, importDtcForFlight,
+                                    viewMissionDtcForFlight, clearMiz, clearPersonalDtc, restoreMissionDtcForFlight,
                                     createStandaloneFlight, assignPersonalDtcToFlight, DOM init, drag-drop wiring,
                                     top-level event delegation (data-action routing)
 ```
@@ -96,7 +100,7 @@ flight.miz?.radio2    ?? flight.radio2
 **Affected creation paths:**
 - `extractor.js` (`extractFlightsByType`) — sets `flight.miz = { waypoints: deepClone(waypoints), radio1: deepClone(radio1), radio2: deepClone(radio2) }`
 - `handlers.js` (`createStandaloneFlight`) — sets `flight.miz = null`
-- `handlers.js` (`restoreMissionDtcForFlight`) — restores from `flight.miz.waypoints`, `flight.miz.radio1/2`
+- `handlers.js` (`restoreMissionDtcForFlight`) — guards with `if (flight.miz)` before restoring; restores `flight.waypoints = deepClone(flight.miz.waypoints)`, `flight.radio1 = deepClone(flight.miz.radio1)`, `flight.radio2 = deepClone(flight.miz.radio2)`. Standalone flights (`flight.miz === null`) skip the restore entirely, matching current behavior.
 
 **Read sites updated:** `renderFlights` (flight card top section reads `flight.miz.*`), `buildDtc`/`buildF18Dtc` fallback pattern.
 
@@ -110,12 +114,13 @@ Both aircraft loop channels 1–20, check merge options, and fall back to `fligh
 
 ```js
 export function buildCommChannels(flight, personalComm1, personalComm2, mergeComms) {
-  // returns { raw1, raw2 } — arrays of { freq, name, modulation, channel }
-  // each builder formats into its own key/value shape
+  // Returns { raw1, raw2 } — arrays indexed 1–20 of { freq, channel }
+  // freq: personalComm freq (if mergeComms) ?? flight.radio1[i]
+  // Does NOT include modulation or name — each builder sources those independently
 }
 ```
 
-F-16 uses `Frequency`/`Name` keys. F-18 uses `frequency`/`name`/`modulation`. Both call `buildCommChannels` and format the result.
+**F-16 vs F-18 input difference:** `flight.radio1[i]` is a plain frequency float for both aircraft. `buildCommChannels` only extracts `freq` from the shared loop. F-16 builders format the result as `{ Frequency, Name }` (name from `getFlightCommName`). F-18 builders format as `{ frequency, name, modulation }` — modulation is sourced from `personalComm[i].modulation ?? 0` in the F-18 builder after calling `buildCommChannels`, not inside the shared function. This keeps the shared function free of aircraft-specific fields.
 
 ### 5b. Shared preview shell (`ui/preview.js`)
 
@@ -140,55 +145,69 @@ export function buildPreviewShell(flight, family, tabs, activeTab, bodyHtml)
 
 ## 6. Module Communication — Event Delegation
 
-All `onclick=` attributes in HTML template strings are replaced with `data-action=` + relevant `data-*` attributes. A single delegated listener in `handlers.js` routes to the right function.
+All `onclick=`, `oninput=`, and `onchange=` attributes are replaced with `data-action=` + relevant `data-*` attributes. This covers both template-string-generated HTML and the static HTML shell. A single delegated listener in `handlers.js` routes to the right function.
+
+**Static HTML shell** — modal close buttons, map tile buttons, and map close button in `index.html` are converted to `data-action` attributes. `handlers.js` attaches the delegated listener after `DOMContentLoaded`, so these are handled without any globals remaining.
 
 **Template strings (before):**
 ```html
 <button onclick="removeWaypoint(this)">🗑</button>
 <input oninput="setWaypointName(this)">
 <button onclick="previewFlightButton(this)" data-family="f16" data-gid="...">
+<button onclick="closeFlightSelectDialog()">✕</button>
+<button onclick="setMapTile('dark')">Dark</button>
 ```
 
-**Template strings (after):**
+**Template strings and static HTML (after):**
 ```html
 <button data-action="remove-waypoint" data-gid="..." data-idx="...">🗑</button>
 <input data-action="set-waypoint-name" data-gid="..." data-idx="...">
 <button data-action="preview-flight" data-family="f16" data-gid="...">
+<button data-action="close-flight-select">✕</button>
+<button data-action="set-map-tile" data-tile="dark">Dark</button>
 ```
 
 **Delegated listener in `handlers.js`:**
 ```js
 const ACTION_HANDLERS = {
-  'remove-waypoint':    (e) => removeWaypoint(e.target.closest('[data-action]')),
-  'set-waypoint-name':  (e) => setWaypointName(e.target),
-  'preview-flight':     (e) => previewFlightButton(e.target.closest('[data-action]')),
+  'remove-waypoint':      (e) => removeWaypoint(e.target.closest('[data-action]')),
+  'set-waypoint-name':    (e) => setWaypointName(e.target),
+  'preview-flight':       (e) => previewFlightButton(e.target.closest('[data-action]')),
+  'close-flight-select':  ()  => closeFlightSelectDialog(),
+  'set-map-tile':         (e) => setMapTile(e.target.closest('[data-action]').dataset.tile),
   // ... all actions
 };
 
-document.addEventListener('click', e => {
-  const el = e.target.closest('[data-action]');
-  if (!el) return;
-  ACTION_HANDLERS[el.dataset.action]?.(e);
-});
-
-document.addEventListener('change', e => { /* same pattern for change events */ });
-document.addEventListener('input',  e => { /* same pattern for input events  */ });
+document.addEventListener('click',  e => { const el = e.target.closest('[data-action]'); ACTION_HANDLERS[el?.dataset.action]?.(e); });
+document.addEventListener('change', e => { const el = e.target.closest('[data-action]'); ACTION_HANDLERS[el?.dataset.action]?.(e); });
+document.addEventListener('input',  e => { const el = e.target.closest('[data-action]'); ACTION_HANDLERS[el?.dataset.action]?.(e); });
 ```
-
-All template-string-generating functions (`buildF16PreviewHtml`, `buildF18PreviewHtml`, `renderFlights`) are updated to emit `data-action` attributes instead of `onclick`/`oninput`/`onchange`.
 
 ---
 
-## 7. CLAUDE.md Updates
+## 7. Map Module — Internal State
+
+`map/map.js` maintains module-scoped `_mapCurrentFlight` and `_mapCurrentFamily` variables (set when a map is opened). It exports a `getMapState()` accessor:
+
+```js
+export function getMapState() {
+  return { flight: _mapCurrentFlight, family: _mapCurrentFamily };
+}
+```
+
+`removeWaypointFromMap` lives in `map/map.js` alongside the other map functions, using `_mapCurrentFlight` and `_mapCurrentFamily` directly. It calls `previewDtc` (imported from `ui/preview.js`) and `showPreviewFlightMap` (local). This avoids a circular dependency: `map.js` imports from `ui/preview.js`, but `ui/preview.js` does not import from `map.js`.
+
+---
+
+## 8. CLAUDE.md Updates
 
 The data separation invariant section in `CLAUDE.md` is updated to reflect the Option B naming (`flight.miz.*` instead of `flight._original*`). The "Planned: Option B refactor" note is removed as it will be complete.
 
 ---
 
-## 8. Out of Scope
+## 9. Out of Scope
 
 - No behavioral changes of any kind
 - No new features
 - No CSS redesign
 - No introduction of TypeScript, a framework, or a bundler
-- Per-flight DTC import merge option UI (`handleFlightImportDtcFile`) — retains existing behavior
