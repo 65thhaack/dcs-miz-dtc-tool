@@ -4,7 +4,8 @@ import { deepClone, findFlightById, allFlights, escapeAttr } from '../utils.js';
 import { isF16Type, isF18Type } from '../miz/extractor.js';
 import { normalizeDtc } from '../dtc/normalize.js';
 import { dcsToLatLon } from '../coords.js';
-import { rerenderFlightCards, assignPersonalDtcToFlight } from './flight-cards.js';
+import { rerenderFlightCards } from './flight-cards.js';
+import { assignPersonalDtcToFlight } from './preview.js';
 
 export function getDtcTargetFlights(normalized) {
   if (normalized?._aircraft === 'F18') return state.f18Flights;
