@@ -315,21 +315,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ── Drag & Drop ───────────────────────────────────────────────────────────────
 
-// Prevent browser from opening dropped files when they land outside a card
-document.addEventListener('dragover', e => e.preventDefault());
-document.addEventListener('drop', e => e.preventDefault());
+const mizCard = document.getElementById('miz-card');
+const dtcCard = document.getElementById('dtc-card');
 
-for (const id of ['miz-card', 'dtc-card']) {
-  const card = document.getElementById(id);
-  if (!card) continue;
-  card.addEventListener('dragover',  e => { e.preventDefault(); card.style.borderColor = 'var(--accent)'; });
-  card.addEventListener('dragleave', () => { card.style.borderColor = ''; });
-  card.addEventListener('drop', e => {
-    e.preventDefault();
-    card.style.borderColor = '';
-    const f = e.dataTransfer.files[0];
-    if (!f) return;
-    if (id === 'miz-card') handleMizFile(f);
-    else handleDtcFile(f);
-  });
-}
+document.addEventListener('dragover', e => {
+  e.preventDefault();
+  const overMiz = mizCard?.contains(e.target);
+  const overDtc = dtcCard?.contains(e.target);
+  if (mizCard) mizCard.style.borderColor = overMiz ? 'var(--accent)' : '';
+  if (dtcCard) dtcCard.style.borderColor = overDtc ? 'var(--accent)' : '';
+});
+
+document.addEventListener('dragleave', e => {
+  // Only clear highlight when leaving the document entirely
+  if (!e.relatedTarget) {
+    if (mizCard) mizCard.style.borderColor = '';
+    if (dtcCard) dtcCard.style.borderColor = '';
+  }
+});
+
+document.addEventListener('drop', e => {
+  e.preventDefault();
+  if (mizCard) mizCard.style.borderColor = '';
+  if (dtcCard) dtcCard.style.borderColor = '';
+  const f = e.dataTransfer?.files?.[0];
+  if (!f) return;
+  if (mizCard?.contains(e.target)) handleMizFile(f);
+  else if (dtcCard?.contains(e.target)) handleDtcFile(f);
+});
