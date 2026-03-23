@@ -248,9 +248,9 @@ export function assignPersonalDtcToFlight(family, flight, normalized, fileName) 
       && (flight.dtcMergeOptions?.waypoints !== false)) {
     const navWps = flight.waypoints.filter(w => !w.isTakeoff && !w.isLand);
     importedNavPts.forEach((pt, i) => {
-      if (pt.type && pt.type !== 'STPT' && navWps[i]) {
-        navWps[i].pointType = pt.type;
-      }
+      if (!navWps[i]) return;
+      if (pt.type && pt.type !== 'STPT') navWps[i].pointType = pt.type;
+      if (pt.note) navWps[i].name = pt.note;
     });
   }
 
