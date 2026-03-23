@@ -116,7 +116,7 @@ export function openFlightSelectDialogForDtc() {
     const commsChk = opts.comms   === true ? 'checked' : '';
     const cmdsChk  = opts.cmds    !== false ? 'checked' : '';
     return `<div class="flight-select-item" data-family="${fam}" data-gid="${gid}">
-      <div class="flight-select-left" onclick="selectFlightForPendingDtc('${fam}','${gid}')">
+      <div class="flight-select-left" data-action="select-flight-for-dtc" data-family="${fam}" data-gid="${gid}">
         <div class="line1">${f.name}</div>
         <div class="line2">${meta}</div>
       </div>
