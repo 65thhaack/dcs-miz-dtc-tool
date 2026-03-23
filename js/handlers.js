@@ -315,6 +315,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ── Drag & Drop ───────────────────────────────────────────────────────────────
 
+// Prevent browser from opening dropped files when they land outside a card
+document.addEventListener('dragover', e => e.preventDefault());
+document.addEventListener('drop', e => e.preventDefault());
+
 for (const id of ['miz-card', 'dtc-card']) {
   const card = document.getElementById(id);
   if (!card) continue;
