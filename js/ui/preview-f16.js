@@ -87,7 +87,7 @@ export function buildF16PreviewHtml(flight, family) {
         <td>${lonDecimalMinutes(wp.lon)}</td>
         <td>${wp.alt_ft.toLocaleString()} <span style="color:var(--muted);font-size:10px">ft</span></td>
       </tr>
-      <tr class="tgt-data-row" id="pvtdr-${flight.groupId}-${originalIdx}"${wp.pointType === 'TGT' ? '' : ' style="display:none"'}>
+      <tr class="tgt-data-row" id="pvtdr-${flight.groupId}-${originalIdx}" style="display:${wp.pointType === 'TGT' ? 'table-row' : 'none'}">`
         <td></td>
         <td colspan="5">
           <div class="tgt-data-wrap">
