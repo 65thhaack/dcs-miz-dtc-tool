@@ -107,9 +107,9 @@ export function renderFlights(flights, cfg) {
         ${chips ? `<div class="unit-chips" style="flex-basis:100%;padding-top:8px;margin-top:4px;border-top:1px solid var(--border)">${chips}</div>` : ''}
       </div>
       <div class="tabs" id="tabs-${cfg.cardPrefix}-${fl.groupId}">
-        <button class="tab flight-tab active" type="button" data-card-prefix="${cfg.cardPrefix}" data-group-id="${safeGroupIdAttr}" data-panel="wpt">Waypoints</button>
-        <button class="tab flight-tab" type="button" data-card-prefix="${cfg.cardPrefix}" data-group-id="${safeGroupIdAttr}" data-panel="c1">COM1 - UHF</button>
-        <button class="tab flight-tab" type="button" data-card-prefix="${cfg.cardPrefix}" data-group-id="${safeGroupIdAttr}" data-panel="c2">COM2 - VHF</button>
+        <button class="tab flight-tab active" type="button" data-action="on-flight-tab-click" data-card-prefix="${cfg.cardPrefix}" data-group-id="${safeGroupIdAttr}" data-panel="wpt">Waypoints</button>
+        <button class="tab flight-tab" type="button" data-action="on-flight-tab-click" data-card-prefix="${cfg.cardPrefix}" data-group-id="${safeGroupIdAttr}" data-panel="c1">COM1 - UHF</button>
+        <button class="tab flight-tab" type="button" data-action="on-flight-tab-click" data-card-prefix="${cfg.cardPrefix}" data-group-id="${safeGroupIdAttr}" data-panel="c2">COM2 - VHF</button>
       </div>
       <div class="tab-content">
         <div class="tab-panel active" id="tp-${cfg.cardPrefix}-${fl.groupId}-wpt">
