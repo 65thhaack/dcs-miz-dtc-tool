@@ -159,6 +159,11 @@ export function buildDtcNative(flight) {
       isTOSEnabled: true,
       note: wp.name || '',
       number: n,
+      ...(wp.pointType === 'TGT' && wp.targetData ? {
+        vrp_bearing:  wp.targetData.vrpBearing,
+        vrp_range:    parseFloat(wp.targetData.vrpRange.toFixed(2)),
+        pup_distance: parseFloat(wp.targetData.pupDistance.toFixed(2)),
+      } : {}),
       OAP_1_Alt: 0,
       OAP_1_Bearing: 0,
       OAP_1_DeltaX: 0,

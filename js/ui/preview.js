@@ -264,6 +264,13 @@ export function assignPersonalDtcToFlight(family, flight, normalized, fileName) 
       if (!navWps[i]) return;
       if (pt.type && pt.type !== 'STPT') navWps[i].pointType = pt.type;
       if (pt.note) navWps[i].name = pt.note;
+      if (pt.vrp_bearing != null || pt.vrp_range != null || pt.pup_distance != null) {
+        navWps[i].targetData = {
+          vrpBearing:  pt.vrp_bearing  ?? navWps[i].targetData?.vrpBearing  ?? 0,
+          vrpRange:    pt.vrp_range    ?? navWps[i].targetData?.vrpRange    ?? 0,
+          pupDistance: pt.pup_distance ?? navWps[i].targetData?.pupDistance ?? 0,
+        };
+      }
     });
   }
 
