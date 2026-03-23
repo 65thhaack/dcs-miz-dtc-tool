@@ -119,6 +119,12 @@ export function restoreMissionDtcForFlight(family, groupId) {
   state.missionDtcFileName = null;
   flight.inlinePreviewTab = 'wpt';
 
+  // If a personal DTC is assigned, restore means re-apply it from scratch (keep it assigned).
+  // If no personal DTC, this is a full reset back to .miz state.
+  const savedDtc = flight.personalDtc ? deepClone(flight.personalDtc) : null;
+  const savedDtcFileName = flight.personalDtcFileName;
+  const savedMergeOptions = flight.dtcMergeOptions ? { ...flight.dtcMergeOptions } : undefined;
+
   delete flight.personalDtc;
   delete flight.personalDtcFileName;
   delete flight.f16CmdsPrograms;
@@ -148,7 +154,14 @@ export function restoreMissionDtcForFlight(family, groupId) {
     flight.waypoints.forEach(w => { w.pointType = 'STPT'; });
   }
 
-  // If no other flights have a personal DTC, clear the global merge pill
+  // If a personal DTC was assigned, re-apply it (restoring to its originally-merged state)
+  if (savedDtc) {
+    if (savedMergeOptions) flight.dtcMergeOptions = savedMergeOptions;
+    assignPersonalDtcToFlight(family, flight, savedDtc, savedDtcFileName);
+    return;
+  }
+
+  // Full reset — no personal DTC remains
   const anyPersonal = [...state.f16Flights, ...state.f18Flights].some(f => f.personalDtc);
   if (!anyPersonal) {
     document.getElementById('merge-pill').style.display = 'none';
