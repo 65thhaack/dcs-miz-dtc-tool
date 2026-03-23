@@ -274,7 +274,10 @@ function clearMiz(e) {
   document.getElementById('map-all-btn').style.display = 'none';
   showStatus('');
   document.querySelectorAll('.inline-preview-panel.open').forEach(panel => {
-    previewDtc(panel.dataset.family, panel.dataset.gid);
+    const flights = panel.dataset.family === 'f18' ? state.f18Flights : state.f16Flights;
+    if (flights.some(f => String(f.groupId) === String(panel.dataset.gid))) {
+      previewDtc(panel.dataset.family, panel.dataset.gid);
+    }
   });
 }
 
