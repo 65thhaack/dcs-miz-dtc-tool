@@ -74,13 +74,10 @@ export function buildF16PreviewHtml(flight, family) {
           <select class="pttype pt-${type}"
             data-gid="${flight.groupId}" data-idx="${originalIdx}"
             data-action="set-wp-type">
+            ${ !['STPT','IP','TGT'].includes(wp.pointType) ? `<option value="${wp.pointType}" selected disabled>${wp.pointType}</option>` : '' }
             <option value="STPT"${wp.pointType==='STPT'?' selected':''}>○  STPT</option>
             <option value="IP"  ${wp.pointType==='IP'  ?' selected':''}>□  IP</option>
             <option value="TGT" ${wp.pointType==='TGT' ?' selected':''}>△  TGT</option>
-            <option value="VRP" ${wp.pointType==='VRP' ?' selected':''}>◇  VRP</option>
-            <option value="PUP" ${wp.pointType==='PUP' ?' selected':''}>▽  PUP</option>
-            <option value="OA1" ${wp.pointType==='OA1' ?' selected':''}>①  OA1</option>
-            <option value="OA2" ${wp.pointType==='OA2' ?' selected':''}>②  OA2</option>
           </select>
         </td>
         <td>${latDecimalMinutes(wp.lat)}</td>
