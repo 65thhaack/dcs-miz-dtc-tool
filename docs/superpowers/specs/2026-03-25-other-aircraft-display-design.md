@@ -1,17 +1,18 @@
 # Other Aircraft Display — Design Spec
 
 **Date:** 2026-03-25
-**Status:** Approved
+**Status:** Approved (updated to include kneeboard support)
 
 ## Overview
 
-Add read-only display cards for all non-F-16C/F-18C player/client flights in a loaded `.miz` file. These cards show aircraft type, flight name, waypoints, and comm channels. No DTC export or editing functionality is provided. They appear below the F-16C and F/A-18C sections.
+Add display cards for all non-F-16C/F-18C player/client flights in a loaded `.miz` file. These cards show aircraft type, flight name, waypoints, and comm channels. They also support **kneeboard export** (same as F-16C/F-18C flights) — no DTC export. They appear below the F-16C and F/A-18C sections.
 
 ## Scope
 
 - **Included:** All `plane.group[]` and `helicopter.group[]` entries where at least one unit has `skill === "Client"` or `skill === "Player"`, and the aircraft type is not F-16C or F/A-18C.
 - **Excluded:** Purely AI flights, F-16C flights, F/A-18C flights.
-- **No DTC features:** No Preview/Edit button, no export controls, no personal DTC merge, no DTC pills.
+- **No DTC features:** No Preview/Edit for DTC, no DTC export, no personal DTC merge, no DTC pills.
+- **Kneeboard:** Export Kneeboard PNG button on each card; inline kneeboard editor panel (kneeboard tab only, no DTC tabs).
 
 ---
 
@@ -27,7 +28,8 @@ Add read-only display cards for all non-F-16C/F-18C player/client flights in a l
 3. Skip groups where no unit has `skill === "Client"` or `skill === "Player"`. Note: this is an intentional divergence from `extractFlightsByType`, which includes all matching groups regardless of skill. `extractOtherFlights` is player/client-exclusive by design — AI-only groups are excluded.
 4. For each qualifying group, extract:
    - `groupId`, `name`, `aircraftType` (from first unit's `type` — DCS groups are homogeneous by aircraft type so all units share the same type), `side`, `country`
-   - `units[]` — array of `{ name, callsign, skill }`
+   - `payloadSummary` — from `summarizePayload(units[0]?.payload)` (same helper used by `extractFlightsByType`; returns empty string if no payload data)
+   - `units[]` — array of `{ name, callsign, skill, tailNumber }` — `tailNumber` from `u.onboard_num || u.onboardNum || u.board_number || u.boardNumber || u.number || ''`
    - `waypoints[]` — same extraction logic as existing extractor (coordinate conversion, alt in ft, speed in kts). Coordinates stored as `lat`/`lon` (decimal degrees available from existing conversion).
    - `radios[]` — array of all `Radio[n]` channel objects found on the first unit (variable length, e.g. 2 for most aircraft, 3 for A-10C). Iterate `n = 1, 2, 3, ...` until `ref.Radio[n]` is undefined. Each entry is a plain object keyed by integer channel number with raw MHz float values: `{ 1: 305.0, 2: 264.0, ... }` — matching the shape of existing `radio1`/`radio2` fields. This shape is confirmed correct: the existing `comRows` helper uses `Number(radio[ch]).toFixed(3)`, which operates on scalar MHz floats.
 
@@ -36,16 +38,18 @@ Add read-only display cards for all non-F-16C/F-18C player/client flights in a l
 {
   groupId,
   name,
-  aircraftType,   // raw DCS type string, e.g. "A-10C_2", "Ka-50_3"
+  aircraftType,        // raw DCS type string, e.g. "A-10C_2", "Ka-50_3"
   side,
   country,
-  units: [{ name, callsign, skill }],
-  waypoints: [],  // same structure as existing extractor
-  radios: [],     // array of channel maps, one per radio { 1: MHz, 2: MHz, ... }
+  payloadSummary,      // string, may be empty
+  units: [{ name, callsign, skill, tailNumber }],
+  waypoints: [],       // same structure as existing extractor
+  radios: [],          // array of channel maps, one per radio { 1: MHz, 2: MHz, ... }
+  kneeboard: null,     // initialized lazily by ensureKneeboardDraft() on first use
 }
 ```
 
-No miz/working-copy split. These flights are display-only; a single set of fields suffices.
+No miz/working-copy split. These flights have no DTC; `kneeboard` is the only mutable field.
 
 **Storage:** `state.otherFlights = extractOtherFlights(mission, state.theater)`
 
@@ -65,22 +69,22 @@ No miz/working-copy split. These flights are display-only; a single set of field
 
 ### Card structure
 
-Matches the existing collapsed card style (`.flight-card.collapsed`):
-
 ```
-┌─────────────────────────────────────────────────────┐
-│ ▼  A-10C II · HAWG 1-1                              │
-│    blue · USA · 4 aircraft · 12 route points         │
-├─────────────────────────────────────────────────────┤
-│  [Pilot1] [Pilot2] [Pilot3] [Pilot4]                │
-├─────────────────────────────────────────────────────┤
-│  Waypoints │ COM1 │ COM2 │ COM3                      │
-├─────────────────────────────────────────────────────┤
-│  Waypoints table / COM table (active tab)            │
-└─────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│ ▼  A-10C II · HAWG 1-1                          [📥 Kneeboard]│
+│    blue · USA · 4 aircraft · 12 route points                 │
+├─────────────────────────────────────────────────────────────┤
+│  [Pilot1] [Pilot2] [Pilot3] [Pilot4]                        │
+├─────────────────────────────────────────────────────────────┤
+│  Waypoints │ COM1 │ COM2 │ COM3                              │
+├─────────────────────────────────────────────────────────────┤
+│  Waypoints table / COM table (active tab)                   │
+├─────────────────────────────────────────────────────────────┤
+│  [inline kneeboard panel — hidden until opened]             │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-**Header:** aircraft type label + flight name; meta line with side · country · unit count · waypoint count.
+**Header:** aircraft type label + flight name; meta line with side · country · unit count · waypoint count. Right side: "📥 Kneeboard" button (`data-action="export-flight-kneeboard"`, `data-family="other"`, `data-gid`).
 
 **Tabs:** Waypoints tab (always first, `data-panel="wpt"`) + one COM tab per entry in `radios[]`, labeled COM1, COM2, COM3… with `data-panel="c1"`, `data-panel="c2"`, `data-panel="c3"`, etc. (one-indexed, `c`-prefixed — matching the existing F-16/F-18 convention used by `on-flight-tab-click`). Corresponding panel `id` attributes must use the same suffix: `tp-other-${groupId}-c1`, `tp-other-${groupId}-c2`, etc. If `radios` is empty, only the Waypoints tab is shown.
 
@@ -88,15 +92,17 @@ Matches the existing collapsed card style (`.flight-card.collapsed`):
 
 - Unlike F-16/F-18 cards, the **Type**, **Role**, and **Speed** columns are omitted — no DTC steerpoint type selection is needed and speed is not relevant for display-only context.
 - Coordinates in **decimal degrees** (e.g. `36.4094° N`, `041.7823° E`) — chosen because these are display-only cards with no DTC steerpoint format requirements (unlike F-16 decimal-minutes or F/A-18 DMS).
-- Takeoff/land rows may be shown or skipped; follow the same pattern as existing cards (skip `isTakeoff`/`isLand` rows).
+- Takeoff/land rows are skipped (same as existing cards).
 
 **COM tables:** Channel # | Frequency (MHz) — same as existing. Empty fallback: `<tr><td colspan="2">No COM data</td></tr>`.
+
+**Inline kneeboard panel:** An `.inline-preview-panel` element appended after `.tab-content` with `data-family="other"` and `data-gid`. It contains the kneeboard tab HTML generated by `buildKneeboardTabHtml(flight, 'other')` from `js/kneeboard/preview.js`. It is initially hidden and toggled by clicking the "📥 Kneeboard" button in the header (using `data-action="export-flight-kneeboard"` which calls `exportFlightKneeboard` — or alternatively, a dedicated "open kneeboard panel" action). **Decision:** Use the existing `export-flight-kneeboard` action directly (exports PNG without editor) OR add a "Kneeboard Editor" button that opens the panel. Since `buildKneeboardTabHtml` already contains its own Export and Restore buttons, the inline panel IS the kneeboard editor. The card should have a toggle button that shows/hides the inline kneeboard panel.
 
 **Collapse toggle:** Click on `.flight-head-left` to expand/collapse. `toggleFlightFromHead` is pure DOM (toggles `.collapsed` CSS class only) and works on any `.flight-card` without modification.
 
 **Section count badge:** Call `setSectionCount('other', flights.length)` from `renderOtherFlights` (reusing the existing `setSectionCount` helper). The section header in `index.html` must include a `<span class="section-count" id="section-count-other"></span>`.
 
-**No:** Preview/Edit button, export button, DTC pills, inline preview panel.
+**No:** DTC Preview/Edit button, DTC export, personal DTC merge, DTC pills.
 
 ---
 
@@ -129,23 +135,62 @@ The wrapper `<div id="other-section">` starts hidden (`style="display:none"`). I
 
 ---
 
-## 4. Handler Wiring
+## 4. Handler Wiring & Support Changes
 
 ### Changes to `js/handlers.js`
 
-1. Import `extractOtherFlights` from `js/miz/extractor.js`.
+1. Merge `extractOtherFlights` into the existing extractor import line.
 2. Import `renderOtherFlights` from `js/ui/other-flight-cards.js`.
 3. After the F-16/F-18 extraction calls, add:
    ```js
    state.otherFlights = extractOtherFlights(mission, state.theater);
    renderOtherFlights(state.otherFlights);
-   // show/hide Other Aircraft section
    const otherSection = document.getElementById('other-section');
    if (otherSection) otherSection.style.display = state.otherFlights.length ? '' : 'none';
    ```
 4. Wire collapse toggle for other-flight cards using the existing delegated event handler pattern (same `data-action="toggle-flight-from-head"` attribute on `.flight-head-left`). No handler changes needed.
-5. In `clearMiz`: **required** — set `state.otherFlights = []`, call `renderOtherFlights([])` to clear the container, and set `document.getElementById('other-section').style.display = 'none'`. This is the only reset path for `otherFlights`; omitting it leaves stale cards visible after the user clears the mission.
-6. Do NOT modify `allFlights()` in `js/utils.js`. That utility feeds `clearPersonalDtc` and `findFlightById`, which have no relevance to display-only other-aircraft flights. Other aircraft intentionally have no personal DTC or standalone mode.
+5. In `clearMiz`: **required** — insert immediately before the `if (state.f16Flights.length === 0 && state.f18Flights.length === 0)` line:
+   ```js
+   state.otherFlights = [];
+   renderOtherFlights([]);
+   const otherSection = document.getElementById('other-section');
+   if (otherSection) otherSection.style.display = 'none';
+   ```
+
+### Changes to `js/utils.js`
+
+**Update `allFlights()`** to include `state.otherFlights`:
+```js
+export function allFlights() {
+  return [...state.f16Flights, ...state.f18Flights, ...state.otherFlights];
+}
+```
+This is **required** for kneeboard support: all kneeboard editor actions (`setKneeboardField`, `setKneeboardUnitCallsign`, etc.) use `findFlightById(gid)` which calls `allFlights()`. Without this change, kneeboard editing for other-aircraft flights will silently fail (flight not found → no-op).
+
+Note: `clearPersonalDtc` also uses `allFlights()` — it iterates and deletes `personalDtc` from each flight. Other-aircraft flights don't have `personalDtc`, so this is a harmless no-op. `findFlightById` will now correctly find other-aircraft flights.
+
+### Changes to `js/kneeboard/export.js`
+
+**Update `pickFlight()`** to handle `family === 'other'`:
+```js
+function pickFlight(family, groupId) {
+  const flights = family === 'f18' ? state.f18Flights
+                : family === 'other' ? state.otherFlights
+                : state.f16Flights;
+  return flights.find(f => String(f.groupId) === String(groupId));
+}
+```
+
+### Changes to `js/kneeboard/preview.js`
+
+**Update `buildKneeboardTabHtml()`** title display for `family === 'other'`. Currently:
+```js
+`${flight.name || 'FLIGHT'} · ${family === 'f18' ? 'F/A-18C' : 'F-16C'}`
+```
+Update to show actual aircraft type for other flights:
+```js
+`${flight.name || 'FLIGHT'} · ${family === 'f18' ? 'F/A-18C' : family === 'other' ? (flight.aircraftType || 'OTHER') : 'F-16C'}`
+```
 
 ---
 
@@ -155,9 +200,12 @@ The wrapper `<div id="other-section">` starts hidden (`style="display:none"`). I
 |------|--------|
 | `js/state.js` | Add `otherFlights: []` to initial state |
 | `js/miz/extractor.js` | Add `extractOtherFlights()` |
-| `js/ui/other-flight-cards.js` | **New** — `renderOtherFlights()` |
-| `js/handlers.js` | Import + call both new functions; show/hide section; update `clearMiz` |
-| `index.html` | Add Other Aircraft section inside `#results`; import new module |
+| `js/utils.js` | Add `state.otherFlights` to `allFlights()` |
+| `js/kneeboard/export.js` | Add `family === 'other'` branch to `pickFlight()` |
+| `js/kneeboard/preview.js` | Fix aircraft type label in title for `family === 'other'` |
+| `js/ui/other-flight-cards.js` | **New** — `renderOtherFlights()` with kneeboard panel |
+| `js/handlers.js` | Import + call new functions; update `clearMiz` |
+| `index.html` | Add Other Aircraft section inside `#results` |
 | `styles.css` | Minimal or none — reuse existing `.flight-card` classes |
 
 ---
@@ -166,5 +214,7 @@ The wrapper `<div id="other-section">` starts hidden (`style="display:none"`). I
 
 - Editing waypoints or radio presets for other aircraft
 - DTC export for any other aircraft type
+- Personal DTC merge for other aircraft
+- Standalone (DTC-only) mode for other aircraft
 - Filtering by coalition side
 - Map integration for other aircraft waypoints
