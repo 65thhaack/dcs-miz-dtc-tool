@@ -1,6 +1,7 @@
 import { state } from '../state.js';
 import { downloadBlob, sanitizeFilename } from '../utils.js';
 import { ensureKneeboardDraft, restoreKneeboardDraft } from './model.js';
+import { formatRunways } from '../airfields/lookup.js';
 import { previewDtc } from '../ui/preview.js';
 
 function pickFlight(family, groupId) {
@@ -334,7 +335,18 @@ async function buildKneeboardPngBlob(flight, family) {
   ctx.fillText(`DATE ${kb.missionDate || ''}   TIME ${kb.missionTimeZulu || ''}   TYPE ${kb.missionType || ''}`, 70, 145);
   ctx.fillText(`WX ${kb.weather || ''}`, 70, 175);
 
-  let y = 208;
+  // Airfield information
+  let airfieldText = 'AIRFIELD —';
+  if (kb.destinationAirfield) {
+    const adr = kb.destinationAirfield;
+    const elev = adr.elevation ? `${adr.elevation}ft` : '—';
+    const runways = formatRunways(adr.runways || []);
+    const tacan = adr.tacan ? `${adr.tacan.callsign} ${adr.tacan.channel}${adr.tacan.modeChannel}` : '—';
+    airfieldText = `AIRFIELD ${adr.name || adr.callsign} (${elev}, TACAN: ${tacan}, Runways: ${runways})`;
+  }
+  ctx.fillText(airfieldText, 70, 200);
+
+  let y = 233;
 
   // Payload / loadout summary line (wrapping)
   ctx.fillStyle = '#2b2417';

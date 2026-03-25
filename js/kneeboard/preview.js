@@ -1,6 +1,7 @@
 import { escapeAttr } from '../utils.js';
 import { state } from '../state.js';
 import { ensureKneeboardDraft } from './model.js';
+import { formatRunways } from '../airfields/lookup.js';
 
 function routeRows(flight) {
   const kb = ensureKneeboardDraft(flight);
@@ -89,6 +90,30 @@ function assetsRows() {
       <td>${a.alt_ft > 0 ? a.alt_ft.toLocaleString() : '—'}</td>
     </tr>
   `).join('');
+}
+
+function airfieldSection(kb) {
+  if (!kb.destinationAirfield) {
+    return `
+        <section style="margin-bottom: 1rem">
+          <h4 style="margin: 0 0 0.5rem 0; font-size: 11px; font-weight: bold; color: #2f2618;">AIRFIELD</h4>
+          <div style="font-size: 10px; color: var(--muted)">Not detected from mission</div>
+        </section>`;
+  }
+
+  const adr = kb.destinationAirfield;
+  const elevation = adr.elevation ? `${adr.elevation.toLocaleString()} ft` : '—';
+  const tacan = adr.tacan ? `${adr.tacan.callsign} ${adr.tacan.channel}${adr.tacan.modeChannel}` : '—';
+  const runways = formatRunways(adr.runways || []);
+
+  return `
+        <section style="margin-bottom: 1rem">
+          <h4 style="margin: 0 0 0.5rem 0; font-size: 11px; font-weight: bold; color: #2f2618;">AIRFIELD</h4>
+          <div style="font-size: 10px; margin-bottom: 0.3rem">
+            <strong>${escapeAttr(adr.name || adr.callsign)}</strong> · El ${elevation} · TACAN: ${escapeAttr(tacan)}<br>
+            Runways: ${escapeAttr(runways)}
+          </div>
+        </section>`;
 }
 
 export function renderKneeboardMiniMap(flight) {
@@ -200,6 +225,8 @@ export function buildKneeboardTabHtml(flight, family) {
             <tbody>${routeRows(flight)}</tbody>
           </table>
         </section>
+
+        ${airfieldSection(kb)}
 
         <section style="margin-bottom: 1rem">
           <h4 style="margin: 0 0 0.4rem 0; font-size: 10px; font-weight: bold; color: #2f2618;">ASSETS (TANKERS / AWACS / CARRIERS)</h4>

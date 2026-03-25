@@ -686,6 +686,19 @@
       line-height: 1;
     }
     .wp-del-btn:hover { opacity: 1; color: #e05252; }
+    .wp-alt-inp, .wp-speed-inp, .wp-tos-inp {
+      background: var(--bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 3px 6px;
+      font-size: 12px;
+      font-family: var(--mono);
+      width: 60px;
+      text-align: right;
+    }
+    .wp-tos-inp { width: 72px; text-align: center; }
+    .wp-alt-inp:focus, .wp-speed-inp:focus, .wp-tos-inp:focus { outline: none; border-color: var(--accent); }
     .nav-settings-group-row td {
       padding: 10px 10px 4px;
       color: var(--accent);

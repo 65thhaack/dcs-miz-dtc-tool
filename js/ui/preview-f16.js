@@ -31,6 +31,36 @@ export function buildF16PreviewHtml(flight, family) {
   let steerRows = '';
   const hasDtcNav = isMissionDtcView && dtc.Navigation?.Steerpoints;
 
+  // Helper to format TOS (seconds) as H:MM:SS
+  const formatTos = (secs) => {
+    const h = Math.floor(secs / 3600);
+    const m = Math.floor((secs % 3600) / 60);
+    const s = Math.floor(secs % 60);
+    return `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+  };
+
+  // Calculate default TOS values for display (cumulative time based on distance/speed)
+  const calcDefaultTos = (waypoints) => {
+    const navWps = waypoints.filter(w => !w.isTakeoff && !w.isLand);
+    const tosValues = [];
+    let tos = 3600; // Start at 1 hour (same as builder)
+    for (let i = 0; i < navWps.length; i++) {
+      if (i === 0) {
+        tosValues.push(tos);
+      } else {
+        const wp = navWps[i];
+        const prev = navWps[i - 1];
+        const dx = (wp.x || 0) - (prev.x || 0);
+        const dy = (wp.y || 0) - (prev.y || 0);
+        const distM = Math.hypot(dx, dy);
+        const speedMs = (wp.speed_ms > 0 ? wp.speed_ms : (prev.speed_ms > 0 ? prev.speed_ms : 220));
+        tos += distM / speedMs;
+        tosValues.push(tos);
+      }
+    }
+    return tosValues;
+  };
+
   if (hasDtcNav) {
     // Read-only steerpoints from DTC
     steerRows = dtc.Navigation.Steerpoints.map((pt, idx) => {
@@ -51,9 +81,13 @@ export function buildF16PreviewHtml(flight, family) {
     const navWps = flight.waypoints
       .map((wp, originalIdx) => ({ wp, originalIdx }))
       .filter(({ wp }) => !wp.isTakeoff && !wp.isLand);
+    // Calculate default TOS values for each steerpoint
+    const defaultTosValues = calcDefaultTos(flight.waypoints);
     steerRows = navWps.map(({ wp, originalIdx }, steerIdx) => {
       const stNum = steerIdx + 1;
       const type  = (wp.pointType || 'STPT').toLowerCase();
+      // Use stored TOS if available, otherwise use calculated default
+      const tosValue = wp.tos !== undefined ? wp.tos : (defaultTosValues[steerIdx] || 3600);
       return `
       <tr>
         <td style="width:20px;padding:0 4px 0 0">
@@ -83,11 +117,44 @@ export function buildF16PreviewHtml(flight, family) {
         </td>
         <td>${latDecimalMinutes(wp.lat)}</td>
         <td>${lonDecimalMinutes(wp.lon)}</td>
-        <td>${wp.alt_ft.toLocaleString()} <span style="color:var(--muted);font-size:10px">ft</span></td>
+        <td>
+          <input
+            class="wp-alt-inp"
+            type="number"
+            min="0"
+            step="100"
+            value="${Math.round(wp.alt_m || 0)}"
+            data-gid="${flight.groupId}"
+            data-idx="${originalIdx}"
+            data-action="set-waypoint-alt">
+          <span style="color:var(--muted);font-size:10px">m</span>
+        </td>
+        <td>
+          <input
+            class="wp-speed-inp"
+            type="number"
+            min="0"
+            step="10"
+            value="${wp.speed_kts || 0}"
+            data-gid="${flight.groupId}"
+            data-idx="${originalIdx}"
+            data-action="set-waypoint-speed">
+          <span style="color:var(--muted);font-size:10px">kts</span>
+        </td>
+        <td>
+          <input
+            class="wp-tos-inp"
+            type="text"
+            value="${formatTos(tosValue)}"
+            data-gid="${flight.groupId}"
+            data-idx="${originalIdx}"
+            data-action="set-waypoint-tos"
+            title="Time Over Steerpoint (H:MM:SS)">
+        </td>
       </tr>
       <tr class="tgt-data-row" id="pvtdr-${flight.groupId}-${originalIdx}" style="display:${wp.pointType === 'TGT' ? 'table-row' : 'none'}">
         <td></td>
-        <td colspan="5">
+        <td colspan="8">
           <div class="tgt-data-wrap">
             <label>VRP Bearing (°)
               <input class="tgt-inp" type="number" min="0" max="360" step="1"
@@ -175,8 +242,8 @@ export function buildF16PreviewHtml(flight, family) {
   const bodyHtml = `
       <div class="tab-panel${activeTab==='wpt' ? ' active' : ''}" data-ipanel="wpt">
         <table>
-          <thead><tr>${hasDtcNav ? '<th>#</th><th>Name</th><th>Type</th><th>Latitude</th><th>Longitude</th><th>Altitude</th><th>Speed</th>' : '<th></th><th>Waypoint</th><th>Name</th><th>Role</th><th>Latitude</th><th>Longitude</th><th>Altitude</th>'}</tr></thead>
-          <tbody>${steerRows || '<tr><td colspan="7" style="color:var(--muted);text-align:center">No steerpoints</td></tr>'}</tbody>
+          <thead><tr>${hasDtcNav ? '<th>#</th><th>Name</th><th>Type</th><th>Latitude</th><th>Longitude</th><th>Altitude</th><th>Speed</th>' : '<th></th><th>#</th><th>Name</th><th>Role</th><th>Latitude</th><th>Longitude</th><th>Alt (m)</th><th>Speed</th><th>TOS</th>'}</tr></thead>
+          <tbody>${steerRows || '<tr><td colspan="9" style="color:var(--muted);text-align:center">No steerpoints</td></tr>'}</tbody>
         </table>
       </div>
       <div class="tab-panel${activeTab==='c1' ? ' active' : ''}" data-ipanel="c1">

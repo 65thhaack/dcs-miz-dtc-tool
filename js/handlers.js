@@ -2,15 +2,16 @@
 import { state } from './state.js';
 import { deepClone, allFlights, queueSelectInputContents, showStatus } from './utils.js';
 import { LuaParser } from './miz/lua-parser.js';
-import { extractFlightsByType, extractTacanCandidates, extractAssets, isF16Type, isF18Type } from './miz/extractor.js';
+import { extractFlightsByType, extractTacanCandidates, extractAssets, extractAirdromes, isF16Type, isF18Type } from './miz/extractor.js';
 import { normalizeDtc } from './dtc/normalize.js';
 import { exportFlightDtc, exportFlightButton } from './dtc/export.js';
 import { exportFlightKneeboard, restoreKneeboardForFlight } from './kneeboard/export.js';
 import { renderFlights, updateSectionVisibility, rerenderFlightCards, toggleFlightFromHead, toggleSection } from './ui/flight-cards.js';
 import { previewDtc, closeInlinePreview, previewFlightButton, switchInlinePreviewTabBtn, restoreMissionDtcForFlight, viewMissionDtcForFlight, importDtcForFlight, handleFlightImportDtcFile } from './ui/preview.js';
-import { setWpType, setTargetData, setWaypointName, removeWaypoint, setCommChannelField, setF18CommGuard, setF18NavSetting, setF18TacanSelected, setCmdsField, setKneeboardField, setKneeboardLoadoutField, setKneeboardUnitCallsign, setKneeboardUnitTailNumber, setKneeboardRouteField, setKneeboardUnitCode } from './ui/editors.js';
+import { setWpType, setTargetData, setWaypointName, setWaypointAlt, setWaypointSpeed, setWaypointTos, removeWaypoint, setCommChannelField, setF18CommGuard, setF18NavSetting, setF18TacanSelected, setCmdsField, setKneeboardField, setKneeboardLoadoutField, setKneeboardUnitCallsign, setKneeboardUnitTailNumber, setKneeboardRouteField, setKneeboardUnitCode } from './ui/editors.js';
 import { openFlightSelectDialogForDtc, selectFlightForPendingDtc, closeFlightSelectDialog } from './ui/modals.js';
 import { showPreviewFlightMap, showAllFlightsMap, setMapTile, closeFlightMap, removeWaypointFromMap } from './map/map.js';
+import { loadAirfieldData } from './airfields/runways.js';
 
 // ── Event delegation maps ─────────────────────────────────────────────────────
 
@@ -59,6 +60,9 @@ const CHANGE_ACTIONS = {
 
 const INPUT_ACTIONS = {
   'set-waypoint-name':      (el) => setWaypointName(el),
+  'set-waypoint-alt':       (el) => setWaypointAlt(el),
+  'set-waypoint-speed':     (el) => setWaypointSpeed(el),
+  'set-waypoint-tos':       (el) => setWaypointTos(el),
   'set-comm-channel-field': (el) => setCommChannelField(el),
   'set-f18-nav-setting':    (el) => setF18NavSetting(el),
   'set-target-data':        (el) => setTargetData(el),
@@ -169,6 +173,13 @@ async function handleMizFile(file) {
     state.f16Flights = extractFlightsByType(mission, state.theater, isF16Type, 'F-16C_50');
     state.f18Flights = extractFlightsByType(mission, state.theater, isF18Type, 'FA-18C_hornet');
     state.assets = extractAssets(mission, state.theater);
+    state.airdromes = extractAirdromes(mission, state.theater);
+
+    // Attach mission airdrome data to each flight
+    const allExtractedFlights = [...state.f16Flights, ...state.f18Flights];
+    for (const flight of allExtractedFlights) {
+      flight.missionAirdromes = state.airdromes;
+    }
     if (hadStandalone) {
       document.getElementById('merge-pill').style.display = 'none';
     }
@@ -321,7 +332,10 @@ document.getElementById('dtc-input').addEventListener('change', async e => {
   await handleDtcFile(e.target.files[0]);
 });
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  // Load airfield and runway data from JSON files
+  await loadAirfieldData();
+
   const importInput = document.getElementById('flight-import-dtc-input');
   if (!importInput) return;
   importInput.addEventListener('change', async e => {

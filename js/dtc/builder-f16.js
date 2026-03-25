@@ -129,21 +129,24 @@ export function buildDtcNative(flight) {
   // ── NAV — native NAV_PTS from mission (exclude takeoff/landing) ──────────
   const navWps = flight.waypoints.filter(w => !w.isTakeoff && !w.isLand);
   const navPts = [];
-  let tos = 3600;
+  let calcTos = 3600;
   for (let i = 0; i < navWps.length; i++) {
     const wp = navWps[i];
     const n = i + 1;
     const type = wp.pointType || 'STPT';
     const navId = `STPT${n}`;
 
+    // Calculate TOS based on distance/speed if not explicitly set
     if (i > 0) {
       const prev = navWps[i - 1];
       const dx = (wp.x || 0) - (prev.x || 0);
       const dy = (wp.y || 0) - (prev.y || 0);
       const distM = Math.hypot(dx, dy);
       const speedMs = (wp.speed_ms > 0 ? wp.speed_ms : (prev.speed_ms > 0 ? prev.speed_ms : 220));
-      tos += distM / speedMs;
+      calcTos += distM / speedMs;
     }
+    // Use stored TOS if available, otherwise use calculated value
+    const tos = wp.tos !== undefined ? wp.tos : (i === 0 ? 3600 : calcTos);
 
     navPts.push({
       alt: Math.max(0, Math.round(wp.alt_m || 0)),
@@ -183,7 +186,7 @@ export function buildDtcNative(flight) {
       R3: false,
       routeAltitude: Math.max(0, Math.round(wp.alt_ft || 0)),
       speed: Math.round((wp.speed_ms || 0) * 3.6),
-      TOS: i === 0 ? 3600 : tos,
+      TOS: tos,
       type,
       velocityType: 3,
       x: wp.x || 0,

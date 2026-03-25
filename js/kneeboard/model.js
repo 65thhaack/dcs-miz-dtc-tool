@@ -1,4 +1,6 @@
 import { deepClone } from '../utils.js';
+import { findBestAirdrome } from '../airfields/lookup.js';
+import { state } from '../state.js';
 
 function defaultLoadoutRows() {
   return Array.from({ length: 9 }, (_, i) => ({
@@ -44,6 +46,13 @@ export function createKneeboardDraft(flight) {
       unitLaserCodes[i] = code;
     });
   }
+
+  // Auto-detect destination airfield (prefer spawn, fallback to destination)
+  let destinationAirfield = null;
+  if (flight && state.theater) {
+    destinationAirfield = findBestAirdrome(flight, state.theater);
+  }
+
   return {
     missionDate,
     missionTot: '',
@@ -62,6 +71,7 @@ export function createKneeboardDraft(flight) {
     unitLaserCodes,
     routeData: defaultRouteData(flight),
     loadout: defaultLoadoutRows(),
+    destinationAirfield: destinationAirfield || null,
     _baseLoadout: defaultLoadoutRows(),
     _createdAt: Date.now(),
     _flightName: flight?.name || 'Flight',
@@ -109,6 +119,9 @@ export function ensureKneeboardDraft(flight) {
       flight.kneeboard.routeData[idx] = { tot: '', push: '', remarks: '' };
     }
   });
+  if (!flight.kneeboard.destinationAirfield && flight && state.theater) {
+    flight.kneeboard.destinationAirfield = findBestAirdrome(flight, state.theater);
+  }
   return flight.kneeboard;
 }
 

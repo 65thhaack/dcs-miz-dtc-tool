@@ -1,0 +1,6255 @@
+{
+  "Afghanistan": {
+    "Herat": {
+      "runways": [
+        {
+          "heading1": "17",
+          "heading2": "35",
+          "length": 2718,
+          "width": 60
+        }
+      ]
+    },
+    "Farah": {
+      "runways": [
+        {
+          "heading1": "03",
+          "heading2": "21",
+          "length": 2130,
+          "width": 45
+        }
+      ]
+    },
+    "Shindand": {
+      "runways": [
+        {
+          "heading1": "36",
+          "heading2": "18",
+          "length": 2143,
+          "width": 50
+        }
+      ]
+    },
+    "Maymana Zahiraddin Faryabi": {
+      "runways": [
+        {
+          "heading1": "04",
+          "heading2": "22",
+          "length": 1689,
+          "width": 20
+        }
+      ]
+    },
+    "Chaghcharan": {
+      "runways": [
+        {
+          "heading1": "11",
+          "heading2": "29",
+          "length": 1740,
+          "width": 20
+        }
+      ]
+    },
+    "Qala i Naw": {
+      "runways": [
+        {
+          "heading1": "14",
+          "heading2": "32",
+          "length": 1863,
+          "width": 20
+        }
+      ]
+    },
+    "Kandahar": {
+      "runways": [
+        {
+          "heading1": "13",
+          "heading2": "31",
+          "length": 2980,
+          "width": 60
+        }
+      ]
+    },
+    "Bost": {
+      "runways": [
+        {
+          "heading1": "35",
+          "heading2": "17",
+          "length": 1755,
+          "width": 45
+        }
+      ]
+    },
+    "Tarinkot": {
+      "runways": [
+        {
+          "heading1": "24",
+          "heading2": "06",
+          "length": 1799,
+          "width": 60
+        }
+      ]
+    },
+    "Camp Bastion": {
+      "runways": [
+        {
+          "heading1": "35",
+          "heading2": "17",
+          "length": 3245,
+          "width": 65
+        }
+      ]
+    },
+    "Dwyer": {
+      "runways": [
+        {
+          "heading1": "31",
+          "heading2": "13",
+          "length": 2273,
+          "width": 60
+        }
+      ]
+    },
+    "Nimroz": {
+      "runways": [
+        {
+          "heading1": "22",
+          "heading2": "04",
+          "length": 2116,
+          "width": 45
+        }
+      ]
+    },
+    "Camp Bastion Heliport": {
+      "runways": [
+        {
+          "heading1": "35",
+          "heading2": "17",
+          "length": 387,
+          "width": 45
+        }
+      ]
+    },
+    "Shindand Heliport": {
+      "runways": [
+        {
+          "heading1": "36",
+          "heading2": "18",
+          "length": 209,
+          "width": 45
+        }
+      ]
+    },
+    "Kandahar Heliport": {
+      "runways": [
+        {
+          "heading1": "13",
+          "heading2": "31",
+          "length": 218,
+          "width": 45
+        }
+      ]
+    },
+    "Bagram": {
+      "runways": [
+        {
+          "heading1": "15",
+          "heading2": "33",
+          "length": 3388,
+          "width": 60
+        },
+        {
+          "heading1": "15",
+          "heading2": "33",
+          "length": 3388,
+          "width": 60
+        }
+      ]
+    },
+    "Kabul": {
+      "runways": [
+        {
+          "heading1": "26",
+          "heading2": "08",
+          "length": 3167,
+          "width": 65
+        }
+      ]
+    },
+    "Bamyan": {
+      "runways": [
+        {
+          "heading1": "29",
+          "heading2": "11",
+          "length": 1903,
+          "width": 45
+        }
+      ]
+    },
+    "Jalalabad": {
+      "runways": [
+        {
+          "heading1": "23",
+          "heading2": "05",
+          "length": 1896,
+          "width": 30
+        }
+      ]
+    },
+    "Gardez": {
+      "runways": [
+        {
+          "heading1": "34",
+          "heading2": "16",
+          "length": 1654,
+          "width": 45
+        }
+      ]
+    },
+    "Ghazni Heliport": {
+      "runways": [
+        {
+          "heading1": "01",
+          "heading2": "19",
+          "length": 629,
+          "width": 20
+        }
+      ]
+    },
+    "Sharana": {
+      "runways": [
+        {
+          "heading1": "04",
+          "heading2": "22",
+          "length": 1233,
+          "width": 45
+        }
+      ]
+    },
+    "FOB Salerno": {
+      "runways": [
+        {
+          "heading1": "10",
+          "heading2": "28",
+          "length": 655,
+          "width": 45
+        }
+      ]
+    },
+    "Urgoon Heliport": {
+      "runways": [
+        {
+          "heading1": "27",
+          "heading2": "09",
+          "length": 334,
+          "width": 45
+        }
+      ]
+    },
+    "Khost": {
+      "runways": [
+        {
+          "heading1": "12",
+          "heading2": "30",
+          "length": 1712,
+          "width": 45
+        }
+      ]
+    }
+  },
+  "Caucasus": {
+    "Anapa-Vityazevo": {
+      "runways": [
+        {
+          "heading1": "14",
+          "heading2": "32",
+          "length": 2628,
+          "width": 60
+        }
+      ]
+    },
+    "Krasnodar-Center": {
+      "runways": [
+        {
+          "heading1": "27",
+          "heading2": "09",
+          "length": 2334,
+          "width": 60
+        }
+      ]
+    },
+    "Novorossiysk": {
+      "runways": [
+        {
+          "heading1": "14",
+          "heading2": "32",
+          "length": 1718,
+          "width": 60
+        }
+      ]
+    },
+    "Krymsk": {
+      "runways": [
+        {
+          "heading1": "32",
+          "heading2": "14",
+          "length": 2052,
+          "width": 60
+        }
+      ]
+    },
+    "Maykop-Khanskaya": {
+      "runways": [
+        {
+          "heading1": "32",
+          "heading2": "14",
+          "length": 3107,
+          "width": 60
+        }
+      ]
+    },
+    "Gelendzhik": {
+      "runways": [
+        {
+          "heading1": "32",
+          "heading2": "14",
+          "length": 1661,
+          "width": 60
+        }
+      ]
+    },
+    "Sochi-Adler": {
+      "runways": [
+        {
+          "heading1": "30",
+          "heading2": "12",
+          "length": 2952,
+          "width": 60
+        }
+      ]
+    },
+    "Krasnodar-Pashkovsky": {
+      "runways": [
+        {
+          "heading1": "13",
+          "heading2": "31",
+          "length": 2968,
+          "width": 60
+        }
+      ]
+    },
+    "Sukhumi-Babushara": {
+      "runways": [
+        {
+          "heading1": "06",
+          "heading2": "24",
+          "length": 3419,
+          "width": 60
+        }
+      ]
+    },
+    "Gudauta": {
+      "runways": [
+        {
+          "heading1": "21",
+          "heading2": "03",
+          "length": 2389,
+          "width": 60
+        }
+      ]
+    },
+    "Batumi": {
+      "runways": [
+        {
+          "heading1": "05",
+          "heading2": "23",
+          "length": 2070,
+          "width": 60
+        }
+      ]
+    },
+    "Senaki-Kolkhi": {
+      "runways": [
+        {
+          "heading1": "09",
+          "heading2": "27",
+          "length": 2211,
+          "width": 60
+        }
+      ]
+    },
+    "Kobuleti": {
+      "runways": [
+        {
+          "heading1": "11",
+          "heading2": "29",
+          "length": 2257,
+          "width": 60
+        }
+      ]
+    },
+    "Kutaisi": {
+      "runways": [
+        {
+          "heading1": "11",
+          "heading2": "29",
+          "length": 2419,
+          "width": 60
+        }
+      ]
+    },
+    "Mineralnye Vody": {
+      "runways": [
+        {
+          "heading1": "06",
+          "heading2": "24",
+          "length": 3754,
+          "width": 60
+        }
+      ]
+    },
+    "Nalchik": {
+      "runways": [
+        {
+          "heading1": "30",
+          "heading2": "12",
+          "length": 2048,
+          "width": 60
+        }
+      ]
+    },
+    "Mozdok": {
+      "runways": [
+        {
+          "heading1": "10",
+          "heading2": "28",
+          "length": 2357,
+          "width": 60
+        }
+      ]
+    },
+    "Tbilisi-Lochini": {
+      "runways": [
+        {
+          "heading1": "23",
+          "heading2": "05",
+          "length": 2344,
+          "width": 60
+        }
+      ]
+    },
+    "Soganlug": {
+      "runways": [
+        {
+          "heading1": "05",
+          "heading2": "23",
+          "length": 2399,
+          "width": 60
+        }
+      ]
+    },
+    "Vaziani": {
+      "runways": [
+        {
+          "heading1": "22",
+          "heading2": "04",
+          "length": 2390,
+          "width": 60
+        }
+      ]
+    },
+    "Beslan": {
+      "runways": [
+        {
+          "heading1": "27",
+          "heading2": "09",
+          "length": 2842,
+          "width": 60
+        }
+      ]
+    }
+  },
+  "Falklands": {
+    "Port Stanley": {
+      "runways": [
+        {
+          "heading1": "09",
+          "heading2": "27",
+          "length": 1337,
+          "width": 60
+        }
+      ]
+    },
+    "Mount Pleasant": {
+      "runways": [
+        {
+          "heading1": "26",
+          "heading2": "08",
+          "length": 2061,
+          "width": 60
+        },
+        {
+          "heading1": "13",
+          "heading2": "31",
+          "length": 2061,
+          "width": 60
+        }
+      ]
+    },
+    "San Carlos FOB": {
+      "runways": [
+        {
+          "heading1": "07",
+          "heading2": "25",
+          "length": 329,
+          "width": 20
+        }
+      ]
+    },
+    "Rio Gallegos": {
+      "runways": [
+        {
+          "heading1": "10",
+          "heading2": "28",
+          "length": 3226,
+          "width": 60
+        }
+      ]
+    },
+    "Rio Grande": {
+      "runways": [
+        {
+          "heading1": "28",
+          "heading2": "10",
+          "length": 1805,
+          "width": 45
+        }
+      ]
+    },
+    "Ushuaia": {
+      "runways": [
+        {
+          "heading1": "28",
+          "heading2": "10",
+          "length": 2326,
+          "width": 60
+        }
+      ]
+    },
+    "Ushuaia Helo Port": {
+      "runways": [
+        {
+          "heading1": "19",
+          "heading2": "01",
+          "length": 1547,
+          "width": 50
+        }
+      ]
+    },
+    "Punta Arenas": {
+      "runways": [
+        {
+          "heading1": "05",
+          "heading2": "23",
+          "length": 2083,
+          "width": 45
+        },
+        {
+          "heading1": "10",
+          "heading2": "28",
+          "length": 2083,
+          "width": 45
+        },
+        {
+          "heading1": "16",
+          "heading2": "34",
+          "length": 2736,
+          "width": 45
+        }
+      ]
+    },
+    "Pampa Guanaco": {
+      "runways": [
+        {
+          "heading1": "10",
+          "heading2": "28",
+          "length": 716,
+          "width": 45
+        }
+      ]
+    },
+    "San Julian": {
+      "runways": [
+        {
+          "heading1": "11",
+          "heading2": "29",
+          "length": 1895,
+          "width": 45
+        }
+      ]
+    },
+    "Puerto Williams": {
+      "runways": [
+        {
+          "heading1": "28",
+          "heading2": "10",
+          "length": 1314,
+          "width": 45
+        }
+      ]
+    },
+    "Puerto Natales": {
+      "runways": [
+        {
+          "heading1": "07",
+          "heading2": "25",
+          "length": 1609,
+          "width": 45
+        }
+      ]
+    },
+    "El Calafate": {
+      "runways": [
+        {
+          "heading1": "11",
+          "heading2": "29",
+          "length": 2310,
+          "width": 45
+        }
+      ]
+    },
+    "Puerto Santa Cruz": {
+      "runways": [
+        {
+          "heading1": "29",
+          "heading2": "11",
+          "length": 1718,
+          "width": 45
+        }
+      ]
+    },
+    "Comandante Luis Piedrabuena": {
+      "runways": [
+        {
+          "heading1": "10",
+          "heading2": "28",
+          "length": 1068,
+          "width": 45
+        }
+      ]
+    },
+    "Tolhuin": {
+      "runways": [
+        {
+          "heading1": "28",
+          "heading2": "10",
+          "length": 1005,
+          "width": 45
+        }
+      ]
+    },
+    "Porvenir": {
+      "runways": [
+        {
+          "heading1": "26",
+          "heading2": "08",
+          "length": 2383,
+          "width": 45
+        },
+        {
+          "heading1": "14",
+          "heading2": "32",
+          "length": 2383,
+          "width": 45
+        }
+      ]
+    },
+    "Almirante Schroeders": {
+      "runways": [
+        {
+          "heading1": "23",
+          "heading2": "05",
+          "length": 1410,
+          "width": 20
+        },
+        {
+          "heading1": "14",
+          "heading2": "32",
+          "length": 1410,
+          "width": 20
+        }
+      ]
+    },
+    "Rio Turbio": {
+      "runways": [
+        {
+          "heading1": "12",
+          "heading2": "30",
+          "length": 1541,
+          "width": 45
+        }
+      ]
+    },
+    "Rio Chico": {
+      "runways": [
+        {
+          "heading1": "28",
+          "heading2": "10",
+          "length": 987,
+          "width": 20
+        }
+      ]
+    },
+    "Franco Bianco": {
+      "runways": [
+        {
+          "heading1": "28",
+          "heading2": "10",
+          "length": 1526,
+          "width": 45
+        }
+      ]
+    },
+    "Goose Green": {
+      "runways": [
+        {
+          "heading1": "22",
+          "heading2": "04",
+          "length": 602,
+          "width": 20
+        }
+      ]
+    },
+    "Hipico Flying Club": {
+      "runways": [
+        {
+          "heading1": "35",
+          "heading2": "17",
+          "length": 702,
+          "width": 20
+        }
+      ]
+    },
+    "Gobernador Gregores": {
+      "runways": [
+        {
+          "heading1": "09",
+          "heading2": "27",
+          "length": 2643,
+          "width": 45
+        }
+      ]
+    },
+    "O'Higgins": {
+      "runways": [
+        {
+          "heading1": "02",
+          "heading2": "20",
+          "length": 1209,
+          "width": 45
+        }
+      ]
+    },
+    "Cullen": {
+      "runways": [
+        {
+          "heading1": "12",
+          "heading2": "30",
+          "length": 1177,
+          "width": 45
+        }
+      ]
+    },
+    "Gull Point": {
+      "runways": [
+        {
+          "heading1": "21",
+          "heading2": "03",
+          "length": 412,
+          "width": 20
+        },
+        {
+          "heading1": "14",
+          "heading2": "32",
+          "length": 412,
+          "width": 20
+        }
+      ]
+    }
+  },
+  "GermanyCW": {
+    "Wittstock": {
+      "runways": [
+        {
+          "heading1": "10",
+          "heading2": "28",
+          "length": 2386,
+          "width": 60
+        }
+      ]
+    },
+    "Altes Lager": {
+      "runways": [
+        {
+          "heading1": "26",
+          "heading2": "08",
+          "length": 2388,
+          "width": 60
+        }
+      ]
+    },
+    "Barth": {
+      "runways": [
+        {
+          "heading1": "26",
+          "heading2": "08",
+          "length": 978,
+          "width": 20
+        }
+      ]
+    },
+    "Zerbst": {
+      "runways": [
+        {
+          "heading1": "29",
+          "heading2": "11",
+          "length": 2444,
+          "width": 45
+        }
+      ]
+    },
+    "Bremen": {
+      "runways": [
+        {
+          "heading1": "26",
+          "heading2": "08",
+          "length": 1832,
+          "width": 60
+        }
+      ]
+    },
+    "Briest": {
+      "runways": [
+        {
+          "heading1": "10",
+          "heading2": "28",
+          "length": 2409,
+          "width": 60
+        }
+      ]
+    },
+    "Buckeburg": {
+      "runways": [
+        {
+          "heading1": "27",
+          "heading2": "09",
+          "length": 1667,
+          "width": 45
+        }
+      ]
+    },
+    "Celle": {
+      "runways": [
+        {
+          "heading1": "09",
+          "heading2": "27",
+          "length": 2073,
+          "width": 45
+        }
+      ]
+    },
+    "Cochstedt": {
+      "runways": [
+        {
+          "heading1": "28",
+          "heading2": "10",
+          "length": 2461,
+          "width": 65
+        }
+      ]
+    },
+    "Damgarten": {
+      "runways": [
+        {
+          "heading1": "28",
+          "heading2": "10",
+          "length": 2356,
+          "width": 45
+        }
+      ]
+    },
+    "Fassberg": {
+      "runways": [
+        {
+          "heading1": "26",
+          "heading2": "08",
+          "length": 2482,
+          "width": 65
+        }
+      ]
+    },
+    "Finow": {
+      "runways": [
+        {
+          "heading1": "07",
+          "heading2": "25",
+          "length": 2453,
+          "width": 45
+        }
+      ]
+    },
+    "Garz": {
+      "runways": [
+        {
+          "heading1": "07",
+          "heading2": "25",
+          "length": 1962,
+          "width": 45
+        }
+      ]
+    },
+    "Gatow": {
+      "runways": [
+        {
+          "heading1": "09",
+          "heading2": "27",
+          "length": 1778,
+          "width": 65
+        }
+      ]
+    },
+    "Templin": {
+      "runways": [
+        {
+          "heading1": "09",
+          "heading2": "27",
+          "length": 3433,
+          "width": 65
+        },
+        {
+          "heading1": "34",
+          "heading2": "16",
+          "length": 3433,
+          "width": 65
+        }
+      ]
+    },
+    "Gutersloh": {
+      "runways": [
+        {
+          "heading1": "26",
+          "heading2": "08",
+          "length": 1838,
+          "width": 60
+        }
+      ]
+    },
+    "Hamburg": {
+      "runways": [
+        {
+          "heading1": "12",
+          "heading2": "30",
+          "length": 2949,
+          "width": 65
+        },
+        {
+          "heading1": "02",
+          "heading2": "20",
+          "length": 2949,
+          "width": 65
+        }
+      ]
+    },
+    "Hamburg Finkenwerder": {
+      "runways": [
+        {
+          "heading1": "30",
+          "heading2": "12",
+          "length": 1783,
+          "width": 45
+        }
+      ]
+    },
+    "Hannover": {
+      "runways": [
+        {
+          "heading1": "08",
+          "heading2": "26",
+          "length": 2286,
+          "width": 65
+        },
+        {
+          "heading1": "08",
+          "heading2": "26",
+          "length": 2286,
+          "width": 65
+        }
+      ]
+    },
+    "Laage": {
+      "runways": [
+        {
+          "heading1": "26",
+          "heading2": "08",
+          "length": 2478,
+          "width": 65
+        }
+      ]
+    },
+    "Larz": {
+      "runways": [
+        {
+          "heading1": "28",
+          "heading2": "10",
+          "length": 2332,
+          "width": 45
+        }
+      ]
+    },
+    "Mahlwinkel": {
+      "runways": [
+        {
+          "heading1": "08",
+          "heading2": "26",
+          "length": 2462,
+          "width": 60
+        }
+      ]
+    },
+    "Neubrandenburg": {
+      "runways": [
+        {
+          "heading1": "27",
+          "heading2": "09",
+          "length": 2055,
+          "width": 65
+        }
+      ]
+    },
+    "Neuruppin": {
+      "runways": [
+        {
+          "heading1": "26",
+          "heading2": "08",
+          "length": 2368,
+          "width": 65
+        }
+      ]
+    },
+    "Peenemunde": {
+      "runways": [
+        {
+          "heading1": "22",
+          "heading2": "04",
+          "length": 2349,
+          "width": 65
+        }
+      ]
+    },
+    "Schonefeld": {
+      "runways": [
+        {
+          "heading1": "11",
+          "heading2": "29",
+          "length": 2813,
+          "width": 65
+        },
+        {
+          "heading1": "11",
+          "heading2": "29",
+          "length": 2813,
+          "width": 65
+        }
+      ]
+    },
+    "Stendal": {
+      "runways": [
+        {
+          "heading1": "27",
+          "heading2": "09",
+          "length": 1905,
+          "width": 65
+        }
+      ]
+    },
+    "Tegel": {
+      "runways": [
+        {
+          "heading1": "09",
+          "heading2": "27",
+          "length": 2343,
+          "width": 60
+        },
+        {
+          "heading1": "09",
+          "heading2": "27",
+          "length": 2343,
+          "width": 60
+        }
+      ]
+    },
+    "Tempelhof": {
+      "runways": [
+        {
+          "heading1": "27",
+          "heading2": "09",
+          "length": 1986,
+          "width": 65
+        },
+        {
+          "heading1": "27",
+          "heading2": "09",
+          "length": 1986,
+          "width": 65
+        }
+      ]
+    },
+    "Tutow": {
+      "runways": [
+        {
+          "heading1": "18",
+          "heading2": "36",
+          "length": 2168,
+          "width": 60
+        }
+      ]
+    },
+    "Werneuchen": {
+      "runways": [
+        {
+          "heading1": "27",
+          "heading2": "09",
+          "length": 2406,
+          "width": 60
+        }
+      ]
+    },
+    "Wunstorf": {
+      "runways": [
+        {
+          "heading1": "09",
+          "heading2": "27",
+          "length": 1817,
+          "width": 45
+        },
+        {
+          "heading1": "14",
+          "heading2": "32",
+          "length": 1817,
+          "width": 45
+        }
+      ]
+    },
+    "Bornholm": {
+      "runways": [
+        {
+          "heading1": "24",
+          "heading2": "06",
+          "length": 1965,
+          "width": 65
+        }
+      ]
+    },
+    "Brand": {
+      "runways": [
+        {
+          "heading1": "08",
+          "heading2": "26",
+          "length": 2289,
+          "width": 45
+        }
+      ]
+    },
+    "Brandis": {
+      "runways": [
+        {
+          "heading1": "10",
+          "heading2": "28",
+          "length": 1965,
+          "width": 60
+        }
+      ]
+    },
+    "Chojna": {
+      "runways": [
+        {
+          "heading1": "08",
+          "heading2": "26",
+          "length": 2195,
+          "width": 45
+        }
+      ]
+    },
+    "Cologne": {
+      "runways": [
+        {
+          "heading1": "21",
+          "heading2": "03",
+          "length": 2956,
+          "width": 65
+        },
+        {
+          "heading1": "28",
+          "heading2": "10",
+          "length": 2956,
+          "width": 65
+        },
+        {
+          "heading1": "21",
+          "heading2": "03",
+          "length": 2241,
+          "width": 65
+        }
+      ]
+    },
+    "Dusseldorf": {
+      "runways": [
+        {
+          "heading1": "30",
+          "heading2": "12",
+          "length": 2057,
+          "width": 65
+        }
+      ]
+    },
+    "Falkenberg": {
+      "runways": [
+        {
+          "heading1": "09",
+          "heading2": "27",
+          "length": 2865,
+          "width": 65
+        }
+      ]
+    },
+    "Heidelberg": {
+      "runways": [
+        {
+          "heading1": "09",
+          "heading2": "27",
+          "length": 1006,
+          "width": 45
+        }
+      ]
+    },
+    "Kastrup": {
+      "runways": [
+        {
+          "heading1": "05",
+          "heading2": "23",
+          "length": 1888,
+          "width": 65
+        },
+        {
+          "heading1": "31",
+          "heading2": "13",
+          "length": 1888,
+          "width": 65
+        },
+        {
+          "heading1": "31",
+          "heading2": "13",
+          "length": 3126,
+          "width": 65
+        }
+      ]
+    },
+    "Kiel": {
+      "runways": [
+        {
+          "heading1": "27",
+          "heading2": "09",
+          "length": 1138,
+          "width": 45
+        }
+      ]
+    },
+    "Norvenich": {
+      "runways": [
+        {
+          "heading1": "28",
+          "heading2": "10",
+          "length": 2386,
+          "width": 45
+        }
+      ]
+    },
+    "Oranienburg": {
+      "runways": [
+        {
+          "heading1": "02",
+          "heading2": "20",
+          "length": 2269,
+          "width": 45
+        }
+      ]
+    },
+    "Szczecin-Goleniow": {
+      "runways": [
+        {
+          "heading1": "04",
+          "heading2": "22",
+          "length": 1935,
+          "width": 65
+        }
+      ]
+    },
+    "Obermehler Schlotheim": {
+      "runways": [
+        {
+          "heading1": "06",
+          "heading2": "24",
+          "length": 1383,
+          "width": 45
+        }
+      ]
+    },
+    "Adelsheim": {
+      "runways": [
+        {
+          "heading1": "30",
+          "heading2": "12",
+          "length": 2216,
+          "width": 45
+        }
+      ]
+    },
+    "Uetersen": {
+      "runways": [
+        {
+          "heading1": "08",
+          "heading2": "26",
+          "length": 1077,
+          "width": 45
+        }
+      ]
+    },
+    "Tagra": {
+      "runways": [
+        {
+          "heading1": "03",
+          "heading2": "21",
+          "length": 1650,
+          "width": 45
+        }
+      ]
+    },
+    "Luneburg": {
+      "runways": [
+        {
+          "heading1": "10",
+          "heading2": "28",
+          "length": 594,
+          "width": 20
+        }
+      ]
+    },
+    "Northeim": {
+      "runways": [
+        {
+          "heading1": "09",
+          "heading2": "27",
+          "length": 897,
+          "width": 20
+        }
+      ]
+    },
+    "Dedelow": {
+      "runways": [
+        {
+          "heading1": "26",
+          "heading2": "08",
+          "length": 1077,
+          "width": 45
+        }
+      ]
+    },
+    "Kammermark": {
+      "runways": [
+        {
+          "heading1": "27",
+          "heading2": "09",
+          "length": 1079,
+          "width": 45
+        }
+      ]
+    },
+    "Weser Wumme": {
+      "runways": [
+        {
+          "heading1": "17",
+          "heading2": "35",
+          "length": 1085,
+          "width": 45
+        }
+      ]
+    },
+    "Braunschweig": {
+      "runways": [
+        {
+          "heading1": "09",
+          "heading2": "27",
+          "length": 1353,
+          "width": 60
+        }
+      ]
+    },
+    "Wismar": {
+      "runways": [
+        {
+          "heading1": "27",
+          "heading2": "09",
+          "length": 593,
+          "width": 20
+        }
+      ]
+    },
+    "Waren Vielist": {
+      "runways": [
+        {
+          "heading1": "12",
+          "heading2": "30",
+          "length": 804,
+          "width": 20
+        }
+      ]
+    },
+    "Airracing Koblenz": {
+      "runways": [
+        {
+          "heading1": "03",
+          "heading2": "21",
+          "length": 860,
+          "width": 20
+        }
+      ]
+    },
+    "Sittensen": {
+      "runways": [
+        {
+          "heading1": "30",
+          "heading2": "12",
+          "length": 1115,
+          "width": 45
+        }
+      ]
+    },
+    "Sprendlingen": {
+      "runways": [
+        {
+          "heading1": "02",
+          "heading2": "20",
+          "length": 1479,
+          "width": 45
+        }
+      ]
+    },
+    "Thurland": {
+      "runways": [
+        {
+          "heading1": "35",
+          "heading2": "17",
+          "length": 2216,
+          "width": 45
+        }
+      ]
+    },
+    "Zollschen": {
+      "runways": [
+        {
+          "heading1": "30",
+          "heading2": "12",
+          "length": 1570,
+          "width": 20
+        }
+      ]
+    },
+    "Hasselfelde": {
+      "runways": [
+        {
+          "heading1": "09",
+          "heading2": "27",
+          "length": 1013,
+          "width": 45
+        }
+      ]
+    },
+    "Grosse Wiese": {
+      "runways": [
+        {
+          "heading1": "10",
+          "heading2": "28",
+          "length": 773,
+          "width": 20
+        }
+      ]
+    },
+    "Fritzlar": {
+      "runways": [
+        {
+          "heading1": "05",
+          "heading2": "23",
+          "length": 882,
+          "width": 45
+        }
+      ]
+    },
+    "Hahn": {
+      "runways": [
+        {
+          "heading1": "14",
+          "heading2": "32",
+          "length": 2181,
+          "width": 65
+        }
+      ]
+    },
+    "Sembach": {
+      "runways": [
+        {
+          "heading1": "11",
+          "heading2": "29",
+          "length": 2389,
+          "width": 60
+        }
+      ]
+    },
+    "Allstedt": {
+      "runways": [
+        {
+          "heading1": "10",
+          "heading2": "28",
+          "length": 2442,
+          "width": 45
+        }
+      ]
+    },
+    "Zweibrucken": {
+      "runways": [
+        {
+          "heading1": "32",
+          "heading2": "14",
+          "length": 2390,
+          "width": 65
+        }
+      ]
+    },
+    "Giebelstadt": {
+      "runways": [
+        {
+          "heading1": "27",
+          "heading2": "09",
+          "length": 1780,
+          "width": 65
+        }
+      ]
+    },
+    "Schweinfurt": {
+      "runways": [
+        {
+          "heading1": "09",
+          "heading2": "27",
+          "length": 620,
+          "width": 45
+        }
+      ]
+    },
+    "Haina": {
+      "runways": [
+        {
+          "heading1": "07",
+          "heading2": "25",
+          "length": 2161,
+          "width": 45
+        }
+      ]
+    },
+    "Spangdahlem": {
+      "runways": [
+        {
+          "heading1": "12",
+          "heading2": "30",
+          "length": 3005,
+          "width": 45
+        }
+      ]
+    },
+    "Frankfurt": {
+      "runways": [
+        {
+          "heading1": "10",
+          "heading2": "28",
+          "length": 4126,
+          "width": 65
+        },
+        {
+          "heading1": "10",
+          "heading2": "28",
+          "length": 4126,
+          "width": 65
+        }
+      ]
+    },
+    "Bindersleben": {
+      "runways": [
+        {
+          "heading1": "08",
+          "heading2": "26",
+          "length": 1956,
+          "width": 45
+        }
+      ]
+    },
+    "Ramstein": {
+      "runways": [
+        {
+          "heading1": "08",
+          "heading2": "26",
+          "length": 2284,
+          "width": 65
+        }
+      ]
+    },
+    "Fulda": {
+      "runways": [
+        {
+          "heading1": "09",
+          "heading2": "27",
+          "length": 576,
+          "width": 45
+        }
+      ]
+    },
+    "Mendig": {
+      "runways": [
+        {
+          "heading1": "09",
+          "heading2": "27",
+          "length": 1604,
+          "width": 45
+        }
+      ]
+    },
+    "Merseburg": {
+      "runways": [
+        {
+          "heading1": "28",
+          "heading2": "10",
+          "length": 2446,
+          "width": 50
+        }
+      ]
+    },
+    "Wiesbaden": {
+      "runways": [
+        {
+          "heading1": "28",
+          "heading2": "10",
+          "length": 2132,
+          "width": 45
+        }
+      ]
+    },
+    "Bitburg": {
+      "runways": [
+        {
+          "heading1": "11",
+          "heading2": "29",
+          "length": 2310,
+          "width": 65
+        }
+      ]
+    },
+    "Landstuhl": {
+      "runways": [
+        {
+          "heading1": "07",
+          "heading2": "25",
+          "length": 10,
+          "width": 45
+        }
+      ]
+    },
+    "Mainz Finthen": {
+      "runways": [
+        {
+          "heading1": "28",
+          "heading2": "10",
+          "length": 950,
+          "width": 45
+        }
+      ]
+    },
+    "Sturup": {
+      "runways": [
+        {
+          "heading1": "18",
+          "heading2": "36",
+          "length": 2744,
+          "width": 65
+        }
+      ]
+    },
+    "Marxwalde": {
+      "runways": [
+        {
+          "heading1": "09",
+          "heading2": "27",
+          "length": 2219,
+          "width": 45
+        }
+      ]
+    },
+    "Nordholz": {
+      "runways": [
+        {
+          "heading1": "09",
+          "heading2": "27",
+          "length": 2325,
+          "width": 65
+        }
+      ]
+    },
+    "Revinge": {
+      "runways": [
+        {
+          "heading1": "07",
+          "heading2": "25",
+          "length": 2007,
+          "width": 20
+        }
+      ]
+    },
+    "Gross Mohrdorf": {
+      "runways": [
+        {
+          "heading1": "23",
+          "heading2": "05",
+          "length": 2311,
+          "width": 60
+        }
+      ]
+    },
+    "Lubeck": {
+      "runways": [
+        {
+          "heading1": "28",
+          "heading2": "10",
+          "length": 2083,
+          "width": 50
+        }
+      ]
+    },
+    "Kothen": {
+      "runways": [
+        {
+          "heading1": "08",
+          "heading2": "26",
+          "length": 2435,
+          "width": 45
+        }
+      ]
+    },
+    "Dessau": {
+      "runways": [
+        {
+          "heading1": "26",
+          "heading2": "08",
+          "length": 2227,
+          "width": 65
+        }
+      ]
+    },
+    "Parchim": {
+      "runways": [
+        {
+          "heading1": "29",
+          "heading2": "11",
+          "length": 2527,
+          "width": 60
+        }
+      ]
+    },
+    "Sperenberg": {
+      "runways": [
+        {
+          "heading1": "26",
+          "heading2": "08",
+          "length": 2464,
+          "width": 60
+        }
+      ]
+    },
+    "Uelzen": {
+      "runways": [
+        {
+          "heading1": "08",
+          "heading2": "26",
+          "length": 1057,
+          "width": 20
+        }
+      ]
+    },
+    "Bienenfarm": {
+      "runways": [
+        {
+          "heading1": "05",
+          "heading2": "23",
+          "length": 897,
+          "width": 20
+        }
+      ]
+    },
+    "Pinnow": {
+      "runways": [
+        {
+          "heading1": "16",
+          "heading2": "34",
+          "length": 1078,
+          "width": 45
+        }
+      ]
+    },
+    "Gardelegen": {
+      "runways": [
+        {
+          "heading1": "06",
+          "heading2": "24",
+          "length": 1078,
+          "width": 45
+        }
+      ]
+    },
+    "Glindbruchkippe": {
+      "runways": [
+        {
+          "heading1": "26",
+          "heading2": "08",
+          "length": 1083,
+          "width": 45
+        }
+      ]
+    },
+    "Ummern": {
+      "runways": [
+        {
+          "heading1": "05",
+          "heading2": "23",
+          "length": 596,
+          "width": 20
+        }
+      ]
+    },
+    "Hildesheim": {
+      "runways": [
+        {
+          "heading1": "10",
+          "heading2": "28",
+          "length": 1180,
+          "width": 45
+        }
+      ]
+    },
+    "Verden-Scharnhorst": {
+      "runways": [
+        {
+          "heading1": "23",
+          "heading2": "05",
+          "length": 588,
+          "width": 20
+        }
+      ]
+    },
+    "Rinteln": {
+      "runways": [
+        {
+          "heading1": "24",
+          "heading2": "06",
+          "length": 596,
+          "width": 20
+        }
+      ]
+    },
+    "Holzdorf": {
+      "runways": [
+        {
+          "heading1": "08",
+          "heading2": "26",
+          "length": 2661,
+          "width": 45
+        }
+      ]
+    },
+    "Perwenitz": {
+      "runways": [
+        {
+          "heading1": "35",
+          "heading2": "17",
+          "length": 2349,
+          "width": 45
+        }
+      ]
+    },
+    "Schkeuditz": {
+      "runways": [
+        {
+          "heading1": "07",
+          "heading2": "25",
+          "length": 2461,
+          "width": 65
+        }
+      ]
+    },
+    "Airracing Lubeck": {
+      "runways": [
+        {
+          "heading1": "01",
+          "heading2": "19",
+          "length": 860,
+          "width": 20
+        }
+      ]
+    },
+    "Airracing Frankfurt": {
+      "runways": [
+        {
+          "heading1": "29",
+          "heading2": "11",
+          "length": 860,
+          "width": 20
+        }
+      ]
+    },
+    "Pferdsfeld": {
+      "runways": [
+        {
+          "heading1": "26",
+          "heading2": "08",
+          "length": 2320,
+          "width": 60
+        }
+      ]
+    },
+    "Buchel": {
+      "runways": [
+        {
+          "heading1": "32",
+          "heading2": "14",
+          "length": 2432,
+          "width": 45
+        }
+      ]
+    },
+    "Leipzig Mockau": {
+      "runways": [
+        {
+          "heading1": "11",
+          "heading2": "29",
+          "length": 1461,
+          "width": 60
+        }
+      ]
+    },
+    "Bad Durkheim": {
+      "runways": [
+        {
+          "heading1": "27",
+          "heading2": "09",
+          "length": 648,
+          "width": 20
+        }
+      ]
+    },
+    "Gelnhausen": {
+      "runways": [
+        {
+          "heading1": "27",
+          "heading2": "09",
+          "length": 1085,
+          "width": 45
+        }
+      ]
+    },
+    "Herrenteich": {
+      "runways": [
+        {
+          "heading1": "31",
+          "heading2": "13",
+          "length": 887,
+          "width": 20
+        }
+      ]
+    },
+    "Hockenheim": {
+      "runways": [
+        {
+          "heading1": "03",
+          "heading2": "21",
+          "length": 847,
+          "width": 20
+        }
+      ]
+    },
+    "Langenselbold": {
+      "runways": [
+        {
+          "heading1": "11",
+          "heading2": "29",
+          "length": 887,
+          "width": 20
+        }
+      ]
+    },
+    "Walldorf": {
+      "runways": [
+        {
+          "heading1": "35",
+          "heading2": "17",
+          "length": 804,
+          "width": 20
+        }
+      ]
+    },
+    "Ober-Morlen": {
+      "runways": [
+        {
+          "heading1": "12",
+          "heading2": "30",
+          "length": 804,
+          "width": 20
+        }
+      ]
+    },
+    "Pottschutthohe": {
+      "runways": [
+        {
+          "heading1": "30",
+          "heading2": "12",
+          "length": 596,
+          "width": 20
+        }
+      ]
+    },
+    "Worms": {
+      "runways": [
+        {
+          "heading1": "11",
+          "heading2": "29",
+          "length": 578,
+          "width": 20
+        }
+      ]
+    }
+  },
+  "Iraq": {
+    "Al-Asad Airbase": {
+      "runways": [
+        {
+          "heading1": "27",
+          "heading2": "09",
+          "length": 3767,
+          "width": 60
+        },
+        {
+          "heading1": "27",
+          "heading2": "09",
+          "length": 3767,
+          "width": 60
+        }
+      ]
+    },
+    "Baghdad International Airport": {
+      "runways": [
+        {
+          "heading1": "21",
+          "heading2": "03",
+          "length": 2990,
+          "width": 60
+        },
+        {
+          "heading1": "21",
+          "heading2": "03",
+          "length": 2990,
+          "width": 60
+        }
+      ]
+    },
+    "Erbil International Airport": {
+      "runways": [
+        {
+          "heading1": "18",
+          "heading2": "36",
+          "length": 4445,
+          "width": 60
+        },
+        {
+          "heading1": "21",
+          "heading2": "03",
+          "length": 4445,
+          "width": 60
+        }
+      ]
+    },
+    "Bashur Airport": {
+      "runways": [
+        {
+          "heading1": "22",
+          "heading2": "04",
+          "length": 1605,
+          "width": 45
+        }
+      ]
+    },
+    "Qayyarah Airfield West": {
+      "runways": [
+        {
+          "heading1": "21",
+          "heading2": "03",
+          "length": 3042,
+          "width": 60
+        }
+      ]
+    },
+    "Balad Airbase": {
+      "runways": [
+        {
+          "heading1": "21",
+          "heading2": "03",
+          "length": 2585,
+          "width": 65
+        },
+        {
+          "heading1": "23",
+          "heading2": "05",
+          "length": 2585,
+          "width": 65
+        }
+      ]
+    },
+    "Kirkuk International Airport": {
+      "runways": [
+        {
+          "heading1": "23",
+          "heading2": "05",
+          "length": 1710,
+          "width": 45
+        },
+        {
+          "heading1": "21",
+          "heading2": "03",
+          "length": 1710,
+          "width": 45
+        }
+      ]
+    },
+    "Al-Taquddum Airport": {
+      "runways": [
+        {
+          "heading1": "24",
+          "heading2": "06",
+          "length": 2961,
+          "width": 60
+        },
+        {
+          "heading1": "24",
+          "heading2": "06",
+          "length": 2961,
+          "width": 60
+        }
+      ]
+    },
+    "Mosul International Airport": {
+      "runways": [
+        {
+          "heading1": "20",
+          "heading2": "02",
+          "length": 2044,
+          "width": 45
+        }
+      ]
+    },
+    "Sulaimaniyah International Airport": {
+      "runways": [
+        {
+          "heading1": "23",
+          "heading2": "05",
+          "length": 3095,
+          "width": 60
+        }
+      ]
+    },
+    "Al-Taji Airport": {
+      "runways": [
+        {
+          "heading1": "02",
+          "heading2": "20",
+          "length": 1573,
+          "width": 45
+        }
+      ]
+    },
+    "K1 Base": {
+      "runways": [
+        {
+          "heading1": "04",
+          "heading2": "22",
+          "length": 1525,
+          "width": 45
+        }
+      ]
+    },
+    "Al-Sahra Airport": {
+      "runways": [
+        {
+          "heading1": "22",
+          "heading2": "04",
+          "length": 2311,
+          "width": 45
+        },
+        {
+          "heading1": "22",
+          "heading2": "04",
+          "length": 2311,
+          "width": 45
+        }
+      ]
+    },
+    "Al-Salam Airbase": {
+      "runways": [
+        {
+          "heading1": "21",
+          "heading2": "03",
+          "length": 2194,
+          "width": 60
+        }
+      ]
+    },
+    "H-2 Airbase": {
+      "runways": [
+        {
+          "heading1": "19",
+          "heading2": "01",
+          "length": 1718,
+          "width": 45
+        },
+        {
+          "heading1": "24",
+          "heading2": "06",
+          "length": 1718,
+          "width": 45
+        }
+      ]
+    },
+    "H-3 Main Airbase": {
+      "runways": [
+        {
+          "heading1": "25",
+          "heading2": "07",
+          "length": 2427,
+          "width": 45
+        },
+        {
+          "heading1": "29",
+          "heading2": "11",
+          "length": 2427,
+          "width": 45
+        }
+      ]
+    },
+    "H-3 Southwest Airbase": {
+      "runways": [
+        {
+          "heading1": "24",
+          "heading2": "06",
+          "length": 1756,
+          "width": 45
+        }
+      ]
+    },
+    "H-3 Northwest Airbase": {
+      "runways": [
+        {
+          "heading1": "24",
+          "heading2": "06",
+          "length": 2056,
+          "width": 45
+        }
+      ]
+    },
+    "Al-Kut Airport": {
+      "runways": [
+        {
+          "heading1": "25",
+          "heading2": "07",
+          "length": 2504,
+          "width": 45
+        },
+        {
+          "heading1": "25",
+          "heading2": "07",
+          "length": 2504,
+          "width": 45
+        }
+      ]
+    }
+  },
+  "Kola": {
+    "Banak": {
+      "runways": [
+        {
+          "heading1": "01",
+          "heading2": "19",
+          "length": 2470,
+          "width": 45
+        }
+      ]
+    },
+    "Rovaniemi": {
+      "runways": [
+        {
+          "heading1": "15",
+          "heading2": "33",
+          "length": 2772,
+          "width": 60
+        }
+      ]
+    },
+    "Kemi Tornio": {
+      "runways": [
+        {
+          "heading1": "18",
+          "heading2": "36",
+          "length": 2396,
+          "width": 65
+        }
+      ]
+    },
+    "Vuojarvi": {
+      "runways": [
+        {
+          "heading1": "14",
+          "heading2": "32",
+          "length": 2352,
+          "width": 45
+        }
+      ]
+    },
+    "Kiruna": {
+      "runways": [
+        {
+          "heading1": "15",
+          "heading2": "33",
+          "length": 2265,
+          "width": 65
+        }
+      ]
+    },
+    "Severomorsk-3": {
+      "runways": [
+        {
+          "heading1": "01",
+          "heading2": "19",
+          "length": 2307,
+          "width": 65
+        }
+      ]
+    },
+    "Bodo": {
+      "runways": [
+        {
+          "heading1": "28",
+          "heading2": "10",
+          "length": 2626,
+          "width": 65
+        }
+      ]
+    },
+    "Severomorsk-1": {
+      "runways": [
+        {
+          "heading1": "22",
+          "heading2": "04",
+          "length": 2768,
+          "width": 65
+        }
+      ]
+    },
+    "Olenya": {
+      "runways": [
+        {
+          "heading1": "17",
+          "heading2": "35",
+          "length": 3311,
+          "width": 65
+        }
+      ]
+    },
+    "Monchegorsk": {
+      "runways": [
+        {
+          "heading1": "34",
+          "heading2": "16",
+          "length": 2288,
+          "width": 65
+        }
+      ]
+    },
+    "Jokkmokk": {
+      "runways": [
+        {
+          "heading1": "22",
+          "heading2": "04",
+          "length": 1921,
+          "width": 45
+        }
+      ]
+    },
+    "Murmansk International": {
+      "runways": [
+        {
+          "heading1": "22",
+          "heading2": "04",
+          "length": 2415,
+          "width": 65
+        }
+      ]
+    },
+    "Kalixfors": {
+      "runways": [
+        {
+          "heading1": "19",
+          "heading2": "01",
+          "length": 1096,
+          "width": 45
+        }
+      ]
+    },
+    "Kirkenes": {
+      "runways": [
+        {
+          "heading1": "12",
+          "heading2": "30",
+          "length": 1795,
+          "width": 60
+        }
+      ]
+    },
+    "Kallax": {
+      "runways": [
+        {
+          "heading1": "22",
+          "heading2": "04",
+          "length": 3232,
+          "width": 60
+        }
+      ]
+    },
+    "Kuusamo": {
+      "runways": [
+        {
+          "heading1": "24",
+          "heading2": "06",
+          "length": 2293,
+          "width": 45
+        }
+      ]
+    },
+    "Vidsel": {
+      "runways": [
+        {
+          "heading1": "24",
+          "heading2": "06",
+          "length": 2111,
+          "width": 60
+        }
+      ]
+    },
+    "Ivalo": {
+      "runways": [
+        {
+          "heading1": "14",
+          "heading2": "32",
+          "length": 2074,
+          "width": 60
+        }
+      ]
+    },
+    "Alakurtti": {
+      "runways": [
+        {
+          "heading1": "06",
+          "heading2": "24",
+          "length": 2068,
+          "width": 45
+        }
+      ]
+    },
+    "Andoya": {
+      "runways": [
+        {
+          "heading1": "21",
+          "heading2": "03",
+          "length": 2332,
+          "width": 60
+        }
+      ]
+    },
+    "Bardufoss": {
+      "runways": [
+        {
+          "heading1": "07",
+          "heading2": "25",
+          "length": 1957,
+          "width": 60
+        }
+      ]
+    },
+    "Kittila": {
+      "runways": [
+        {
+          "heading1": "20",
+          "heading2": "02",
+          "length": 2200,
+          "width": 60
+        }
+      ]
+    },
+    "Hosio": {
+      "runways": [
+        {
+          "heading1": "12",
+          "heading2": "30",
+          "length": 1724,
+          "width": 45
+        }
+      ]
+    },
+    "Alta": {
+      "runways": [
+        {
+          "heading1": "06",
+          "heading2": "24",
+          "length": 1489,
+          "width": 50
+        }
+      ]
+    },
+    "Evenes": {
+      "runways": [
+        {
+          "heading1": "18",
+          "heading2": "36",
+          "length": 2524,
+          "width": 60
+        }
+      ]
+    },
+    "Enontekio": {
+      "runways": [
+        {
+          "heading1": "33",
+          "heading2": "15",
+          "length": 1813,
+          "width": 45
+        }
+      ]
+    },
+    "Sodankyla": {
+      "runways": [
+        {
+          "heading1": "20",
+          "heading2": "02",
+          "length": 1367,
+          "width": 45
+        }
+      ]
+    },
+    "Kilpyavr": {
+      "runways": [
+        {
+          "heading1": "15",
+          "heading2": "33",
+          "length": 2204,
+          "width": 45
+        }
+      ]
+    },
+    "Luostari Pechenga": {
+      "runways": [
+        {
+          "heading1": "16",
+          "heading2": "34",
+          "length": 1215,
+          "width": 45
+        }
+      ]
+    },
+    "Koshka Yavr": {
+      "runways": [
+        {
+          "heading1": "17",
+          "heading2": "35",
+          "length": 2798,
+          "width": 45
+        }
+      ]
+    },
+    "Poduzhemye": {
+      "runways": [
+        {
+          "heading1": "09",
+          "heading2": "27",
+          "length": 2239,
+          "width": 50
+        }
+      ]
+    },
+    "Kalevala": {
+      "runways": [
+        {
+          "heading1": "15",
+          "heading2": "33",
+          "length": 621,
+          "width": 25
+        }
+      ]
+    },
+    "Afrikanda": {
+      "runways": [
+        {
+          "heading1": "09",
+          "heading2": "27",
+          "length": 2323,
+          "width": 50
+        }
+      ]
+    },
+    "Boden Heli Base": {
+      "runways": [
+        {
+          "heading1": "23",
+          "heading2": "05",
+          "length": 298,
+          "width": 30
+        }
+      ]
+    },
+    "Hemavan": {
+      "runways": [
+        {
+          "heading1": "02",
+          "heading2": "20",
+          "length": 1404,
+          "width": 45
+        }
+      ]
+    },
+    "Arvidsjaur": {
+      "runways": [
+        {
+          "heading1": "23",
+          "heading2": "05",
+          "length": 2343,
+          "width": 60
+        }
+      ]
+    }
+  },
+  "MarianaIslands": {
+    "Rota Intl": {
+      "runways": [
+        {
+          "heading1": "27",
+          "heading2": "09",
+          "length": 1861,
+          "width": 60
+        }
+      ]
+    },
+    "Saipan Intl": {
+      "runways": [
+        {
+          "heading1": "29",
+          "heading2": "11",
+          "length": 2374,
+          "width": 60
+        }
+      ]
+    },
+    "Tinian Intl": {
+      "runways": [
+        {
+          "heading1": "28",
+          "heading2": "10",
+          "length": 2370,
+          "width": 60
+        }
+      ]
+    },
+    "Antonio B. Won Pat Intl": {
+      "runways": [
+        {
+          "heading1": "29",
+          "heading2": "11",
+          "length": 2852,
+          "width": 60
+        },
+        {
+          "heading1": "29",
+          "heading2": "11",
+          "length": 2852,
+          "width": 60
+        }
+      ]
+    },
+    "Olf Orote": {
+      "runways": [
+        {
+          "heading1": "11",
+          "heading2": "29",
+          "length": 1052,
+          "width": 45
+        }
+      ]
+    },
+    "Andersen AFB": {
+      "runways": [
+        {
+          "heading1": "29",
+          "heading2": "11",
+          "length": 3197,
+          "width": 60
+        },
+        {
+          "heading1": "29",
+          "heading2": "11",
+          "length": 3197,
+          "width": 60
+        }
+      ]
+    },
+    "Pagan Airstrip": {
+      "runways": [
+        {
+          "heading1": "25",
+          "heading2": "07",
+          "length": 495,
+          "width": 50
+        }
+      ]
+    }
+  },
+  "MarianaIslandsWWII": {
+    "Agana": {
+      "runways": [
+        {
+          "heading1": "29",
+          "heading2": "11",
+          "length": 1351,
+          "width": 45
+        }
+      ]
+    },
+    "Orote": {
+      "runways": [
+        {
+          "heading1": "25",
+          "heading2": "07",
+          "length": 1346,
+          "width": 45
+        }
+      ]
+    },
+    "Airfield 3": {
+      "runways": [
+        {
+          "heading1": "26",
+          "heading2": "08",
+          "length": 757,
+          "width": 45
+        }
+      ]
+    },
+    "Charon Kanoa": {
+      "runways": [
+        {
+          "heading1": "33",
+          "heading2": "15",
+          "length": 741,
+          "width": 45
+        }
+      ]
+    },
+    "Gurguan Point": {
+      "runways": [
+        {
+          "heading1": "27",
+          "heading2": "09",
+          "length": 972,
+          "width": 45
+        }
+      ]
+    },
+    "Isley": {
+      "runways": [
+        {
+          "heading1": "27",
+          "heading2": "09",
+          "length": 811,
+          "width": 60
+        }
+      ]
+    },
+    "Kagman": {
+      "runways": [
+        {
+          "heading1": "27",
+          "heading2": "09",
+          "length": 1011,
+          "width": 45
+        }
+      ]
+    },
+    "Marpi": {
+      "runways": [
+        {
+          "heading1": "25",
+          "heading2": "07",
+          "length": 783,
+          "width": 45
+        }
+      ]
+    },
+    "Rota": {
+      "runways": [
+        {
+          "heading1": "27",
+          "heading2": "09",
+          "length": 1028,
+          "width": 45
+        }
+      ]
+    },
+    "Ushi": {
+      "runways": [
+        {
+          "heading1": "27",
+          "heading2": "09",
+          "length": 750,
+          "width": 45
+        }
+      ]
+    },
+    "Pagan": {
+      "runways": [
+        {
+          "heading1": "25",
+          "heading2": "07",
+          "length": 533,
+          "width": 20
+        }
+      ]
+    }
+  },
+  "Nevada": {
+    "Creech": {
+      "runways": [
+        {
+          "heading1": "27",
+          "heading2": "09",
+          "length": 1859,
+          "width": 60
+        },
+        {
+          "heading1": "21",
+          "heading2": "03",
+          "length": 1859,
+          "width": 60
+        }
+      ]
+    },
+    "Groom Lake": {
+      "runways": [
+        {
+          "heading1": "02",
+          "heading2": "20",
+          "length": 3355,
+          "width": 60
+        }
+      ]
+    },
+    "McCarran International": {
+      "runways": [
+        {
+          "heading1": "27",
+          "heading2": "09",
+          "length": 3163,
+          "width": 60
+        },
+        {
+          "heading1": "27",
+          "heading2": "09",
+          "length": 3163,
+          "width": 60
+        }
+      ]
+    },
+    "Nellis": {
+      "runways": [
+        {
+          "heading1": "32",
+          "heading2": "14",
+          "length": 2876,
+          "width": 60
+        },
+        {
+          "heading1": "32",
+          "heading2": "14",
+          "length": 2876,
+          "width": 60
+        }
+      ]
+    },
+    "Beatty": {
+      "runways": [
+        {
+          "heading1": "18",
+          "heading2": "36",
+          "length": 1639,
+          "width": 20
+        }
+      ]
+    },
+    "Boulder City": {
+      "runways": [
+        {
+          "heading1": "02",
+          "heading2": "20",
+          "length": 1128,
+          "width": 20
+        },
+        {
+          "heading1": "08",
+          "heading2": "26",
+          "length": 1128,
+          "width": 20
+        }
+      ]
+    },
+    "Echo Bay": {
+      "runways": [
+        {
+          "heading1": "28",
+          "heading2": "10",
+          "length": 984,
+          "width": 20
+        }
+      ]
+    },
+    "Henderson Executive": {
+      "runways": [
+        {
+          "heading1": "36",
+          "heading2": "18",
+          "length": 1448,
+          "width": 60
+        },
+        {
+          "heading1": "36",
+          "heading2": "18",
+          "length": 1448,
+          "width": 60
+        }
+      ]
+    },
+    "Jean": {
+      "runways": [
+        {
+          "heading1": "15",
+          "heading2": "33",
+          "length": 1235,
+          "width": 20
+        },
+        {
+          "heading1": "15",
+          "heading2": "33",
+          "length": 1235,
+          "width": 20
+        }
+      ]
+    },
+    "Laughlin": {
+      "runways": [
+        {
+          "heading1": "18",
+          "heading2": "36",
+          "length": 2176,
+          "width": 60
+        }
+      ]
+    },
+    "Lincoln County": {
+      "runways": [
+        {
+          "heading1": "18",
+          "heading2": "36",
+          "length": 1343,
+          "width": 20
+        }
+      ]
+    },
+    "Mesquite": {
+      "runways": [
+        {
+          "heading1": "33",
+          "heading2": "15",
+          "length": 1504,
+          "width": 20
+        }
+      ]
+    },
+    "Mina": {
+      "runways": [
+        {
+          "heading1": "03",
+          "heading2": "21",
+          "length": 1287,
+          "width": 60
+        }
+      ]
+    },
+    "North Las Vegas": {
+      "runways": [
+        {
+          "heading1": "09",
+          "heading2": "27",
+          "length": 1442,
+          "width": 20
+        },
+        {
+          "heading1": "05",
+          "heading2": "23",
+          "length": 1442,
+          "width": 20
+        },
+        {
+          "heading1": "23",
+          "heading2": "05",
+          "length": 1362,
+          "width": 20
+        }
+      ]
+    },
+    "Pahute Mesa": {
+      "runways": [
+        {
+          "heading1": "35",
+          "heading2": "17",
+          "length": 1652,
+          "width": 60
+        }
+      ]
+    },
+    "Tonopah": {
+      "runways": [
+        {
+          "heading1": "05",
+          "heading2": "23",
+          "length": 1619,
+          "width": 20
+        },
+        {
+          "heading1": "01",
+          "heading2": "19",
+          "length": 1619,
+          "width": 20
+        }
+      ]
+    },
+    "Tonopah Test Range": {
+      "runways": [
+        {
+          "heading1": "02",
+          "heading2": "20",
+          "length": 3545,
+          "width": 60
+        }
+      ]
+    }
+  },
+  "Normandy": {
+    "Saint Pierre du Mont": {
+      "runways": [
+        {
+          "heading1": "09",
+          "heading2": "27",
+          "length": 1443,
+          "width": 30
+        }
+      ]
+    },
+    "Lignerolles": {
+      "runways": [
+        {
+          "heading1": "25",
+          "heading2": "07",
+          "length": 1047,
+          "width": 30
+        }
+      ]
+    },
+    "Cretteville": {
+      "runways": [
+        {
+          "heading1": "05",
+          "heading2": "23",
+          "length": 1400,
+          "width": 30
+        }
+      ]
+    },
+    "Maupertus": {
+      "runways": [
+        {
+          "heading1": "08",
+          "heading2": "26",
+          "length": 1461,
+          "width": 30
+        }
+      ]
+    },
+    "Brucheville": {
+      "runways": [
+        {
+          "heading1": "29",
+          "heading2": "11",
+          "length": 1040,
+          "width": 30
+        }
+      ]
+    },
+    "Meautis": {
+      "runways": [
+        {
+          "heading1": "28",
+          "heading2": "10",
+          "length": 1204,
+          "width": 30
+        }
+      ]
+    },
+    "Cricqueville-en-Bessin": {
+      "runways": [
+        {
+          "heading1": "19",
+          "heading2": "01",
+          "length": 1054,
+          "width": 30
+        }
+      ]
+    },
+    "Lessay": {
+      "runways": [
+        {
+          "heading1": "12",
+          "heading2": "30",
+          "length": 1397,
+          "width": 30
+        },
+        {
+          "heading1": "06",
+          "heading2": "24",
+          "length": 1397,
+          "width": 30
+        }
+      ]
+    },
+    "Sainte-Laurent-sur-Mer": {
+      "runways": [
+        {
+          "heading1": "25",
+          "heading2": "07",
+          "length": 1390,
+          "width": 30
+        }
+      ]
+    },
+    "Biniville": {
+      "runways": [
+        {
+          "heading1": "22",
+          "heading2": "04",
+          "length": 1031,
+          "width": 30
+        }
+      ]
+    },
+    "Cardonville": {
+      "runways": [
+        {
+          "heading1": "03",
+          "heading2": "21",
+          "length": 1384,
+          "width": 30
+        }
+      ]
+    },
+    "Deux Jumeaux": {
+      "runways": [
+        {
+          "heading1": "08",
+          "heading2": "26",
+          "length": 1410,
+          "width": 30
+        }
+      ]
+    },
+    "Chippelle": {
+      "runways": [
+        {
+          "heading1": "30",
+          "heading2": "12",
+          "length": 1415,
+          "width": 30
+        }
+      ]
+    },
+    "Beuzeville": {
+      "runways": [
+        {
+          "heading1": "31",
+          "heading2": "13",
+          "length": 1170,
+          "width": 30
+        }
+      ]
+    },
+    "Azeville": {
+      "runways": [
+        {
+          "heading1": "29",
+          "heading2": "11",
+          "length": 1081,
+          "width": 30
+        }
+      ]
+    },
+    "Picauville": {
+      "runways": [
+        {
+          "heading1": "25",
+          "heading2": "07",
+          "length": 1170,
+          "width": 30
+        }
+      ]
+    },
+    "Le Molay": {
+      "runways": [
+        {
+          "heading1": "14",
+          "heading2": "32",
+          "length": 1170,
+          "width": 30
+        }
+      ]
+    },
+    "Longues-sur-Mer": {
+      "runways": [
+        {
+          "heading1": "24",
+          "heading2": "06",
+          "length": 961,
+          "width": 30
+        }
+      ]
+    },
+    "Carpiquet": {
+      "runways": [
+        {
+          "heading1": "06",
+          "heading2": "24",
+          "length": 1558,
+          "width": 30
+        }
+      ]
+    },
+    "Bazenville": {
+      "runways": [
+        {
+          "heading1": "31",
+          "heading2": "13",
+          "length": 1158,
+          "width": 30
+        }
+      ]
+    },
+    "Sainte-Croix-sur-Mer": {
+      "runways": [
+        {
+          "heading1": "09",
+          "heading2": "27",
+          "length": 1170,
+          "width": 30
+        }
+      ]
+    },
+    "Beny-sur-Mer": {
+      "runways": [
+        {
+          "heading1": "01",
+          "heading2": "19",
+          "length": 961,
+          "width": 30
+        }
+      ]
+    },
+    "Rucqueville": {
+      "runways": [
+        {
+          "heading1": "09",
+          "heading2": "27",
+          "length": 1390,
+          "width": 30
+        }
+      ]
+    },
+    "Sommervieu": {
+      "runways": [
+        {
+          "heading1": "27",
+          "heading2": "09",
+          "length": 1170,
+          "width": 30
+        }
+      ]
+    },
+    "Lantheuil": {
+      "runways": [
+        {
+          "heading1": "30",
+          "heading2": "12",
+          "length": 1096,
+          "width": 30
+        }
+      ]
+    },
+    "Evreux": {
+      "runways": [
+        {
+          "heading1": "15",
+          "heading2": "33",
+          "length": 1555,
+          "width": 60
+        },
+        {
+          "heading1": "20",
+          "heading2": "02",
+          "length": 1555,
+          "width": 60
+        }
+      ]
+    },
+    "Chailey": {
+      "runways": [
+        {
+          "heading1": "21",
+          "heading2": "03",
+          "length": 1031,
+          "width": 30
+        },
+        {
+          "heading1": "29",
+          "heading2": "11",
+          "length": 1031,
+          "width": 30
+        }
+      ]
+    },
+    "Needs Oar Point": {
+      "runways": [
+        {
+          "heading1": "30",
+          "heading2": "12",
+          "length": 1297,
+          "width": 30
+        },
+        {
+          "heading1": "19",
+          "heading2": "01",
+          "length": 1297,
+          "width": 30
+        }
+      ]
+    },
+    "Funtington": {
+      "runways": [
+        {
+          "heading1": "21",
+          "heading2": "03",
+          "length": 1324,
+          "width": 30
+        },
+        {
+          "heading1": "28",
+          "heading2": "10",
+          "length": 1324,
+          "width": 30
+        }
+      ]
+    },
+    "Tangmere": {
+      "runways": [
+        {
+          "heading1": "03",
+          "heading2": "21",
+          "length": 1280,
+          "width": 40
+        },
+        {
+          "heading1": "30",
+          "heading2": "12",
+          "length": 1280,
+          "width": 40
+        }
+      ]
+    },
+    "Ford": {
+      "runways": [
+        {
+          "heading1": "22",
+          "heading2": "04",
+          "length": 1330,
+          "width": 40
+        },
+        {
+          "heading1": "30",
+          "heading2": "12",
+          "length": 1330,
+          "width": 40
+        }
+      ]
+    },
+    "Argentan": {
+      "runways": [
+        {
+          "heading1": "06",
+          "heading2": "24",
+          "length": 1000,
+          "width": 30
+        }
+      ]
+    },
+    "Goulet": {
+      "runways": [
+        {
+          "heading1": "33",
+          "heading2": "15",
+          "length": 1000,
+          "width": 30
+        }
+      ]
+    },
+    "Barville": {
+      "runways": [
+        {
+          "heading1": "03",
+          "heading2": "21",
+          "length": 1285,
+          "width": 60
+        },
+        {
+          "heading1": "08",
+          "heading2": "26",
+          "length": 1285,
+          "width": 60
+        }
+      ]
+    },
+    "Essay": {
+      "runways": [
+        {
+          "heading1": "09",
+          "heading2": "27",
+          "length": 1031,
+          "width": 30
+        }
+      ]
+    },
+    "Hauterive": {
+      "runways": [
+        {
+          "heading1": "22",
+          "heading2": "04",
+          "length": 1000,
+          "width": 30
+        }
+      ]
+    },
+    "Lymington": {
+      "runways": [
+        {
+          "heading1": "04",
+          "heading2": "22",
+          "length": 1031,
+          "width": 30
+        },
+        {
+          "heading1": "12",
+          "heading2": "30",
+          "length": 1031,
+          "width": 30
+        }
+      ]
+    },
+    "Vrigny": {
+      "runways": [
+        {
+          "heading1": "22",
+          "heading2": "04",
+          "length": 1000,
+          "width": 30
+        }
+      ]
+    },
+    "Odiham": {
+      "runways": [
+        {
+          "heading1": "09",
+          "heading2": "27",
+          "length": 1462,
+          "width": 40
+        }
+      ]
+    },
+    "Conches": {
+      "runways": [
+        {
+          "heading1": "14",
+          "heading2": "32",
+          "length": 1476,
+          "width": 60
+        }
+      ]
+    },
+    "West Malling": {
+      "runways": [
+        {
+          "heading1": "12",
+          "heading2": "30",
+          "length": 1535,
+          "width": 40
+        }
+      ]
+    },
+    "Villacoublay": {
+      "runways": [
+        {
+          "heading1": "06",
+          "heading2": "24",
+          "length": 1130,
+          "width": 40
+        }
+      ]
+    },
+    "Kenley": {
+      "runways": [
+        {
+          "heading1": "24",
+          "heading2": "06",
+          "length": 643,
+          "width": 40
+        },
+        {
+          "heading1": "34",
+          "heading2": "16",
+          "length": 643,
+          "width": 40
+        }
+      ]
+    },
+    "Beauvais-Tille": {
+      "runways": [
+        {
+          "heading1": "24",
+          "heading2": "06",
+          "length": 1499,
+          "width": 40
+        },
+        {
+          "heading1": "14",
+          "heading2": "32",
+          "length": 1499,
+          "width": 40
+        }
+      ]
+    },
+    "Cormeilles-en-Vexin": {
+      "runways": [
+        {
+          "heading1": "14",
+          "heading2": "32",
+          "length": 1553,
+          "width": 40
+        },
+        {
+          "heading1": "25",
+          "heading2": "07",
+          "length": 1553,
+          "width": 40
+        }
+      ]
+    },
+    "Creil": {
+      "runways": [
+        {
+          "heading1": "30",
+          "heading2": "12",
+          "length": 2243,
+          "width": 60
+        },
+        {
+          "heading1": "23",
+          "heading2": "05",
+          "length": 2243,
+          "width": 60
+        }
+      ]
+    },
+    "Guyancourt": {
+      "runways": [
+        {
+          "heading1": "23",
+          "heading2": "05",
+          "length": 775,
+          "width": 30
+        },
+        {
+          "heading1": "32",
+          "heading2": "14",
+          "length": 775,
+          "width": 30
+        },
+        {
+          "heading1": "29",
+          "heading2": "11",
+          "length": 838,
+          "width": 30
+        }
+      ]
+    },
+    "Lonrai": {
+      "runways": [
+        {
+          "heading1": "30",
+          "heading2": "12",
+          "length": 1223,
+          "width": 60
+        }
+      ]
+    },
+    "Dinan-Trelivan": {
+      "runways": [
+        {
+          "heading1": "29",
+          "heading2": "11",
+          "length": 764,
+          "width": 20
+        }
+      ]
+    },
+    "Heathrow": {
+      "runways": [
+        {
+          "heading1": "27",
+          "heading2": "09",
+          "length": 2619,
+          "width": 30
+        }
+      ]
+    },
+    "Fecamp-Benouville": {
+      "runways": [
+        {
+          "heading1": "36",
+          "heading2": "18",
+          "length": 970,
+          "width": 30
+        }
+      ]
+    },
+    "Farnborough": {
+      "runways": [
+        {
+          "heading1": "19",
+          "heading2": "01",
+          "length": 1106,
+          "width": 60
+        },
+        {
+          "heading1": "12",
+          "heading2": "30",
+          "length": 1106,
+          "width": 60
+        }
+      ]
+    },
+    "Friston": {
+      "runways": [
+        {
+          "heading1": "30",
+          "heading2": "12",
+          "length": 980,
+          "width": 30
+        }
+      ]
+    },
+    "Deanland": {
+      "runways": [
+        {
+          "heading1": "13",
+          "heading2": "31",
+          "length": 1027,
+          "width": 30
+        }
+      ]
+    },
+    "Triqueville": {
+      "runways": [
+        {
+          "heading1": "02",
+          "heading2": "20",
+          "length": 980,
+          "width": 30
+        }
+      ]
+    },
+    "Poix": {
+      "runways": [
+        {
+          "heading1": "32",
+          "heading2": "14",
+          "length": 1549,
+          "width": 60
+        },
+        {
+          "heading1": "09",
+          "heading2": "27",
+          "length": 1549,
+          "width": 60
+        }
+      ]
+    },
+    "Orly": {
+      "runways": [
+        {
+          "heading1": "29",
+          "heading2": "11",
+          "length": 983,
+          "width": 40
+        },
+        {
+          "heading1": "35",
+          "heading2": "17",
+          "length": 983,
+          "width": 40
+        }
+      ]
+    },
+    "Stoney Cross": {
+      "runways": [
+        {
+          "heading1": "30",
+          "heading2": "12",
+          "length": 1721,
+          "width": 40
+        },
+        {
+          "heading1": "18",
+          "heading2": "36",
+          "length": 1721,
+          "width": 40
+        }
+      ]
+    },
+    "Amiens-Glisy": {
+      "runways": [
+        {
+          "heading1": "25",
+          "heading2": "07",
+          "length": 1522,
+          "width": 40
+        },
+        {
+          "heading1": "14",
+          "heading2": "32",
+          "length": 1522,
+          "width": 40
+        }
+      ]
+    },
+    "Ronai": {
+      "runways": [
+        {
+          "heading1": "06",
+          "heading2": "24",
+          "length": 1290,
+          "width": 40
+        },
+        {
+          "heading1": "11",
+          "heading2": "29",
+          "length": 1290,
+          "width": 40
+        }
+      ]
+    },
+    "Rouen-Boos": {
+      "runways": [
+        {
+          "heading1": "14",
+          "heading2": "32",
+          "length": 980,
+          "width": 30
+        }
+      ]
+    },
+    "Deauville": {
+      "runways": [
+        {
+          "heading1": "24",
+          "heading2": "06",
+          "length": 865,
+          "width": 30
+        }
+      ]
+    },
+    "Saint-Aubin": {
+      "runways": [
+        {
+          "heading1": "06",
+          "heading2": "24",
+          "length": 880,
+          "width": 30
+        }
+      ]
+    },
+    "Flers": {
+      "runways": [
+        {
+          "heading1": "13",
+          "heading2": "31",
+          "length": 980,
+          "width": 30
+        }
+      ]
+    },
+    "Avranches Le Val-Saint-Pere": {
+      "runways": [
+        {
+          "heading1": "23",
+          "heading2": "05",
+          "length": 980,
+          "width": 30
+        }
+      ]
+    },
+    "Gravesend": {
+      "runways": [
+        {
+          "heading1": "18",
+          "heading2": "36",
+          "length": 1572,
+          "width": 30
+        },
+        {
+          "heading1": "12",
+          "heading2": "30",
+          "length": 1572,
+          "width": 30
+        }
+      ]
+    },
+    "Beaumont-le-Roger": {
+      "runways": [
+        {
+          "heading1": "04",
+          "heading2": "22",
+          "length": 775,
+          "width": 30
+        },
+        {
+          "heading1": "13",
+          "heading2": "31",
+          "length": 775,
+          "width": 30
+        },
+        {
+          "heading1": "10",
+          "heading2": "28",
+          "length": 838,
+          "width": 30
+        }
+      ]
+    },
+    "Broglie": {
+      "runways": [
+        {
+          "heading1": "06",
+          "heading2": "24",
+          "length": 1000,
+          "width": 30
+        }
+      ]
+    },
+    "Bernay Saint Martin": {
+      "runways": [
+        {
+          "heading1": "18",
+          "heading2": "36",
+          "length": 970,
+          "width": 30
+        }
+      ]
+    },
+    "Saint-Andre-de-lEure": {
+      "runways": [
+        {
+          "heading1": "05",
+          "heading2": "23",
+          "length": 1521,
+          "width": 40
+        },
+        {
+          "heading1": "13",
+          "heading2": "31",
+          "length": 1521,
+          "width": 40
+        }
+      ]
+    },
+    "Biggin Hill": {
+      "runways": [
+        {
+          "heading1": "16",
+          "heading2": "34",
+          "length": 1407,
+          "width": 40
+        },
+        {
+          "heading1": "08",
+          "heading2": "26",
+          "length": 1407,
+          "width": 40
+        }
+      ]
+    },
+    "Manston": {
+      "runways": [
+        {
+          "heading1": "08",
+          "heading2": "26",
+          "length": 2627,
+          "width": 40
+        }
+      ]
+    },
+    "Detling": {
+      "runways": [
+        {
+          "heading1": "14",
+          "heading2": "32",
+          "length": 1086,
+          "width": 40
+        }
+      ]
+    },
+    "Lympne": {
+      "runways": [
+        {
+          "heading1": "07",
+          "heading2": "25",
+          "length": 829,
+          "width": 60
+        },
+        {
+          "heading1": "16",
+          "heading2": "34",
+          "length": 829,
+          "width": 60
+        }
+      ]
+    },
+    "Abbeville Drucat": {
+      "runways": [
+        {
+          "heading1": "05",
+          "heading2": "23",
+          "length": 1179,
+          "width": 40
+        },
+        {
+          "heading1": "16",
+          "heading2": "34",
+          "length": 1179,
+          "width": 40
+        },
+        {
+          "heading1": "10",
+          "heading2": "28",
+          "length": 1483,
+          "width": 40
+        }
+      ]
+    },
+    "Saint-Omer Wizernes": {
+      "runways": [
+        {
+          "heading1": "27",
+          "heading2": "09",
+          "length": 582,
+          "width": 30
+        },
+        {
+          "heading1": "15",
+          "heading2": "33",
+          "length": 582,
+          "width": 30
+        }
+      ]
+    },
+    "Merville Calonne": {
+      "runways": [
+        {
+          "heading1": "15",
+          "heading2": "33",
+          "length": 1364,
+          "width": 40
+        },
+        {
+          "heading1": "29",
+          "heading2": "11",
+          "length": 1364,
+          "width": 40
+        },
+        {
+          "heading1": "04",
+          "heading2": "22",
+          "length": 1306,
+          "width": 40
+        }
+      ]
+    },
+    "High Halden": {
+      "runways": [
+        {
+          "heading1": "33",
+          "heading2": "15",
+          "length": 1137,
+          "width": 30
+        },
+        {
+          "heading1": "08",
+          "heading2": "26",
+          "length": 1137,
+          "width": 30
+        }
+      ]
+    },
+    "Dunkirk-Mardyck": {
+      "runways": [
+        {
+          "heading1": "28",
+          "heading2": "10",
+          "length": 1247,
+          "width": 40
+        }
+      ]
+    },
+    "Headcorn": {
+      "runways": [
+        {
+          "heading1": "26",
+          "heading2": "08",
+          "length": 1137,
+          "width": 30
+        },
+        {
+          "heading1": "36",
+          "heading2": "18",
+          "length": 1137,
+          "width": 30
+        }
+      ]
+    },
+    "Eastchurch": {
+      "runways": [
+        {
+          "heading1": "16",
+          "heading2": "34",
+          "length": 681,
+          "width": 20
+        },
+        {
+          "heading1": "07",
+          "heading2": "25",
+          "length": 681,
+          "width": 20
+        }
+      ]
+    },
+    "Hawkinge": {
+      "runways": [
+        {
+          "heading1": "14",
+          "heading2": "32",
+          "length": 1020,
+          "width": 60
+        },
+        {
+          "heading1": "17",
+          "heading2": "35",
+          "length": 1020,
+          "width": 60
+        }
+      ]
+    }
+  },
+  "PersianGulf": {
+    "Abu Musa Island": {
+      "runways": [
+        {
+          "heading1": "28",
+          "heading2": "10",
+          "length": 2321,
+          "width": 60
+        }
+      ]
+    },
+    "Bandar Abbas Intl": {
+      "runways": [
+        {
+          "heading1": "33",
+          "heading2": "15",
+          "length": 3547,
+          "width": 60
+        }
+      ]
+    },
+    "Bandar Lengeh": {
+      "runways": [
+        {
+          "heading1": "28",
+          "heading2": "10",
+          "length": 2324,
+          "width": 60
+        }
+      ]
+    },
+    "Al Dhafra AFB": {
+      "runways": [
+        {
+          "heading1": "23",
+          "heading2": "05",
+          "length": 3475,
+          "width": 60
+        },
+        {
+          "heading1": "23",
+          "heading2": "05",
+          "length": 3475,
+          "width": 60
+        }
+      ]
+    },
+    "Dubai Intl": {
+      "runways": [
+        {
+          "heading1": "06",
+          "heading2": "24",
+          "length": 3349,
+          "width": 60
+        },
+        {
+          "heading1": "06",
+          "heading2": "24",
+          "length": 3349,
+          "width": 60
+        }
+      ]
+    },
+    "Al Maktoum Intl": {
+      "runways": [
+        {
+          "heading1": "06",
+          "heading2": "24",
+          "length": 3505,
+          "width": 60
+        }
+      ]
+    },
+    "Fujairah Intl": {
+      "runways": [
+        {
+          "heading1": "07",
+          "heading2": "25",
+          "length": 2876,
+          "width": 60
+        }
+      ]
+    },
+    "Tunb Island AFB": {
+      "runways": [
+        {
+          "heading1": "33",
+          "heading2": "15",
+          "length": 1859,
+          "width": 20
+        }
+      ]
+    },
+    "Havadarya": {
+      "runways": [
+        {
+          "heading1": "10",
+          "heading2": "28",
+          "length": 2225,
+          "width": 60
+        }
+      ]
+    },
+    "Khasab": {
+      "runways": [
+        {
+          "heading1": "17",
+          "heading2": "35",
+          "length": 2289,
+          "width": 20
+        }
+      ]
+    },
+    "Lar": {
+      "runways": [
+        {
+          "heading1": "27",
+          "heading2": "09",
+          "length": 2926,
+          "width": 60
+        }
+      ]
+    },
+    "Al Minhad AFB": {
+      "runways": [
+        {
+          "heading1": "09",
+          "heading2": "27",
+          "length": 3616,
+          "width": 60
+        }
+      ]
+    },
+    "Qeshm Island": {
+      "runways": [
+        {
+          "heading1": "13",
+          "heading2": "31",
+          "length": 4050,
+          "width": 60
+        }
+      ]
+    },
+    "Sharjah Intl": {
+      "runways": [
+        {
+          "heading1": "06",
+          "heading2": "24",
+          "length": 3166,
+          "width": 60
+        },
+        {
+          "heading1": "06",
+          "heading2": "24",
+          "length": 3166,
+          "width": 60
+        }
+      ]
+    },
+    "Sirri Island": {
+      "runways": [
+        {
+          "heading1": "05",
+          "heading2": "23",
+          "length": 2268,
+          "width": 60
+        }
+      ]
+    },
+    "Tunb Kochak": {
+      "runways": [
+        {
+          "heading1": "10",
+          "heading2": "28",
+          "length": 756,
+          "width": 20
+        }
+      ]
+    },
+    "Sir Abu Nuayr": {
+      "runways": [
+        {
+          "heading1": "08",
+          "heading2": "26",
+          "length": 679,
+          "width": 20
+        }
+      ]
+    },
+    "Kerman": {
+      "runways": [
+        {
+          "heading1": "02",
+          "heading2": "20",
+          "length": 3652,
+          "width": 60
+        }
+      ]
+    },
+    "Shiraz Intl": {
+      "runways": [
+        {
+          "heading1": "06",
+          "heading2": "24",
+          "length": 4045,
+          "width": 60
+        },
+        {
+          "heading1": "06",
+          "heading2": "24",
+          "length": 4045,
+          "width": 60
+        }
+      ]
+    },
+    "Sas Al Nakheel": {
+      "runways": [
+        {
+          "heading1": "20",
+          "heading2": "02",
+          "length": 1642,
+          "width": 30
+        }
+      ]
+    },
+    "Bandar-e-Jask": {
+      "runways": [
+        {
+          "heading1": "30",
+          "heading2": "12",
+          "length": 2085,
+          "width": 30
+        }
+      ]
+    },
+    "Abu Dhabi Intl": {
+      "runways": [
+        {
+          "heading1": "23",
+          "heading2": "05",
+          "length": 3906,
+          "width": 60
+        },
+        {
+          "heading1": "05",
+          "heading2": "23",
+          "length": 3906,
+          "width": 60
+        },
+        {
+          "heading1": "23",
+          "heading2": "05",
+          "length": 3031,
+          "width": 60
+        }
+      ]
+    },
+    "Al-Bateen": {
+      "runways": [
+        {
+          "heading1": "23",
+          "heading2": "05",
+          "length": 2075,
+          "width": 60
+        }
+      ]
+    },
+    "Kish Intl": {
+      "runways": [
+        {
+          "heading1": "26",
+          "heading2": "08",
+          "length": 3236,
+          "width": 60
+        },
+        {
+          "heading1": "26",
+          "heading2": "08",
+          "length": 3236,
+          "width": 60
+        }
+      ]
+    },
+    "Al Ain Intl": {
+      "runways": [
+        {
+          "heading1": "17",
+          "heading2": "35",
+          "length": 3434,
+          "width": 60
+        }
+      ]
+    },
+    "Lavan Island": {
+      "runways": [
+        {
+          "heading1": "25",
+          "heading2": "07",
+          "length": 2509,
+          "width": 60
+        }
+      ]
+    },
+    "Jiroft": {
+      "runways": [
+        {
+          "heading1": "23",
+          "heading2": "05",
+          "length": 2791,
+          "width": 30
+        }
+      ]
+    },
+    "Ras Al Khaimah Intl": {
+      "runways": [
+        {
+          "heading1": "01",
+          "heading2": "19",
+          "length": 2562,
+          "width": 60
+        }
+      ]
+    },
+    "Liwa AFB": {
+      "runways": [
+        {
+          "heading1": "23",
+          "heading2": "05",
+          "length": 3282,
+          "width": 30
+        }
+      ]
+    },
+    "": {
+      "runways": [
+        {
+          "heading1": "09",
+          "heading2": "27",
+          "length": 2841,
+          "width": 30
+        }
+      ]
+    }
+  },
+  "SinaiMap": {
+    "Difarsuwar Airfield": {
+      "runways": [
+        {
+          "heading1": "36",
+          "heading2": "18",
+          "length": 424,
+          "width": 45
+        },
+        {
+          "heading1": "09",
+          "heading2": "27",
+          "length": 424,
+          "width": 45
+        }
+      ]
+    },
+    "Abu Suwayr": {
+      "runways": [
+        {
+          "heading1": "07",
+          "heading2": "25",
+          "length": 2822,
+          "width": 60
+        },
+        {
+          "heading1": "09",
+          "heading2": "27",
+          "length": 2822,
+          "width": 60
+        }
+      ]
+    },
+    "As Salihiyah": {
+      "runways": [
+        {
+          "heading1": "34",
+          "heading2": "16",
+          "length": 2829,
+          "width": 60
+        },
+        {
+          "heading1": "34",
+          "heading2": "16",
+          "length": 2829,
+          "width": 60
+        }
+      ]
+    },
+    "Al Ismailiyah": {
+      "runways": [
+        {
+          "heading1": "05",
+          "heading2": "23",
+          "length": 3021,
+          "width": 60
+        }
+      ]
+    },
+    "Melez": {
+      "runways": [
+        {
+          "heading1": "03",
+          "heading2": "21",
+          "length": 2335,
+          "width": 60
+        },
+        {
+          "heading1": "03",
+          "heading2": "21",
+          "length": 2335,
+          "width": 60
+        }
+      ]
+    },
+    "Fayed": {
+      "runways": [
+        {
+          "heading1": "09",
+          "heading2": "27",
+          "length": 2815,
+          "width": 60
+        }
+      ]
+    },
+    "Hatzerim": {
+      "runways": [
+        {
+          "heading1": "08",
+          "heading2": "26",
+          "length": 2222,
+          "width": 60
+        },
+        {
+          "heading1": "08",
+          "heading2": "26",
+          "length": 2222,
+          "width": 60
+        }
+      ]
+    },
+    "Nevatim": {
+      "runways": [
+        {
+          "heading1": "28",
+          "heading2": "10",
+          "length": 3156,
+          "width": 60
+        },
+        {
+          "heading1": "28",
+          "heading2": "10",
+          "length": 3156,
+          "width": 60
+        },
+        {
+          "heading1": "28",
+          "heading2": "10",
+          "length": 2439,
+          "width": 60
+        }
+      ]
+    },
+    "Ramon Airbase": {
+      "runways": [
+        {
+          "heading1": "29",
+          "heading2": "11",
+          "length": 2532,
+          "width": 45
+        },
+        {
+          "heading1": "29",
+          "heading2": "11",
+          "length": 2532,
+          "width": 45
+        }
+      ]
+    },
+    "Ovda": {
+      "runways": [
+        {
+          "heading1": "34",
+          "heading2": "16",
+          "length": 2455,
+          "width": 60
+        },
+        {
+          "heading1": "34",
+          "heading2": "16",
+          "length": 2455,
+          "width": 60
+        }
+      ]
+    },
+    "Kibrit Air Base": {
+      "runways": [
+        {
+          "heading1": "04",
+          "heading2": "22",
+          "length": 2514,
+          "width": 45
+        },
+        {
+          "heading1": "04",
+          "heading2": "22",
+          "length": 2514,
+          "width": 45
+        }
+      ]
+    },
+    "Kedem": {
+      "runways": [
+        {
+          "heading1": "08",
+          "heading2": "26",
+          "length": 1678,
+          "width": 45
+        }
+      ]
+    },
+    "Wadi al Jandali": {
+      "runways": [
+        {
+          "heading1": "34",
+          "heading2": "16",
+          "length": 3448,
+          "width": 60
+        },
+        {
+          "heading1": "34",
+          "heading2": "16",
+          "length": 3448,
+          "width": 60
+        }
+      ]
+    },
+    "Al Mansurah": {
+      "runways": [
+        {
+          "heading1": "04",
+          "heading2": "22",
+          "length": 2769,
+          "width": 60
+        },
+        {
+          "heading1": "01",
+          "heading2": "19",
+          "length": 2769,
+          "width": 60
+        }
+      ]
+    },
+    "AzZaqaziq": {
+      "runways": [
+        {
+          "heading1": "36",
+          "heading2": "18",
+          "length": 2789,
+          "width": 60
+        },
+        {
+          "heading1": "36",
+          "heading2": "18",
+          "length": 2789,
+          "width": 60
+        }
+      ]
+    },
+    "Bilbeis Air Base": {
+      "runways": [
+        {
+          "heading1": "01",
+          "heading2": "19",
+          "length": 2788,
+          "width": 60
+        },
+        {
+          "heading1": "09",
+          "heading2": "27",
+          "length": 2788,
+          "width": 60
+        },
+        {
+          "heading1": "31",
+          "heading2": "13",
+          "length": 2387,
+          "width": 60
+        }
+      ]
+    },
+    "Cairo International Airport": {
+      "runways": [
+        {
+          "heading1": "31",
+          "heading2": "13",
+          "length": 3753,
+          "width": 60
+        },
+        {
+          "heading1": "31",
+          "heading2": "13",
+          "length": 3753,
+          "width": 60
+        },
+        {
+          "heading1": "31",
+          "heading2": "13",
+          "length": 3751,
+          "width": 60
+        }
+      ]
+    },
+    "Cairo West": {
+      "runways": [
+        {
+          "heading1": "01",
+          "heading2": "19",
+          "length": 3446,
+          "width": 60
+        },
+        {
+          "heading1": "07",
+          "heading2": "25",
+          "length": 3446,
+          "width": 60
+        },
+        {
+          "heading1": "01",
+          "heading2": "19",
+          "length": 2906,
+          "width": 60
+        }
+      ]
+    },
+    "Inshas Airbase": {
+      "runways": [
+        {
+          "heading1": "31",
+          "heading2": "13",
+          "length": 2422,
+          "width": 60
+        },
+        {
+          "heading1": "27",
+          "heading2": "09",
+          "length": 2422,
+          "width": 60
+        }
+      ]
+    },
+    "Hatzor": {
+      "runways": [
+        {
+          "heading1": "31",
+          "heading2": "13",
+          "length": 2202,
+          "width": 50
+        },
+        {
+          "heading1": "07",
+          "heading2": "25",
+          "length": 2202,
+          "width": 50
+        },
+        {
+          "heading1": "07",
+          "heading2": "25",
+          "length": 2189,
+          "width": 50
+        }
+      ]
+    },
+    "Palmachim": {
+      "runways": [
+        {
+          "heading1": "34",
+          "heading2": "16",
+          "length": 2161,
+          "width": 45
+        }
+      ]
+    },
+    "Sde Dov": {
+      "runways": [
+        {
+          "heading1": "15",
+          "heading2": "33",
+          "length": 1303,
+          "width": 45
+        }
+      ]
+    },
+    "Tel Nof": {
+      "runways": [
+        {
+          "heading1": "36",
+          "heading2": "18",
+          "length": 2204,
+          "width": 50
+        },
+        {
+          "heading1": "03",
+          "heading2": "21",
+          "length": 2204,
+          "width": 50
+        },
+        {
+          "heading1": "03",
+          "heading2": "21",
+          "length": 2224,
+          "width": 60
+        }
+      ]
+    },
+    "Ben-Gurion": {
+      "runways": [
+        {
+          "heading1": "33",
+          "heading2": "15",
+          "length": 2571,
+          "width": 60
+        },
+        {
+          "heading1": "28",
+          "heading2": "10",
+          "length": 2571,
+          "width": 60
+        },
+        {
+          "heading1": "06",
+          "heading2": "24",
+          "length": 2896,
+          "width": 60
+        }
+      ]
+    },
+    "St Catherine": {
+      "runways": [
+        {
+          "heading1": "01",
+          "heading2": "19",
+          "length": 1916,
+          "width": 45
+        }
+      ]
+    },
+    "Abu Rudeis": {
+      "runways": [
+        {
+          "heading1": "23",
+          "heading2": "05",
+          "length": 1863,
+          "width": 50
+        }
+      ]
+    },
+    "Baluza": {
+      "runways": [
+        {
+          "heading1": "10",
+          "heading2": "28",
+          "length": 1766,
+          "width": 20
+        }
+      ]
+    },
+    "Bir Hasanah": {
+      "runways": [
+        {
+          "heading1": "06",
+          "heading2": "24",
+          "length": 2860,
+          "width": 50
+        }
+      ]
+    },
+    "El Arish": {
+      "runways": [
+        {
+          "heading1": "02",
+          "heading2": "20",
+          "length": 2850,
+          "width": 60
+        },
+        {
+          "heading1": "02",
+          "heading2": "20",
+          "length": 2850,
+          "width": 60
+        }
+      ]
+    },
+    "El Gora": {
+      "runways": [
+        {
+          "heading1": "29",
+          "heading2": "11",
+          "length": 2092,
+          "width": 20
+        }
+      ]
+    },
+    "Al Khatatbah": {
+      "runways": [
+        {
+          "heading1": "24",
+          "heading2": "06",
+          "length": 326,
+          "width": 20
+        },
+        {
+          "heading1": "15",
+          "heading2": "33",
+          "length": 326,
+          "width": 20
+        },
+        {
+          "heading1": "15",
+          "heading2": "33",
+          "length": 193,
+          "width": 20
+        }
+      ]
+    },
+    "Al Rahmaniyah Air Base": {
+      "runways": [
+        {
+          "heading1": "02",
+          "heading2": "20",
+          "length": 2551,
+          "width": 60
+        }
+      ]
+    },
+    "Beni Suef": {
+      "runways": [
+        {
+          "heading1": "35",
+          "heading2": "17",
+          "length": 3365,
+          "width": 60
+        },
+        {
+          "heading1": "30",
+          "heading2": "12",
+          "length": 3365,
+          "width": 60
+        },
+        {
+          "heading1": "35",
+          "heading2": "17",
+          "length": 2767,
+          "width": 60
+        }
+      ]
+    },
+    "Birma Air Base": {
+      "runways": [
+        {
+          "heading1": "04",
+          "heading2": "22",
+          "length": 2767,
+          "width": 50
+        },
+        {
+          "heading1": "04",
+          "heading2": "22",
+          "length": 2767,
+          "width": 50
+        }
+      ]
+    },
+    "Borg El Arab International Airport": {
+      "runways": [
+        {
+          "heading1": "22",
+          "heading2": "04",
+          "length": 3244,
+          "width": 20
+        },
+        {
+          "heading1": "22",
+          "heading2": "04",
+          "length": 3244,
+          "width": 20
+        },
+        {
+          "heading1": "22",
+          "heading2": "04",
+          "length": 3251,
+          "width": 60
+        },
+        {
+          "heading1": "22",
+          "heading2": "04",
+          "length": 3251,
+          "width": 60
+        }
+      ]
+    },
+    "El Minya": {
+      "runways": [
+        {
+          "heading1": "02",
+          "heading2": "20",
+          "length": 2800,
+          "width": 60
+        },
+        {
+          "heading1": "02",
+          "heading2": "20",
+          "length": 2800,
+          "width": 60
+        }
+      ]
+    },
+    "Gebel El Basur Air Base": {
+      "runways": [
+        {
+          "heading1": "21",
+          "heading2": "03",
+          "length": 2899,
+          "width": 60
+        },
+        {
+          "heading1": "17",
+          "heading2": "35",
+          "length": 2899,
+          "width": 60
+        }
+      ]
+    },
+    "Hurghada International Airport": {
+      "runways": [
+        {
+          "heading1": "20",
+          "heading2": "02",
+          "length": 3854,
+          "width": 65
+        },
+        {
+          "heading1": "20",
+          "heading2": "02",
+          "length": 3854,
+          "width": 65
+        }
+      ]
+    },
+    "Jiyanklis Air Base": {
+      "runways": [
+        {
+          "heading1": "23",
+          "heading2": "05",
+          "length": 2779,
+          "width": 60
+        },
+        {
+          "heading1": "25",
+          "heading2": "07",
+          "length": 2779,
+          "width": 60
+        }
+      ]
+    },
+    "Kom Awshim": {
+      "runways": [
+        {
+          "heading1": "03",
+          "heading2": "21",
+          "length": 2245,
+          "width": 50
+        },
+        {
+          "heading1": "02",
+          "heading2": "20",
+          "length": 2245,
+          "width": 50
+        }
+      ]
+    },
+    "Ramon International Airport": {
+      "runways": [
+        {
+          "heading1": "17",
+          "heading2": "35",
+          "length": 3447,
+          "width": 60
+        }
+      ]
+    },
+    "Sharm El Sheikh International Airport": {
+      "runways": [
+        {
+          "heading1": "32",
+          "heading2": "14",
+          "length": 2933,
+          "width": 60
+        },
+        {
+          "heading1": "32",
+          "heading2": "14",
+          "length": 2933,
+          "width": 60
+        }
+      ]
+    },
+    "Wadi Abu Rish": {
+      "runways": [
+        {
+          "heading1": "17",
+          "heading2": "35",
+          "length": 3835,
+          "width": 60
+        },
+        {
+          "heading1": "17",
+          "heading2": "35",
+          "length": 3835,
+          "width": 60
+        }
+      ]
+    },
+    "Al Bahr al Ahmar": {
+      "runways": [
+        {
+          "heading1": "03",
+          "heading2": "21",
+          "length": 2833,
+          "width": 60
+        },
+        {
+          "heading1": "03",
+          "heading2": "21",
+          "length": 2833,
+          "width": 60
+        }
+      ]
+    },
+    "Quwaysina": {
+      "runways": [
+        {
+          "heading1": "19",
+          "heading2": "01",
+          "length": 2659,
+          "width": 60
+        }
+      ]
+    },
+    "Rafic Hariri Intl": {
+      "runways": [
+        {
+          "heading1": "19",
+          "heading2": "01",
+          "length": 3153,
+          "width": 65
+        },
+        {
+          "heading1": "33",
+          "heading2": "15",
+          "length": 3153,
+          "width": 65
+        }
+      ]
+    },
+    "Tabuk": {
+      "runways": [
+        {
+          "heading1": "23",
+          "heading2": "05",
+          "length": 2829,
+          "width": 65
+        },
+        {
+          "heading1": "12",
+          "heading2": "30",
+          "length": 2829,
+          "width": 65
+        }
+      ]
+    },
+    "Damascus Intl": {
+      "runways": [
+        {
+          "heading1": "31",
+          "heading2": "13",
+          "length": 3380,
+          "width": 65
+        },
+        {
+          "heading1": "31",
+          "heading2": "13",
+          "length": 3380,
+          "width": 65
+        }
+      ]
+    },
+    "Mezzeh Air Base": {
+      "runways": [
+        {
+          "heading1": "30",
+          "heading2": "12",
+          "length": 2576,
+          "width": 45
+        }
+      ]
+    },
+    "Ramat David": {
+      "runways": [
+        {
+          "heading1": "22",
+          "heading2": "04",
+          "length": 2250,
+          "width": 60
+        },
+        {
+          "heading1": "27",
+          "heading2": "09",
+          "length": 2250,
+          "width": 60
+        },
+        {
+          "heading1": "25",
+          "heading2": "07",
+          "length": 2095,
+          "width": 60
+        }
+      ]
+    },
+    "Megiddo": {
+      "runways": [
+        {
+          "heading1": "27",
+          "heading2": "09",
+          "length": 1925,
+          "width": 50
+        }
+      ]
+    },
+    "Ein Shamer": {
+      "runways": [
+        {
+          "heading1": "08",
+          "heading2": "26",
+          "length": 1159,
+          "width": 45
+        }
+      ]
+    },
+    "Taba International Airport": {
+      "runways": [
+        {
+          "heading1": "14",
+          "heading2": "32",
+          "length": 3839,
+          "width": 65
+        }
+      ]
+    },
+    "King Feisal Air Base": {
+      "runways": [
+        {
+          "heading1": "07",
+          "heading2": "25",
+          "length": 3375,
+          "width": 60
+        }
+      ]
+    },
+    "Khalkhalah Air Base": {
+      "runways": [
+        {
+          "heading1": "21",
+          "heading2": "03",
+          "length": 2656,
+          "width": 50
+        },
+        {
+          "heading1": "29",
+          "heading2": "11",
+          "length": 2656,
+          "width": 50
+        }
+      ]
+    }
+  },
+  "Syria": {
+    "Abu al-Duhur": {
+      "runways": [
+        {
+          "heading1": "09",
+          "heading2": "27",
+          "length": 2660,
+          "width": 60
+        }
+      ]
+    },
+    "Adana Sakirpasa": {
+      "runways": [
+        {
+          "heading1": "12",
+          "heading2": "30",
+          "length": 2473,
+          "width": 60
+        }
+      ]
+    },
+    "Al Qusayr": {
+      "runways": [
+        {
+          "heading1": "08",
+          "heading2": "26",
+          "length": 2616,
+          "width": 60
+        }
+      ]
+    },
+    "An Nasiriyah": {
+      "runways": [
+        {
+          "heading1": "14",
+          "heading2": "32",
+          "length": 2490,
+          "width": 60
+        }
+      ]
+    },
+    "Tha'lah": {
+      "runways": [
+        {
+          "heading1": "30",
+          "heading2": "12",
+          "length": 2446,
+          "width": 60
+        }
+      ]
+    },
+    "Beirut-Rafic Hariri": {
+      "runways": [
+        {
+          "heading1": "18",
+          "heading2": "36",
+          "length": 2041,
+          "width": 60
+        },
+        {
+          "heading1": "33",
+          "heading2": "15",
+          "length": 2041,
+          "width": 60
+        },
+        {
+          "heading1": "19",
+          "heading2": "01",
+          "length": 2017,
+          "width": 60
+        }
+      ]
+    },
+    "Damascus": {
+      "runways": [
+        {
+          "heading1": "31",
+          "heading2": "13",
+          "length": 3481,
+          "width": 60
+        },
+        {
+          "heading1": "31",
+          "heading2": "13",
+          "length": 3481,
+          "width": 60
+        }
+      ]
+    },
+    "Marj as Sultan South": {
+      "runways": [
+        {
+          "heading1": "27",
+          "heading2": "09",
+          "length": 170,
+          "width": 45
+        }
+      ]
+    },
+    "Al-Dumayr": {
+      "runways": [
+        {
+          "heading1": "11",
+          "heading2": "29",
+          "length": 2713,
+          "width": 65
+        }
+      ]
+    },
+    "Eyn Shemer": {
+      "runways": [
+        {
+          "heading1": "08",
+          "heading2": "26",
+          "length": 1471,
+          "width": 60
+        }
+      ]
+    },
+    "Gaziantep": {
+      "runways": [
+        {
+          "heading1": "25",
+          "heading2": "07",
+          "length": 2894,
+          "width": 60
+        }
+      ]
+    },
+    "H4": {
+      "runways": [
+        {
+          "heading1": "08",
+          "heading2": "26",
+          "length": 2188,
+          "width": 65
+        }
+      ]
+    },
+    "Haifa": {
+      "runways": [
+        {
+          "heading1": "02",
+          "heading2": "20",
+          "length": 991,
+          "width": 45
+        }
+      ]
+    },
+    "Hama": {
+      "runways": [
+        {
+          "heading1": "08",
+          "heading2": "26",
+          "length": 2425,
+          "width": 60
+        }
+      ]
+    },
+    "Hatay": {
+      "runways": [
+        {
+          "heading1": "14",
+          "heading2": "32",
+          "length": 2759,
+          "width": 60
+        }
+      ]
+    },
+    "Incirlik": {
+      "runways": [
+        {
+          "heading1": "31",
+          "heading2": "13",
+          "length": 2945,
+          "width": 60
+        }
+      ]
+    },
+    "Jirah": {
+      "runways": [
+        {
+          "heading1": "26",
+          "heading2": "08",
+          "length": 2869,
+          "width": 65
+        }
+      ]
+    },
+    "Khalkhalah": {
+      "runways": [
+        {
+          "heading1": "21",
+          "heading2": "03",
+          "length": 2513,
+          "width": 45
+        },
+        {
+          "heading1": "28",
+          "heading2": "10",
+          "length": 2513,
+          "width": 45
+        }
+      ]
+    },
+    "King Hussein Air College": {
+      "runways": [
+        {
+          "heading1": "05",
+          "heading2": "23",
+          "length": 2619,
+          "width": 60
+        }
+      ]
+    },
+    "Kiryat Shmona": {
+      "runways": [
+        {
+          "heading1": "32",
+          "heading2": "14",
+          "length": 993,
+          "width": 60
+        }
+      ]
+    },
+    "Bassel Al-Assad": {
+      "runways": [
+        {
+          "heading1": "18",
+          "heading2": "36",
+          "length": 2202,
+          "width": 60
+        }
+      ]
+    },
+    "Marj as Sultan North": {
+      "runways": [
+        {
+          "heading1": "28",
+          "heading2": "10",
+          "length": 144,
+          "width": 45
+        }
+      ]
+    },
+    "Tel Nof": {
+      "runways": [
+        {
+          "heading1": "03",
+          "heading2": "21",
+          "length": 2166,
+          "width": 65
+        },
+        {
+          "heading1": "18",
+          "heading2": "36",
+          "length": 2166,
+          "width": 65
+        },
+        {
+          "heading1": "03",
+          "heading2": "21",
+          "length": 2236,
+          "width": 65
+        }
+      ]
+    },
+    "Marj Ruhayyil": {
+      "runways": [
+        {
+          "heading1": "30",
+          "heading2": "12",
+          "length": 2309,
+          "width": 65
+        }
+      ]
+    },
+    "Megiddo": {
+      "runways": [
+        {
+          "heading1": "27",
+          "heading2": "09",
+          "length": 1858,
+          "width": 60
+        }
+      ]
+    },
+    "Mezzeh": {
+      "runways": [
+        {
+          "heading1": "12",
+          "heading2": "30",
+          "length": 2292,
+          "width": 60
+        }
+      ]
+    },
+    "Minakh": {
+      "runways": [
+        {
+          "heading1": "26",
+          "heading2": "08",
+          "length": 1416,
+          "width": 60
+        },
+        {
+          "heading1": "32",
+          "heading2": "14",
+          "length": 1416,
+          "width": 60
+        }
+      ]
+    },
+    "Aleppo": {
+      "runways": [
+        {
+          "heading1": "08",
+          "heading2": "26",
+          "length": 2539,
+          "width": 65
+        }
+      ]
+    },
+    "Palmyra": {
+      "runways": [
+        {
+          "heading1": "10",
+          "heading2": "28",
+          "length": 2653,
+          "width": 60
+        }
+      ]
+    },
+    "Qabr as Sitt": {
+      "runways": [
+        {
+          "heading1": "30",
+          "heading2": "12",
+          "length": 151,
+          "width": 45
+        }
+      ]
+    },
+    "Ramat David": {
+      "runways": [
+        {
+          "heading1": "21",
+          "heading2": "03",
+          "length": 2320,
+          "width": 45
+        },
+        {
+          "heading1": "25",
+          "heading2": "07",
+          "length": 2320,
+          "width": 45
+        },
+        {
+          "heading1": "27",
+          "heading2": "09",
+          "length": 2296,
+          "width": 45
+        }
+      ]
+    },
+    "Kuweires": {
+      "runways": [
+        {
+          "heading1": "26",
+          "heading2": "08",
+          "length": 2030,
+          "width": 60
+        }
+      ]
+    },
+    "Rayak": {
+      "runways": [
+        {
+          "heading1": "31",
+          "heading2": "13",
+          "length": 2651,
+          "width": 60
+        }
+      ]
+    },
+    "Rene Mouawad": {
+      "runways": [
+        {
+          "heading1": "30",
+          "heading2": "12",
+          "length": 2625,
+          "width": 65
+        }
+      ]
+    },
+    "Rosh Pina": {
+      "runways": [
+        {
+          "heading1": "03",
+          "heading2": "21",
+          "length": 826,
+          "width": 45
+        }
+      ]
+    },
+    "Sayqal": {
+      "runways": [
+        {
+          "heading1": "27",
+          "heading2": "09",
+          "length": 2418,
+          "width": 60
+        }
+      ]
+    },
+    "Shayrat": {
+      "runways": [
+        {
+          "heading1": "25",
+          "heading2": "07",
+          "length": 2607,
+          "width": 65
+        }
+      ]
+    },
+    "Tabqa": {
+      "runways": [
+        {
+          "heading1": "27",
+          "heading2": "09",
+          "length": 2754,
+          "width": 65
+        }
+      ]
+    },
+    "Taftanaz": {
+      "runways": [
+        {
+          "heading1": "08",
+          "heading2": "26",
+          "length": 824,
+          "width": 60
+        }
+      ]
+    },
+    "Tiyas": {
+      "runways": [
+        {
+          "heading1": "09",
+          "heading2": "27",
+          "length": 2871,
+          "width": 60
+        }
+      ]
+    },
+    "Wujah Al Hajar": {
+      "runways": [
+        {
+          "heading1": "15",
+          "heading2": "33",
+          "length": 1437,
+          "width": 45
+        }
+      ]
+    },
+    "Gazipasa": {
+      "runways": [
+        {
+          "heading1": "27",
+          "heading2": "09",
+          "length": 2098,
+          "width": 45
+        }
+      ]
+    },
+    "Deir ez-Zor": {
+      "runways": [
+        {
+          "heading1": "25",
+          "heading2": "07",
+          "length": 2846,
+          "width": 60
+        }
+      ]
+    },
+    "Nicosia": {
+      "runways": [
+        {
+          "heading1": "03",
+          "heading2": "21",
+          "length": 2353,
+          "width": 65
+        },
+        {
+          "heading1": "27",
+          "heading2": "09",
+          "length": 2353,
+          "width": 65
+        }
+      ]
+    },
+    "Akrotiri": {
+      "runways": [
+        {
+          "heading1": "25",
+          "heading2": "07",
+          "length": 2522,
+          "width": 65
+        }
+      ]
+    },
+    "Kingsfield": {
+      "runways": [
+        {
+          "heading1": "12",
+          "heading2": "30",
+          "length": 935,
+          "width": 45
+        }
+      ]
+    },
+    "Paphos": {
+      "runways": [
+        {
+          "heading1": "25",
+          "heading2": "07",
+          "length": 2568,
+          "width": 60
+        }
+      ]
+    },
+    "Larnaca": {
+      "runways": [
+        {
+          "heading1": "31",
+          "heading2": "13",
+          "length": 2441,
+          "width": 60
+        }
+      ]
+    },
+    "Lakatamia": {
+      "runways": [
+        {
+          "heading1": "19",
+          "heading2": "01",
+          "length": 374,
+          "width": 45
+        }
+      ]
+    },
+    "Ercan": {
+      "runways": [
+        {
+          "heading1": "24",
+          "heading2": "06",
+          "length": 2304,
+          "width": 60
+        }
+      ]
+    },
+    "Gecitkale": {
+      "runways": [
+        {
+          "heading1": "27",
+          "heading2": "09",
+          "length": 2485,
+          "width": 60
+        }
+      ]
+    },
+    "Pinarbashi": {
+      "runways": [
+        {
+          "heading1": "19",
+          "heading2": "01",
+          "length": 1025,
+          "width": 20
+        }
+      ]
+    },
+    "H3": {
+      "runways": [
+        {
+          "heading1": "25",
+          "heading2": "07",
+          "length": 2692,
+          "width": 60
+        },
+        {
+          "heading1": "30",
+          "heading2": "12",
+          "length": 2692,
+          "width": 60
+        }
+      ]
+    },
+    "H3 Northwest": {
+      "runways": [
+        {
+          "heading1": "06",
+          "heading2": "24",
+          "length": 2248,
+          "width": 65
+        }
+      ]
+    },
+    "H3 Southwest": {
+      "runways": [
+        {
+          "heading1": "06",
+          "heading2": "24",
+          "length": 2231,
+          "width": 65
+        }
+      ]
+    },
+    "Ruwayshid": {
+      "runways": [
+        {
+          "heading1": "08",
+          "heading2": "26",
+          "length": 2217,
+          "width": 60
+        }
+      ]
+    },
+    "Sanliurfa": {
+      "runways": [
+        {
+          "heading1": "14",
+          "heading2": "32",
+          "length": 3755,
+          "width": 60
+        }
+      ]
+    },
+    "Tal Siman": {
+      "runways": [
+        {
+          "heading1": "26",
+          "heading2": "08",
+          "length": 797,
+          "width": 45
+        }
+      ]
+    },
+    "Prince Hassan": {
+      "runways": [
+        {
+          "heading1": "05",
+          "heading2": "23",
+          "length": 2838,
+          "width": 60
+        }
+      ]
+    },
+    "King Abdullah II": {
+      "runways": [
+        {
+          "heading1": "05",
+          "heading2": "23",
+          "length": 2146,
+          "width": 45
+        }
+      ]
+    },
+    "Herzliya": {
+      "runways": [
+        {
+          "heading1": "07",
+          "heading2": "25",
+          "length": 1253,
+          "width": 45
+        }
+      ]
+    },
+    "Marka": {
+      "runways": [
+        {
+          "heading1": "11",
+          "heading2": "29",
+          "length": 3176,
+          "width": 60
+        }
+      ]
+    },
+    "Muwaffaq Salti": {
+      "runways": [
+        {
+          "heading1": "10",
+          "heading2": "28",
+          "length": 2315,
+          "width": 60
+        },
+        {
+          "heading1": "05",
+          "heading2": "23",
+          "length": 2315,
+          "width": 60
+        }
+      ]
+    },
+    "Ben Gurion": {
+      "runways": [
+        {
+          "heading1": "24",
+          "heading2": "06",
+          "length": 2588,
+          "width": 60
+        },
+        {
+          "heading1": "15",
+          "heading2": "33",
+          "length": 2588,
+          "width": 60
+        },
+        {
+          "heading1": "10",
+          "heading2": "28",
+          "length": 2696,
+          "width": 60
+        }
+      ]
+    },
+    "Hatzor": {
+      "runways": [
+        {
+          "heading1": "12",
+          "heading2": "30",
+          "length": 2291,
+          "width": 60
+        },
+        {
+          "heading1": "25",
+          "heading2": "07",
+          "length": 2291,
+          "width": 60
+        },
+        {
+          "heading1": "07",
+          "heading2": "25",
+          "length": 2284,
+          "width": 60
+        }
+      ]
+    },
+    "Palmachim": {
+      "runways": [
+        {
+          "heading1": "33",
+          "heading2": "15",
+          "length": 1379,
+          "width": 65
+        },
+        {
+          "heading1": "33",
+          "heading2": "15",
+          "length": 1379,
+          "width": 65
+        }
+      ]
+    }
+  },
+  "TheChannel": {
+    "Abbeville Drucat": {
+      "runways": [
+        {
+          "heading1": "16",
+          "heading2": "34",
+          "length": 1486,
+          "width": 50
+        },
+        {
+          "heading1": "09",
+          "heading2": "27",
+          "length": 1486,
+          "width": 50
+        }
+      ]
+    },
+    "Merville Calonne": {
+      "runways": [
+        {
+          "heading1": "04",
+          "heading2": "22",
+          "length": 1188,
+          "width": 50
+        },
+        {
+          "heading1": "10",
+          "heading2": "28",
+          "length": 1188,
+          "width": 50
+        }
+      ]
+    },
+    "Saint Omer Longuenesse": {
+      "runways": [
+        {
+          "heading1": "27",
+          "heading2": "09",
+          "length": 610,
+          "width": 45
+        }
+      ]
+    },
+    "Dunkirk Mardyck": {
+      "runways": [
+        {
+          "heading1": "28",
+          "heading2": "10",
+          "length": 560,
+          "width": 45
+        }
+      ]
+    },
+    "Manston": {
+      "runways": [
+        {
+          "heading1": "26",
+          "heading2": "08",
+          "length": 2586,
+          "width": 45
+        },
+        {
+          "heading1": "30",
+          "heading2": "12",
+          "length": 2586,
+          "width": 45
+        },
+        {
+          "heading1": "26",
+          "heading2": "08",
+          "length": 1611,
+          "width": 45
+        }
+      ]
+    },
+    "Hawkinge": {
+      "runways": [
+        {
+          "heading1": "18",
+          "heading2": "36",
+          "length": 712,
+          "width": 60
+        },
+        {
+          "heading1": "14",
+          "heading2": "32",
+          "length": 712,
+          "width": 60
+        }
+      ]
+    },
+    "Lympne": {
+      "runways": [
+        {
+          "heading1": "23",
+          "heading2": "05",
+          "length": 930,
+          "width": 60
+        }
+      ]
+    },
+    "Detling": {
+      "runways": [
+        {
+          "heading1": "13",
+          "heading2": "31",
+          "length": 1061,
+          "width": 60
+        }
+      ]
+    },
+    "Eastchurch": {
+      "runways": [
+        {
+          "heading1": "26",
+          "heading2": "08",
+          "length": 909,
+          "width": 60
+        },
+        {
+          "heading1": "16",
+          "heading2": "34",
+          "length": 909,
+          "width": 60
+        }
+      ]
+    },
+    "High Halden": {
+      "runways": [
+        {
+          "heading1": "26",
+          "heading2": "08",
+          "length": 922,
+          "width": 45
+        },
+        {
+          "heading1": "15",
+          "heading2": "33",
+          "length": 922,
+          "width": 45
+        }
+      ]
+    },
+    "Headcorn": {
+      "runways": [
+        {
+          "heading1": "27",
+          "heading2": "09",
+          "length": 1121,
+          "width": 45
+        },
+        {
+          "heading1": "35",
+          "heading2": "17",
+          "length": 1121,
+          "width": 45
+        }
+      ]
+    },
+    "Biggin Hill": {
+      "runways": [
+        {
+          "heading1": "13",
+          "heading2": "31",
+          "length": 601,
+          "width": 45
+        },
+        {
+          "heading1": "07",
+          "heading2": "25",
+          "length": 601,
+          "width": 45
+        },
+        {
+          "heading1": "15",
+          "heading2": "33",
+          "length": 684,
+          "width": 45
+        }
+      ]
+    }
+  },
+  "Default": {}
+}

@@ -57,6 +57,58 @@ export function setWaypointName(inp) {
   flight.waypoints[idx].name = inp.value;
 }
 
+export function setWaypointAlt(inp) {
+  const gid = inp.dataset.gid;
+  const idx = parseInt(inp.dataset.idx, 10);
+  const flight = findFlightById(gid);
+  if (!flight || !Number.isInteger(idx) || idx < 0 || idx >= flight.waypoints.length) return;
+  const altM = parseFloat(inp.value) || 0;
+  flight.waypoints[idx].alt_m = Math.max(0, altM);
+  flight.waypoints[idx].alt_ft = Math.round(altM * 3.28084);
+  inp.value = Math.round(altM);
+}
+
+export function setWaypointSpeed(inp) {
+  const gid = inp.dataset.gid;
+  const idx = parseInt(inp.dataset.idx, 10);
+  const flight = findFlightById(gid);
+  if (!flight || !Number.isInteger(idx) || idx < 0 || idx >= flight.waypoints.length) return;
+  const speedKts = parseFloat(inp.value) || 0;
+  flight.waypoints[idx].speed_kts = Math.max(0, Math.round(speedKts));
+  flight.waypoints[idx].speed_ms = speedKts / 1.94384; // Convert knots to m/s
+  inp.value = Math.round(speedKts);
+}
+
+export function setWaypointTos(inp) {
+  const gid = inp.dataset.gid;
+  const idx = parseInt(inp.dataset.idx, 10);
+  const flight = findFlightById(gid);
+  if (!flight || !Number.isInteger(idx) || idx < 0 || idx >= flight.waypoints.length) return;
+
+  // Parse H:MM:SS or MM:SS or just seconds
+  const val = inp.value.trim();
+  let secs = 0;
+  if (/^\d+$/.test(val)) {
+    // Just seconds
+    secs = parseInt(val, 10);
+  } else {
+    const parts = val.split(':').map(p => parseInt(p, 10) || 0);
+    if (parts.length === 3) {
+      secs = parts[0] * 3600 + parts[1] * 60 + parts[2];
+    } else if (parts.length === 2) {
+      secs = parts[0] * 60 + parts[1];
+    }
+  }
+
+  flight.waypoints[idx].tos = Math.max(0, secs);
+
+  // Format back to H:MM:SS for display
+  const h = Math.floor(secs / 3600);
+  const m = Math.floor((secs % 3600) / 60);
+  const s = Math.floor(secs % 60);
+  inp.value = `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+}
+
 export function removeWaypoint(btn) {
   const gid = btn.dataset.gid;
   const idx = parseInt(btn.dataset.idx, 10);

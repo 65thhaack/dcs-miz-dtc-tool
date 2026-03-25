@@ -124,6 +124,7 @@ export function extractFlightsByType(mission, theater, unitMatcher, aircraftType
             type,
             pointType:  'STPT',  // pilot-selectable: STPT | IP | TGT | VRP | PUP | OA1 | OA2
             targetData: { vrpBearing: 0, vrpRange: 0.0, pupDistance: 0.0 }, // used when Type=TGT
+            airdromeId: pt.airdromeId || 0,  // airdrome ID for spawn location (TakeOff waypoint)
           });
         }
 
@@ -497,4 +498,48 @@ export function extractAssets(mission, theater) {
   }
 
   return assets;
+}
+
+/**
+ * Extract airdrome data from mission.theatre.airdromes[]
+ * @param {object} mission - The Lua mission table
+ * @param {string} theater - Theater name (e.g., 'Caucasus')
+ * @returns {array} Array of { name, callsign, x, y, elevation, tacan }
+ */
+export function extractAirdromes(mission, theater) {
+  const airdromes = [];
+  const adrms = mission?.theatre?.airdromes;
+
+  if (!Array.isArray(adrms)) return airdromes;
+
+  for (const adr of adrms) {
+    if (!adr) continue;
+
+    const x = Number(adr.x || 0);
+    const y = Number(adr.y || 0);
+    const elevation = Number(adr.elevation || 0);
+    const displayName = adr.display_name || adr.displayName || adr.name || '';
+    const callsign = adr.callsign || displayName;
+
+    // Extract TACAN data if present
+    const tacan = adr.tacan ? {
+      callsign: adr.tacan.callsign || callsign,
+      channel: Number(adr.tacan.channel || 0),
+      modeChannel: String(adr.tacan.modeChannel || 'X').toUpperCase() === 'Y' ? 'Y' : 'X',
+      x: Number(adr.tacan.x || x),
+      y: Number(adr.tacan.y || y),
+      elevation: Number(adr.tacan.elevation || elevation),
+    } : null;
+
+    airdromes.push({
+      name: displayName,
+      callsign: callsign,
+      x: x,
+      y: y,
+      elevation: elevation,
+      tacan: tacan,
+    });
+  }
+
+  return airdromes;
 }
