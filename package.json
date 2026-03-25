@@ -1,0 +1,9 @@
+{
+  "name": "dcs-miz-tool",
+  "version": "1.0.0",
+  "description": "DCS .miz to native .dtc exporter for F-16C and F/A-18C",
+  "scripts": {
+    "start": "npx serve . --listen 8080 --no-clipboard"
+  },
+  "private": true
+}
