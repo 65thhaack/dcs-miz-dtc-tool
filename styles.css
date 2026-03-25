@@ -309,11 +309,16 @@
     /* ── Tabs ─────────────────────────────────────────────────────────── */
     .tabs {
       display: flex;
+      flex-wrap: nowrap;
       border-bottom: 1px solid var(--border);
       padding: 0 16px;
       gap: 2px;
+      overflow-x: auto;
+      overflow-y: hidden;
+      scrollbar-width: thin;
     }
     .tab {
+      flex: 0 0 auto;
       padding: 9px 14px;
       font-size: 12px;
       font-weight: 500;
@@ -330,6 +335,221 @@
     .tab-content { padding: 16px; }
     .tab-panel { display: none; }
     .tab-panel.active { display: block; }
+
+    /* ── Kneeboard Preview ───────────────────────────────────────────── */
+    .kb-wrap {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    .kb-edit-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 8px;
+      padding: 10px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: rgba(88,166,255,0.05);
+    }
+    .kb-edit-grid label {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 10px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .kb-inp {
+      background: var(--bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 4px 6px;
+      font-size: 12px;
+      font-family: var(--mono);
+      width: 100%;
+    }
+    .kb-inp:focus,
+    .kb-notes:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+    .kb-sheet {
+      background: linear-gradient(180deg, #f0e5c6 0%, #eadbb6 100%);
+      border: 1px solid #8f7b4e;
+      border-radius: 8px;
+      padding: 12px;
+      color: #2f2618;
+      box-shadow: inset 0 0 0 1px rgba(72, 60, 34, 0.15);
+    }
+    .kb-title {
+      font-family: Georgia, 'Times New Roman', serif;
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      margin-bottom: 1px;
+    }
+    .kb-sub {
+      font-family: Georgia, 'Times New Roman', serif;
+      font-size: 12px;
+      color: #4a3f29;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .kb-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 8px;
+      font-size: 11px;
+      font-family: 'Courier New', Courier, monospace;
+      background: rgba(255,255,255,0.12);
+    }
+    .kb-table thead th {
+      background: #3c3221;
+      color: #f7edd5;
+      border: 1px solid #5f4f33;
+      padding: 4px 6px;
+      font-size: 10px;
+      letter-spacing: 0.08em;
+    }
+    .kb-table td {
+      border: 1px solid rgba(79, 66, 42, 0.55);
+      padding: 4px 6px;
+      vertical-align: top;
+    }
+    .kb-table tbody tr:hover td {
+      background: rgba(74, 63, 41, 0.08);
+    }
+    .kb-cell-inp {
+      min-width: 0;
+      background: rgba(255,255,255,0.35);
+      color: #2f2618;
+      border-color: #8f7b4e;
+    }
+    .kb-tail-inp {
+      width: 58px;
+      max-width: 58px;
+      text-align: center;
+    }
+    .kb-code-inp {
+      width: 74px;
+      max-width: 74px;
+      text-align: center;
+    }
+    .kb-fuel-row {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .kb-fuel-row label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font: 11px/1.2 'Courier New', Courier, monospace;
+      color: #4a3f29;
+    }
+    .kb-two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .kb-route-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.25fr) minmax(280px, 0.95fr);
+      gap: 10px;
+      align-items: stretch;
+    }
+    .kb-route-table th:last-child,
+    .kb-route-table td:last-child {
+      width: 36%;
+    }
+    .kb-remarks-ta {
+      width: 100%;
+      min-height: 42px;
+      resize: vertical;
+      line-height: 1.25;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      padding-top: 4px;
+      padding-bottom: 4px;
+    }
+    .kb-mini-map {
+      min-height: 300px;
+      border: 1px solid #8f7b4e;
+      border-radius: 6px;
+      overflow: hidden;
+      background: rgba(255,255,255,0.25);
+    }
+    .kb-mini-map-fallback {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      min-height: 300px;
+      color: #6b5a38;
+      font-family: Georgia, 'Times New Roman', serif;
+      font-size: 12px;
+    }
+    .kb-mini-map .leaflet-control-attribution,
+    .kb-mini-map .leaflet-control-container {
+      display: none;
+    }
+    .kb-mini-map-marker-wrap {
+      background: transparent;
+      border: 0;
+    }
+    .kb-mini-map-marker {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      border: 2px solid currentColor;
+      background: rgba(240, 229, 198, 0.95);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font: 700 10px/1 var(--mono);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.18);
+    }
+    .kb-notes-box {
+      background: rgba(255,255,255,0.35);
+      color: #2f2618;
+      border-color: #8f7b4e;
+      resize: vertical;
+    }
+    .kb-payload-line {
+      border: 1px solid #8f7b4e;
+      border-radius: 4px;
+      padding: 6px 8px;
+      background: rgba(255,255,255,0.28);
+      color: #2f2618;
+      font: 12px/1.35 'Courier New', Courier, monospace;
+      white-space: normal;
+      word-break: break-word;
+    }
+    .kb-notes-label {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-family: Georgia, 'Times New Roman', serif;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #4a3f29;
+    }
+    .kb-notes {
+      width: 100%;
+      min-height: 100px;
+      resize: vertical;
+      border: 1px solid #8f7b4e;
+      border-radius: 4px;
+      padding: 8px;
+      background: rgba(255,255,255,0.35);
+      color: #2f2618;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 12px;
+    }
 
     /* ── Tables ───────────────────────────────────────────────────────── */
     table { width: 100%; border-collapse: collapse; font-family: var(--mono); font-size: 12px; }
@@ -515,6 +735,11 @@
       padding: 2px 10px 7px;
       background: rgba(248,81,73,0.04);
       border-bottom: 1px solid #1c2128;
+    }
+
+    @media (max-width: 920px) {
+      .kb-two-col { grid-template-columns: 1fr; }
+      .kb-route-grid { grid-template-columns: 1fr; }
     }
 
     #results { display: none; }

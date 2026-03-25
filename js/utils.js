@@ -63,3 +63,19 @@ export function queueSelectInputContents(inp) {
     if (document.activeElement === inp) inp.select();
   });
 }
+
+export function sanitizeFilename(value, fallback = 'export') {
+  const cleaned = String(value ?? '')
+    .trim()
+    .replace(/[^a-zA-Z0-9_\-]/g, '_');
+  return cleaned || fallback;
+}
+
+export function downloadBlob(blob, fileName) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = fileName;
+  a.click();
+  URL.revokeObjectURL(url);
+}

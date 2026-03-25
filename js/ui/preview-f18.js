@@ -5,6 +5,7 @@ import { tcnCandidateKey } from '../miz/extractor.js';
 import { buildF18Dtc, ensureF18TacanSelection } from '../dtc/builder-f18.js';
 import { F18_NAV_RULES } from '../dtc/defaults.js';
 import { buildPreviewShell } from './preview.js';
+import { buildKneeboardTabHtml } from '../kneeboard/preview.js';
 
 export function buildF18PreviewHtml(flight, family) {
   // If viewing mission DTC, use it; otherwise build from flight data
@@ -14,7 +15,7 @@ export function buildF18PreviewHtml(flight, family) {
     state.previewDtc = f18;
   }
   ensureF18TacanSelection(flight);
-  const allowedTabs = ['wpt', 'navset', 'c1', 'c2', 'tcn', 'cmds', 'rwr'];
+  const allowedTabs = ['wpt', 'navset', 'c1', 'c2', 'tcn', 'cmds', 'rwr', 'kb'];
   const activeTab = allowedTabs.includes(flight.inlinePreviewTab) ? flight.inlinePreviewTab : 'wpt';
 
   // Use DTC steerpoints if viewing mission DTC with nav data; otherwise use flight waypoints
@@ -280,6 +281,9 @@ export function buildF18PreviewHtml(flight, family) {
           <tbody>${rwrRows || '<tr><td colspan="3" style="color:var(--muted)">No ALR67 RWR threats</td></tr>'}</tbody>
         </table>
       </div>
+      <div class="tab-panel${activeTab==='kb' ? ' active' : ''}" data-ipanel="kb">
+        ${buildKneeboardTabHtml(flight, family)}
+      </div>
   `;
 
   return buildPreviewShell(flight, family, [
@@ -290,5 +294,6 @@ export function buildF18PreviewHtml(flight, family) {
     { id: 'tcn',    label: 'TACAN' },
     { id: 'cmds',   label: 'ALR67 CMDS' },
     { id: 'rwr',    label: 'ALR67 RWR' },
+    { id: 'kb',     label: 'Kneeboard' },
   ], activeTab, titleText, bodyHtml);
 }

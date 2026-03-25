@@ -4,6 +4,7 @@ import { normalizeDtc } from '../dtc/normalize.js';
 import { getDtcMergeParts } from '../dtc/export.js';
 import { buildF16PreviewHtml } from './preview-f16.js';
 import { buildF18PreviewHtml } from './preview-f18.js';
+import { renderKneeboardMiniMap } from '../kneeboard/preview.js';
 import { rerenderFlightCards } from './flight-cards.js';
 
 export function buildPreviewShell(flight, family, tabs, activeTab, titleText, bodyHtml) {
@@ -56,6 +57,9 @@ export function previewDtc(family = 'f16', groupId = null, isMissionDtc = false)
   const html = isF18 ? buildF18PreviewHtml(flight, family) : buildF16PreviewHtml(flight, family);
   preview.innerHTML = html;
   preview.classList.add('open');
+  if (flight.inlinePreviewTab === 'kb') {
+    renderKneeboardMiniMap(flight, family);
+  }
 
   // Hide the card-level export row while the preview is open
   const exportDiv = document.getElementById(`card-export-${family}-${flight.groupId}`);
@@ -107,6 +111,9 @@ export function switchInlinePreviewTabBtn(tabEl) {
 
   const flight = findFlightById(wrap.dataset.gid);
   if (flight) flight.inlinePreviewTab = panel;
+  if (panel === 'kb' && flight) {
+    renderKneeboardMiniMap(flight, wrap.dataset.family);
+  }
 }
 
 export function restoreMissionDtcForFlight(family, groupId) {

@@ -1,6 +1,7 @@
 import { state } from '../state.js';
 import { buildDtcNative } from './builder-f16.js';
 import { buildF18DtcNative } from './builder-f18.js';
+import { downloadBlob, sanitizeFilename } from '../utils.js';
 
 export function getDtcMergeParts(normalized) {
   const parts = [];
@@ -35,16 +36,11 @@ export function exportFlightDtc(family, groupId, overrideName) {
   const panel = document.getElementById(`inline-preview-${cardPrefix}-${groupId}`);
   const previewNameInput = panel?.querySelector('.export-name-inp');
   const rawName = overrideName ?? previewNameInput?.value ?? flight.name ?? 'flight';
-  const name = rawName.replace(/[^a-zA-Z0-9_\-]/g, '_') || 'flight';
+  const name = sanitizeFilename(rawName, 'flight');
 
   const json = JSON.stringify(dtc, null, 2);
   const blob = new Blob([json], { type: 'application/json' });
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
-  a.href     = url;
-  a.download = `${name}.dtc`;
-  a.click();
-  URL.revokeObjectURL(url);
+  downloadBlob(blob, `${name}.dtc`);
 }
 
 export function exportFlightButton(btn) {

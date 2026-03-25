@@ -3,6 +3,7 @@ export const state = {
   missionName: '',
   f16Flights: [],
   f18Flights: [],
+  assets: [], // tankers, AWACS, carriers, ships
   tacanCandidates: [],
   missionDtcMap: {}, // mission DTCs from DTC/ folder, keyed by filename (without .dtc)
   personalDtc:   null,

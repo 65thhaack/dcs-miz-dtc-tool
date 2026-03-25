@@ -5,6 +5,7 @@ import { ensureF16CmdsPrograms } from '../dtc/builder-f16.js';
 import { previewDtc } from './preview.js';
 import { defaultF18NavSettings, F18_NAV_RULES } from '../dtc/defaults.js';
 import { ensureF18TacanSelection } from '../dtc/builder-f18.js';
+import { ensureKneeboardDraft } from '../kneeboard/model.js';
 
 // Private path helper (used by setF18NavSetting)
 function setByPath(obj, path, value) {
@@ -179,4 +180,65 @@ export function setCmdsField(inp) {
   else if (field === 'flare_sq')    { p.Flare = p.Flare || {}; p.Flare.SalvoQuantity = Math.round(raw); inp.value = Math.round(raw); }
   else if (field === 'burst_intv')  { p.Chaff = p.Chaff || {}; p.Chaff.BurstInterval = parseFloat(raw.toFixed(3)); inp.value = raw.toFixed(2); }
   else if (field === 'salvo_intv')  { p.Chaff = p.Chaff || {}; p.Chaff.SalvoInterval = parseFloat(raw.toFixed(3)); inp.value = raw.toFixed(2); }
+}
+
+export function setKneeboardField(inp) {
+  const flight = findFlightById(inp.dataset.gid);
+  if (!flight) return;
+  const kb = ensureKneeboardDraft(flight);
+  const field = inp.dataset.field;
+  if (!field) return;
+  kb[field] = inp.value;
+}
+
+export function setKneeboardLoadoutField(inp) {
+  const flight = findFlightById(inp.dataset.gid);
+  if (!flight) return;
+  const kb = ensureKneeboardDraft(flight);
+  const idx = Number(inp.dataset.idx);
+  const field = inp.dataset.field;
+  if (!Number.isInteger(idx) || idx < 0 || idx >= kb.loadout.length) return;
+  if (!['station', 'type'].includes(field)) return;
+  kb.loadout[idx][field] = inp.value;
+}
+
+export function setKneeboardUnitCallsign(inp) {
+  const flight = findFlightById(inp.dataset.gid);
+  if (!flight) return;
+  const kb = ensureKneeboardDraft(flight);
+  const idx = Number(inp.dataset.idx);
+  if (!Number.isInteger(idx) || idx < 0 || idx >= (flight.units?.length || 0)) return;
+  kb.unitCallsigns[idx] = inp.value;
+}
+
+export function setKneeboardUnitTailNumber(inp) {
+  const flight = findFlightById(inp.dataset.gid);
+  if (!flight) return;
+  const kb = ensureKneeboardDraft(flight);
+  const idx = Number(inp.dataset.idx);
+  if (!Number.isInteger(idx) || idx < 0 || idx >= (flight.units?.length || 0)) return;
+  kb.unitTailNumbers[idx] = inp.value;
+}
+
+export function setKneeboardUnitCode(inp) {
+  const flight = findFlightById(inp.dataset.gid);
+  if (!flight) return;
+  const kb = ensureKneeboardDraft(flight);
+  const idx = Number(inp.dataset.idx);
+  const field = inp.dataset.field;
+  if (!Number.isInteger(idx) || idx < 0 || idx >= (flight.units?.length || 0)) return;
+  if (field === 'datalink') kb.unitDatalinkCodes[idx] = inp.value;
+  if (field === 'laser') kb.unitLaserCodes[idx] = inp.value;
+}
+
+export function setKneeboardRouteField(inp) {
+  const flight = findFlightById(inp.dataset.gid);
+  if (!flight) return;
+  const kb = ensureKneeboardDraft(flight);
+  const idx = Number(inp.dataset.idx);
+  const field = inp.dataset.field;
+  if (!Number.isInteger(idx) || idx < 0 || idx >= (flight.waypoints?.length || 0)) return;
+  if (!['tot', 'push', 'remarks'].includes(field)) return;
+  kb.routeData[idx] = kb.routeData[idx] || { tot: '', push: '', remarks: '' };
+  kb.routeData[idx][field] = inp.value;
 }

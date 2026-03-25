@@ -3,6 +3,7 @@ import { escapeAttr } from '../utils.js';
 import { latDecimalMinutes, lonDecimalMinutes, dcsToLatLon } from '../coords.js';
 import { buildDtc } from '../dtc/builder-f16.js';
 import { buildPreviewShell } from './preview.js';
+import { buildKneeboardTabHtml } from '../kneeboard/preview.js';
 
 export function buildF16PreviewHtml(flight, family) {
   // If viewing mission DTC, use it; otherwise build from flight data
@@ -23,7 +24,7 @@ export function buildF16PreviewHtml(flight, family) {
   if (!isMissionDtcView) {
     state.previewDtc = dtc;
   }
-  const allowedTabs = ['wpt', 'c1', 'c2', 'cmds'];
+  const allowedTabs = ['wpt', 'c1', 'c2', 'cmds', 'kb'];
   const activeTab = allowedTabs.includes(flight.inlinePreviewTab) ? flight.inlinePreviewTab : 'wpt';
 
   // Use DTC steerpoints if viewing mission DTC with nav data; otherwise use flight waypoints
@@ -199,6 +200,9 @@ export function buildF16PreviewHtml(flight, family) {
           <tbody>${cmdsRows || '<tr><td colspan="5" style="color:var(--muted);text-align:center">No CMDS data</td></tr>'}</tbody>
         </table>
       </div>
+      <div class="tab-panel${activeTab==='kb' ? ' active' : ''}" data-ipanel="kb">
+        ${buildKneeboardTabHtml(flight, family)}
+      </div>
   `;
 
   return buildPreviewShell(flight, family, [
@@ -206,5 +210,6 @@ export function buildF16PreviewHtml(flight, family) {
     { id: 'c1',   label: 'COM1' },
     { id: 'c2',   label: 'COM2' },
     { id: 'cmds', label: 'CMDS' },
+    { id: 'kb',   label: 'Kneeboard' },
   ], activeTab, titleText, bodyHtml);
 }
